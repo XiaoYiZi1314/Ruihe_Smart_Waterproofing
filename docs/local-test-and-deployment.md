@@ -9,7 +9,33 @@
 
 ## 一、本地开发测试
 
-### 1.1 前置准备
+### 1.1 获取项目代码
+
+#### 从 GitHub 克隆项目
+
+```bash
+# 使用 HTTPS（无需配置 SSH）
+git clone https://github.com/XiaoYiZi1314/Ruihe_Smart_Waterproofing.git
+
+# 或使用 SSH（需要配置 SSH 密钥）
+git clone git@github.com:XiaoYiZi1314/Ruihe_Smart_Waterproofing.git
+
+# 进入项目目录
+cd Ruihe_Smart_Waterproofing
+```
+
+#### 项目结构
+
+```
+Ruihe_Smart_Waterproofing/
+├── backend/          # 后端服务
+├── miniapp/          # 微信小程序
+└── docs/            # 文档
+```
+
+---
+
+### 1.2 前置准备
 
 #### 需要安装的软件
 
@@ -421,29 +447,37 @@ npm run migrate
 
 ### 2.2 服务器环境配置
 
-#### 步骤 1：连接服务器
+#### 登录服务器
 
-**Windows 用户**：
 ```bash
-# 使用 PowerShell 或 PuTTY
+# 使用 SSH 登录（替换为你的服务器 IP）
 ssh root@your_server_ip
 ```
 
-**Mac/Linux 用户**：
+#### 获取项目代码
+
 ```bash
-ssh root@your_server_ip
+# 安装 Git（如果未安装）
+apt update
+apt install -y git
+
+# 克隆项目到服务器
+cd /opt
+git clone https://github.com/XiaoYiZi1314/Ruihe_Smart_Waterproofing.git
+cd Ruihe_Smart_Waterproofing
+
+# 查看项目结构
+ls -la
 ```
 
-#### 步骤 2：更新系统
+#### 更新系统和安装基础工具
 
 ```bash
-sudo apt update && sudo apt upgrade -y
-```
+# 更新系统
+apt update && apt upgrade -y
 
-#### 步骤 3：安装基础工具
-
-```bash
-sudo apt install -y git curl wget vim
+# 安装基础工具（Git 已安装）
+apt install -y curl wget vim
 ```
 
 #### 步骤 4：安装 Node.js
@@ -458,18 +492,30 @@ node -v  # 应该显示 v20.x.x
 npm -v   # 应该显示 10.x.x
 ```
 
-#### 步骤 5：安装 MySQL
+#### 安装 Node.js
+
+```bash
+# 安装 Node.js 20.x LTS
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt install -y nodejs
+
+# 验证安装
+node -v
+npm -v
+```
+
+#### 安装 MySQL
 
 ```bash
 # 安装 MySQL
-sudo apt install -y mysql-server
+apt install -y mysql-server
 
 # 启动 MySQL
-sudo systemctl start mysql
-sudo systemctl enable mysql
+systemctl start mysql
+systemctl enable mysql
 
 # 安全配置
-sudo mysql_secure_installation
+mysql_secure_installation
 ```
 
 配置建议：
@@ -481,25 +527,25 @@ sudo mysql_secure_installation
 5. 重新加载权限表？ -> Yes
 ```
 
-#### 步骤 6：安装 Nginx
+#### 安装 Nginx
 
 ```bash
 # 安装 Nginx
-sudo apt install -y nginx
+apt install -y nginx
 
 # 启动 Nginx
-sudo systemctl start nginx
-sudo systemctl enable nginx
+systemctl start nginx
+systemctl enable nginx
 
 # 验证
-sudo systemctl status nginx
+systemctl status nginx
 ```
 
-#### 步骤 7：安装 PM2
+#### 安装 PM2
 
 ```bash
 # 全局安装 PM2
-sudo npm install -g pm2
+npm install -g pm2
 
 # 验证
 pm2 -v
@@ -509,49 +555,17 @@ pm2 -v
 
 ### 2.3 部署后端服务
 
-#### 步骤 1：创建项目目录
+#### 进入后端目录
 
 ```bash
-sudo mkdir -p /var/www
-cd /var/www
+cd /opt/Ruihe_Smart_Waterproofing/backend
 ```
 
-#### 步骤 2：上传代码
-
-**方式 1：使用 Git（推荐）**
-```bash
-# 克隆代码仓库
-sudo git clone <your-repo-url> waterproof
-
-# 如果还没有 Git 仓库，先在本地创建并推送：
-# 1. 在 GitHub/Gitee 创建仓库
-# 2. 本地执行：
-#    git init
-#    git add .
-#    git commit -m "初始提交"
-#    git branch -M main
-#    git remote add origin <your-repo-url>
-#    git push -u origin main
-```
-
-**方式 2：使用 FTP/SFTP**
-```bash
-# 使用 FileZilla 或 WinSCP 上传
-# 将本地的整个项目文件夹上传到 /var/www/waterproof
-```
-
-#### 步骤 3：设置权限
-
-```bash
-sudo chown -R $USER:$USER /var/www/waterproof
-cd /var/www/waterproof/backend
-```
-
-#### 步骤 4：配置生产环境数据库
+#### 配置生产环境数据库
 
 ```bash
 # 登录 MySQL
-sudo mysql -u root -p
+mysql -u root -p
 ```
 
 执行 SQL：
@@ -568,13 +582,13 @@ FLUSH PRIVILEGES;
 EXIT;
 ```
 
-#### 步骤 5：安装依赖
+#### 安装依赖
 
 ```bash
 npm install --production
 ```
 
-#### 步骤 6：配置生产环境变量
+#### 配置生产环境变量
 
 ```bash
 cp .env.example .env
@@ -608,13 +622,13 @@ JWT_EXPIRES_IN=7d
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-#### 步骤 7：初始化生产数据库
+#### 初始化生产数据库
 
 ```bash
 npm run migrate
 ```
 
-#### 步骤 8：使用 PM2 启动服务
+#### 使用 PM2 启动服务
 
 ```bash
 # 启动服务
@@ -636,10 +650,10 @@ pm2 logs waterproof-api
 
 ### 2.4 配置 Nginx
 
-#### 步骤 1：创建 Nginx 配置
+#### 创建 Nginx 配置
 
 ```bash
-sudo vim /etc/nginx/sites-available/waterproof-api
+vim /etc/nginx/sites-available/waterproof-api
 ```
 
 添加配置（修改域名）：
@@ -667,20 +681,20 @@ server {
 }
 ```
 
-#### 步骤 2：启用配置
+#### 启用配置
 
 ```bash
 # 创建软链接
-sudo ln -s /etc/nginx/sites-available/waterproof-api /etc/nginx/sites-enabled/
+ln -s /etc/nginx/sites-available/waterproof-api /etc/nginx/sites-enabled/
 
 # 测试配置
-sudo nginx -t
+nginx -t
 
 # 重载 Nginx
-sudo systemctl reload nginx
+systemctl reload nginx
 ```
 
-#### 步骤 3：验证 HTTP 访问
+#### 验证 HTTP 访问
 
 ```bash
 curl http://api.yourdomain.com/health
@@ -698,17 +712,17 @@ curl http://api.yourdomain.com/health
 
 ### 2.5 配置 HTTPS（SSL证书）
 
-#### 步骤 1：安装 Certbot
+#### 安装 Certbot
 
 ```bash
-sudo apt install -y certbot python3-certbot-nginx
+apt install -y certbot python3-certbot-nginx
 ```
 
-#### 步骤 2：申请 SSL 证书
+#### 申请 SSL 证书
 
 ```bash
 # 自动配置（推荐）
-sudo certbot --nginx -d api.yourdomain.com
+certbot --nginx -d api.yourdomain.com
 
 # 按提示操作：
 # 1. 输入邮箱（用于证书过期提醒）
@@ -716,13 +730,13 @@ sudo certbot --nginx -d api.yourdomain.com
 # 3. 是否重定向到 HTTPS：2（推荐）
 ```
 
-#### 步骤 3：测试自动续期
+#### 测试自动续期
 
 ```bash
-sudo certbot renew --dry-run
+certbot renew --dry-run
 ```
 
-#### 步骤 4：验证 HTTPS
+#### 验证 HTTPS
 
 ```bash
 curl https://api.yourdomain.com/health
