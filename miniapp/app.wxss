@@ -1,0 +1,9 @@
+page {
+  background-color: #111827;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  color: #F8FAFC;
+}
+
+.container {
+  min-height: 100vh;
+}

@@ -1,0 +1,102 @@
+<view class="container">
+  <!-- 轮播图 -->
+  <swiper class="banner-swiper" indicator-dots autoplay interval="3000" circular>
+    <swiper-item wx:for="{{banners}}" wx:key="id" bindtap="onBannerTap" data-link="{{item.link}}">
+      <image class="banner-image" src="{{item.image}}" mode="aspectFill" />
+    </swiper-item>
+  </swiper>
+
+  <!-- 热门服务 -->
+  <view class="section">
+    <view class="section-header">
+      <view class="section-title">热门服务</view>
+      <view class="section-subtitle">专业防水 品质保障</view>
+    </view>
+    <view class="services-grid">
+      <view class="service-card" wx:for="{{services}}" wx:key="id" bindtap="onServiceTap" data-id="{{item.id}}">
+        <image class="service-image" src="{{item.image}}" mode="aspectFill" />
+        <view class="service-info">
+          <text class="service-name">{{item.name}}</text>
+          <text class="service-desc">{{item.desc}}</text>
+          <view class="service-footer">
+            <text class="service-price">¥{{item.price}}</text>
+            <view class="service-action">查看详情</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 联系我们 -->
+  <view class="section">
+    <view class="section-header">
+      <view class="section-title">联系我们</view>
+      <view class="section-subtitle">全天候为您服务</view>
+    </view>
+    <view class="contact-card">
+      <view class="contact-item">
+        <view class="contact-icon">📍</view>
+        <view class="contact-content">
+          <text class="contact-label">服务地址</text>
+          <text class="contact-value">{{contact.address}}</text>
+        </view>
+      </view>
+      <view class="contact-item" bindtap="onCallPhone">
+        <view class="contact-icon">📞</view>
+        <view class="contact-content">
+          <text class="contact-label">联系电话</text>
+          <text class="contact-value link">{{contact.phone}}</text>
+        </view>
+      </view>
+      <view class="contact-item">
+        <view class="contact-icon">⏰</view>
+        <view class="contact-content">
+          <text class="contact-label">营业时间</text>
+          <text class="contact-value">{{contact.hours}}</text>
+        </view>
+      </view>
+      <view class="contact-item" bindtap="onCopyWechat">
+        <view class="contact-icon">💬</view>
+        <view class="contact-content">
+          <text class="contact-label">微信号</text>
+          <text class="contact-value link">{{contact.wechat}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 关于我们 -->
+  <view class="section">
+    <view class="section-header">
+      <view class="section-title">关于我们</view>
+      <view class="section-subtitle">专业 诚信 高效</view>
+    </view>
+    <view class="about-card">
+      <text class="about-text">{{aboutUs}}</text>
+    </view>
+  </view>
+
+  <!-- 加盟信息 -->
+  <view class="section">
+    <view class="section-header">
+      <view class="section-title">加盟合作</view>
+      <view class="section-subtitle">携手共赢 共创未来</view>
+    </view>
+    <view class="join-card">
+      <text class="join-desc">{{joinInfo.description}}</text>
+      <view class="join-benefits">
+        <view class="benefit-item" wx:for="{{joinInfo.benefits}}" wx:key="index">
+          <text class="benefit-dot">●</text>
+          <text class="benefit-text">{{item}}</text>
+        </view>
+      </view>
+      <view class="join-phone">
+        <text>加盟热线：</text>
+        <text class="phone-number" bindtap="onCallPhone">{{joinInfo.phone}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部留白 -->
+  <view class="footer-spacer"></view>
+</view>
