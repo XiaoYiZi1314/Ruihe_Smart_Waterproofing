@@ -1,0 +1,4 @@
+<view class="rh-info">
+  <text class="rh-info__label">{{label}}</text>
+  <text class="rh-info__value {{emphasize ? 'is-price' : ''}}">{{value}}</text>
+</view>

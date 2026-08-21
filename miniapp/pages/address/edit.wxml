@@ -1,0 +1,52 @@
+<view class="page-wrap page-wrap--footer">
+  <rh-form-field label="联系人" required>
+    <input
+      class="rh-input"
+      placeholder="请输入联系人姓名"
+      maxlength="20"
+      value="{{form.contact_name}}"
+      bindinput="onNameInput"
+    />
+  </rh-form-field>
+
+  <rh-form-field label="手机号码" required>
+    <input
+      class="rh-input"
+      type="number"
+      placeholder="请输入手机号码"
+      maxlength="11"
+      value="{{form.contact_phone}}"
+      bindinput="onPhoneInput"
+    />
+  </rh-form-field>
+
+  <rh-form-field label="所在地区" required>
+    <picker mode="region" value="{{region}}" bindchange="onRegionChange">
+      <view class="rh-form-value">
+        <text wx:if="{{region[0]}}">{{region[0]}} {{region[1]}} {{region[2]}}</text>
+        <text wx:else class="rh-form-value__ph">请选择省市区</text>
+        <text class="rh-form-value__ph">选择 ›</text>
+      </view>
+    </picker>
+  </rh-form-field>
+
+  <rh-form-field label="详细地址" required>
+    <textarea
+      class="rh-input rh-input--area"
+      placeholder="请输入详细地址（街道、门牌号等）"
+      maxlength="200"
+      value="{{form.detail_address}}"
+      bindinput="onDetailInput"
+    />
+  </rh-form-field>
+
+  <rh-form-field label="设为默认地址">
+    <view class="switch-row">
+      <switch checked="{{form.is_default}}" color="#2B7BE4" bindchange="onDefaultChange" />
+    </view>
+  </rh-form-field>
+
+  <rh-sticky-bar>
+    <rh-button variant="brand" size="lg" block text="保存" bind:tap="onSave" />
+  </rh-sticky-bar>
+</view>

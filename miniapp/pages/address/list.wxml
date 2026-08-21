@@ -1,0 +1,41 @@
+<view class="page-wrap page-wrap--footer">
+  <view wx:if="{{!loading && addresses.length > 0}}">
+    <view
+      wx:for="{{addresses}}"
+      wx:key="id"
+      class="addr-wrap"
+      bindtap="onSelectAddress"
+      data-address="{{item}}"
+    >
+      <rh-card>
+        <view class="addr-head">
+          <view>
+            <text class="addr-name">{{item.contact_name}}</text>
+            <text class="addr-phone">{{item.contact_phone}}</text>
+          </view>
+          <rh-status-tag wx:if="{{item.is_default}}" status="confirmed" text="默认" />
+        </view>
+        <view class="addr-text">{{item.province}} {{item.city}} {{item.district}} {{item.detail_address}}</view>
+        <view class="addr-actions" catchtap="stop">
+          <rh-button size="sm" variant="line" text="编辑" data-id="{{item.id}}" bind:tap="onEditAddress" />
+          <rh-button
+            wx:if="{{!item.is_default}}"
+            size="sm"
+            variant="line"
+            text="设为默认"
+            data-id="{{item.id}}"
+            bind:tap="onSetDefault"
+          />
+          <rh-button size="sm" variant="danger" text="删除" data-id="{{item.id}}" bind:tap="onDeleteAddress" />
+        </view>
+      </rh-card>
+    </view>
+  </view>
+
+  <rh-empty wx:if="{{!loading && addresses.length === 0}}" text="还没有地址" icon="location" />
+  <rh-empty wx:if="{{loading}}" text="加载中..." />
+
+  <rh-sticky-bar>
+    <rh-button variant="brand" size="lg" block text="+ 新增地址" bind:tap="onAddAddress" />
+  </rh-sticky-bar>
+</view>

@@ -1,0 +1,58 @@
+/* 设计令牌 — 还原自 temp/miniprogram-prototype.html
+ * 原型以 375px 宽度为基准，1px ≈ 2rpx
+ */
+
+page {
+  --color-primary: #1A5CFF;
+  --color-brand: #2B7BE4;
+  --color-brand-light: #5B9AF5;
+  --color-brand-pale: #7DB5FF;
+  --color-brand-soft: #EAF2FF;
+  --color-orange: #FAAD14;
+  --color-green: #52C41A;
+  --color-gray: #9CA3AF;
+  --color-red: #F5222D;
+
+  --color-bg: #F4F6FA;
+  --color-surface: #ffffff;
+  --color-text: #1F2937;
+  --color-text-secondary: #6B7280;
+  --color-text-muted: #9CA3AF;
+  --color-text-body: #374151;
+  --color-border: #EEF1F6;
+  --color-divider: #F1F3F7;
+  --color-input-bg: #F8FAFD;
+  --color-input-border: #E5E7EB;
+  --color-slot-bg: #F1F3F7;
+  --color-pending-bg: #FFF7E6;
+  --color-confirmed-bg: #E8F1FF;
+  --color-doing-bg: #EAFBF1;
+  --color-done-bg: #F1F3F7;
+  --color-cancel-bg: #FDEEEE;
+  --color-master-bg: #F6F9FF;
+  --color-menu-active: #F6F8FB;
+  --color-handle: #E2E6EE;
+  --color-arrow: #D1D5DB;
+
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+
+  --radius-sm: 12rpx;
+  --radius-md: 16rpx;
+  --radius-lg: 20rpx;
+  --radius-xl: 24rpx;
+  --radius-pill: 36rpx;
+  --radius-full: 999rpx;
+
+  --space-1: 8rpx;
+  --space-2: 12rpx;
+  --space-3: 16rpx;
+  --space-4: 20rpx;
+  --space-5: 24rpx;
+  --space-6: 28rpx;
+  --space-7: 32rpx;
+
+  --shadow: 0 4rpx 16rpx rgba(15, 23, 42, 0.05);
+  --shadow-2: 0 8rpx 28rpx rgba(15, 23, 42, 0.06);
+  --shadow-brand: 0 6rpx 16rpx rgba(43, 123, 228, 0.3);
+  --shadow-quick: 0 8rpx 20rpx rgba(43, 123, 228, 0.25);
+}

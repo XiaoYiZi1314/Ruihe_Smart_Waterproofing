@@ -1,0 +1,3 @@
+<view class="rh-card {{padding ? 'rh-card--pad' : ''}} {{flush ? 'rh-card--flush' : ''}}">
+  <slot></slot>
+</view>

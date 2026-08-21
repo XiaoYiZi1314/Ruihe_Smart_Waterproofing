@@ -1,0 +1,39 @@
+<view class="page-wrap page-wrap--footer">
+  <view wx:if="{{!loading && service}}">
+    <view class="detail-banner" style="background: {{bannerGradient}};">
+      <image wx:if="{{service.cover_image}}" class="detail-banner__img" src="{{service.cover_image}}" mode="aspectFill" />
+      <view class="detail-banner__mask">
+        <view class="detail-banner__title">{{service.name}}</view>
+      </view>
+    </view>
+
+    <view class="detail-price">
+      {{priceMain}}
+      <text class="detail-price__unit">{{priceSuffix || '参考价格'}}</text>
+    </view>
+
+    <view class="detail-sec">
+      <view class="detail-h">服务亮点</view>
+      <view class="detail-tags">
+        <text wx:for="{{highlights}}" wx:key="*this">{{item}}</text>
+      </view>
+    </view>
+
+    <view class="detail-sec">
+      <view class="detail-h">服务介绍</view>
+      <view class="detail-p">{{service.description || '专业防水施工，免费上门勘测，签约质保。'}}</view>
+    </view>
+
+    <view class="detail-sec">
+      <view class="detail-h">服务流程</view>
+      <view class="detail-p">① 在线预约 → ② 上门勘测 → ③ 方案确认 → ④ 施工作业 → ⑤ 验收质保</view>
+    </view>
+  </view>
+
+  <rh-empty wx:if="{{loading}}" text="加载中..." />
+
+  <rh-sticky-bar wx:if="{{!loading && service}}">
+    <rh-button variant="line" size="lg" text="咨询客服" bind:tap="onConsult" />
+    <rh-button variant="brand" size="lg" block text="立即预约" bind:tap="onBook" />
+  </rh-sticky-bar>
+</view>

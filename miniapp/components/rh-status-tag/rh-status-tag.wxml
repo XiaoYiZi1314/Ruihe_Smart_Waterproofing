@@ -1,0 +1,1 @@
+<view class="rh-status rh-status--{{status}}">{{text}}</view>

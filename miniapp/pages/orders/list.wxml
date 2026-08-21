@@ -1,0 +1,20 @@
+<view class="page-wrap">
+  <view class="order-tags">
+    <rh-tag-bar items="{{tabs}}" active-key="{{currentTab}}" bind:change="onTabChange" />
+  </view>
+
+  <rh-order-card
+    wx:for="{{orders}}"
+    wx:key="id"
+    order="{{item}}"
+    bind:tap="onOrderTap"
+    bind:action="onOrderAction"
+  />
+
+  <rh-empty wx:if="{{!loading && orders.length === 0}}" text="暂无相关工单" icon="empty" />
+  <rh-load-more
+    wx:if="{{orders.length > 0}}"
+    loading="{{loading}}"
+    finished="{{!hasMore}}"
+  />
+</view>

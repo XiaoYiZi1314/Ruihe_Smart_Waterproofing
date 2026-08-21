@@ -1,0 +1,5 @@
+<view class="rh-more">
+  <text wx:if="{{loading}}">加载中...</text>
+  <text wx:elif="{{finished}}">{{finishedText}}</text>
+  <text wx:else>{{text}}</text>
+</view>

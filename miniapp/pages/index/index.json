@@ -1,3 +1,5 @@
 {
-  "navigationBarTitleText": "瑞和防水"
+  "navigationBarTitleText": "瑞和智慧",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#F4F6FA"
 }

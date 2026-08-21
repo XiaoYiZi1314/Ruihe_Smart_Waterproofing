@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "我的工单",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 50,
+  "backgroundColor": "#F4F6FA"
+}

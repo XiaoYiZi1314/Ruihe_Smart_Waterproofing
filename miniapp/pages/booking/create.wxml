@@ -1,0 +1,88 @@
+<view class="page-wrap page-wrap--footer">
+  <view class="book-title">预约服务</view>
+  <view class="rh-form-tip">
+    <rh-icon name="info" tone="brand" size="28" />
+    <text>提交后生成待确认工单，客服将在30分钟内联系您</text>
+  </view>
+
+  <rh-form-field label="服务项目" required>
+    <view class="rh-form-value">
+      <text>{{service.name || '加载中...'}}</text>
+      <text class="rh-form-value__ph">已选择</text>
+    </view>
+  </rh-form-field>
+
+  <rh-form-field label="预约日期" required>
+    <rh-slot-picker options="{{dateOptions}}" value="{{dateValue}}" bind:change="onDateChange" />
+  </rh-form-field>
+
+  <rh-form-field label="时间段" required>
+    <rh-slot-picker options="{{timeOptions}}" value="{{timeValue}}" bind:change="onTimeChange" />
+  </rh-form-field>
+
+  <rh-form-field label="服务地址" required>
+    <view class="rh-form-value" bindtap="onSelectAddress">
+      <text wx:if="{{selectedAddress}}">{{addressText}}</text>
+      <text wx:else class="rh-form-value__ph">请选择服务地址</text>
+      <text class="rh-form-value__ph">选择地址 ›</text>
+    </view>
+  </rh-form-field>
+
+  <rh-form-field label="联系人姓名" required>
+    <input
+      class="rh-input"
+      placeholder="请输入联系人姓名"
+      value="{{contactName}}"
+      bindinput="onNameInput"
+    />
+  </rh-form-field>
+
+  <rh-form-field label="联系电话" required>
+    <input
+      class="rh-input"
+      type="number"
+      placeholder="请输入联系电话"
+      value="{{contactPhone}}"
+      bindinput="onPhoneInput"
+    />
+  </rh-form-field>
+
+  <rh-form-field label="期望价格">
+    <view class="price-row">
+      <input
+        class="rh-input"
+        type="digit"
+        placeholder="请输入期望价格（选填）"
+        value="{{form.expected_price}}"
+        bindinput="onPriceInput"
+      />
+    </view>
+  </rh-form-field>
+
+  <rh-form-field label="现场图片">
+    <view class="image-list">
+      <view wx:for="{{form.images}}" wx:key="*this" class="image-item">
+        <image class="image-preview" src="{{item}}" mode="aspectFill" bindtap="onPreviewImage" data-url="{{item}}" />
+        <view class="image-delete" catchtap="onDeleteImage" data-index="{{index}}">×</view>
+      </view>
+      <view wx:if="{{form.images.length < maxImages}}" class="image-add" bindtap="onChooseImage">
+        <text>+</text>
+        <text>上传图片</text>
+      </view>
+    </view>
+  </rh-form-field>
+
+  <rh-form-field label="备注信息">
+    <textarea
+      class="rh-input rh-input--area"
+      placeholder="请描述渗漏情况、位置等（选填）"
+      maxlength="500"
+      value="{{form.remark}}"
+      bindinput="onRemarkInput"
+    />
+  </rh-form-field>
+
+  <rh-sticky-bar>
+    <rh-button variant="brand" size="lg" block text="提交预约" bind:tap="onSubmit" />
+  </rh-sticky-bar>
+</view>

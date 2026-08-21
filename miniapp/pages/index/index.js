@@ -1,161 +1,214 @@
 const auth = require('../../utils/auth');
+const api = require('../../utils/api');
+const theme = require('../../utils/theme');
+
+const FALLBACK_BANNERS = [
+  {
+    id: 'fb-1',
+    title: '专业防水堵漏服务',
+    subtitle: '20年施工经验 · 免费上门勘测',
+    gradient: 'linear-gradient(135deg, #1A5CFF, #5B9AF5)'
+  },
+  {
+    id: 'fb-2',
+    title: '雨季防水专项保障',
+    subtitle: '屋顶/外墙/卫生间 全屋解决方案',
+    gradient: 'linear-gradient(135deg, #2B7BE4, #5B9AF5)'
+  },
+  {
+    id: 'fb-3',
+    title: '质保5年 安心无忧',
+    subtitle: '签约施工 · 全国联保',
+    gradient: 'linear-gradient(135deg, #1A5CFF, #2B7BE4)'
+  }
+];
 
 Page({
   data: {
-    // 轮播图数据
-    banners: [
-      {
-        id: 1,
-        image: 'https://picsum.photos/750/400?random=1',
-        link: ''
-      },
-      {
-        id: 2,
-        image: 'https://picsum.photos/750/400?random=2',
-        link: ''
-      },
-      {
-        id: 3,
-        image: 'https://picsum.photos/750/400?random=3',
-        link: ''
-      }
-    ],
-
-    // 服务项目数据
-    services: [
-      {
-        id: 1,
-        name: '屋顶防水',
-        price: '500-1000',
-        image: 'https://picsum.photos/300/300?random=11',
-        desc: '专业屋顶防水施工'
-      },
-      {
-        id: 2,
-        name: '卫生间防水',
-        price: '300-800',
-        image: 'https://picsum.photos/300/300?random=12',
-        desc: '卫生间防水补漏'
-      },
-      {
-        id: 3,
-        name: '阳台防水',
-        price: '200-600',
-        image: 'https://picsum.photos/300/300?random=13',
-        desc: '阳台防水处理'
-      },
-      {
-        id: 4,
-        name: '外墙防水',
-        price: '800-2000',
-        image: 'https://picsum.photos/300/300?random=14',
-        desc: '外墙防水工程'
-      },
-      {
-        id: 5,
-        name: '地下室防水',
-        price: '1000-3000',
-        image: 'https://picsum.photos/300/300?random=15',
-        desc: '地下室防潮处理'
-      },
-      {
-        id: 6,
-        name: '水池防水',
-        price: '600-1500',
-        image: 'https://picsum.photos/300/300?random=16',
-        desc: '水池防水施工'
-      }
-    ],
-
-    // 联系方式
-    contact: {
-      address: '北京市朝阳区某某街道123号',
-      phone: '400-123-4567',
-      hours: '周一至周日 8:00-18:00',
-      wechat: 'ruihe_waterproof'
-    },
-
-    // 关于我们
-    aboutUs: '瑞和防水是一家专业从事防水施工的企业，拥有10年以上行业经验。我们提供屋顶防水、卫生间防水、外墙防水等全方位防水解决方案。公司拥有专业的施工团队和先进的施工工艺，为客户提供优质、高效的防水服务。',
-
-    // 加盟信息
-    joinInfo: {
-      description: '诚邀全国各地优质防水施工团队加盟合作',
-      phone: '400-123-4567',
-      benefits: ['品牌支持', '技术培训', '订单共享', '售后保障']
-    }
+    banners: FALLBACK_BANNERS,
+    services: [],
+    allServices: [],
+    categoryTags: [{ key: null, label: '全部' }],
+    currentCategoryId: null,
+    contact: {},
+    aboutUs: '',
+    joinInfo: {},
+    keyword: '',
+    loading: true
   },
 
   onLoad() {
-    // 检查登录状态
     if (!auth.checkLogin()) {
-      wx.redirectTo({
-        url: '/pages/login/login'
-      });
+      wx.redirectTo({ url: '/pages/login/login' });
+      return;
     }
+    this.loadData();
   },
 
   onShow() {
-    // 页面显示时更新用户信息
     const userInfo = wx.getStorageSync('userInfo');
     if (userInfo) {
+      this.setData({ userInfo });
+    }
+  },
+
+  async loadData() {
+    wx.showLoading({ title: '加载中...' });
+
+    try {
+      const [bannersRes, servicesRes, categoriesRes, configRes] = await Promise.all([
+        api.getBanners(),
+        api.getServices({ is_hot: 1, limit: 6 }),
+        api.getCategories(),
+        api.getConfig()
+      ]);
+
+      let banners = FALLBACK_BANNERS;
+      if (bannersRes.success && bannersRes.data && bannersRes.data.length) {
+        banners = bannersRes.data.map((item, index) => ({
+          ...item,
+          title: item.title || FALLBACK_BANNERS[index % FALLBACK_BANNERS.length].title,
+          subtitle: item.subtitle || item.description || FALLBACK_BANNERS[index % FALLBACK_BANNERS.length].subtitle,
+          gradient: item.gradient || theme.coverGradient(item.id)
+        }));
+      }
+
+      const allServices = servicesRes.success ? servicesRes.data : [];
+      const categoryTags = [{ key: null, label: '全部' }].concat(
+        (categoriesRes.success ? categoriesRes.data : []).map((item) => ({
+          key: item.id,
+          label: item.name
+        }))
+      );
+
+      const config = configRes.success ? configRes.data : {};
+
       this.setData({
-        userInfo: userInfo
+        banners,
+        allServices,
+        services: allServices,
+        categoryTags,
+        contact: config.contact_info || {},
+        aboutUs: config.about_us || '瑞和智慧防水工程有限公司，专注建筑防水堵漏领域20年，拥有甲级施工资质，服务覆盖全国200+城市。以“科技防水、匠心堵漏”为理念，为客户提供勘测、设计、施工、质保一站式解决方案。',
+        joinInfo: config.join_info || {},
+        loading: false
       });
+    } catch (error) {
+      console.error('加载数据失败:', error);
+      wx.showToast({ title: '加载失败，请重试', icon: 'none' });
+      this.setData({ loading: false });
+    } finally {
+      wx.hideLoading();
     }
   },
 
-  /**
-   * 轮播图点击事件
-   */
+  onPullDownRefresh() {
+    this.loadData().then(() => {
+      wx.stopPullDownRefresh();
+    });
+  },
+
+  onSearchInput(e) {
+    this.setData({ keyword: e.detail.value });
+  },
+
+  onSearchConfirm(e) {
+    const keyword = (e.detail.value || '').trim();
+    getApp().globalData.serviceKeyword = keyword;
+    wx.switchTab({ url: '/pages/services/list' });
+  },
+
+  onQuickTap(e) {
+    const { key } = e.detail;
+    if (key === 'service') {
+      wx.switchTab({ url: '/pages/services/list' });
+    } else if (key === 'order') {
+      wx.switchTab({ url: '/pages/orders/list' });
+    } else if (key === 'consult') {
+      this.onCallPhone();
+    } else if (key === 'about') {
+      this.onAboutMore();
+    }
+  },
+
+  onCategoryChange(e) {
+    const categoryId = e.detail.key;
+    const { allServices } = this.data;
+    const services = categoryId == null
+      ? allServices
+      : allServices.filter((item) => item.category_id === categoryId);
+    this.setData({
+      currentCategoryId: categoryId,
+      services
+    });
+  },
+
   onBannerTap(e) {
-    const link = e.currentTarget.dataset.link;
-    if (link) {
-      wx.navigateTo({ url: link });
-    } else {
-      wx.showToast({
-        title: '功能开发中',
-        icon: 'none'
+    const banner = e.currentTarget.dataset.banner;
+    if (!banner) return;
+
+    if (banner.link_type === 'service' && banner.link_value) {
+      wx.navigateTo({
+        url: `/pages/services/detail?id=${banner.link_value}`
       });
     }
   },
 
-  /**
-   * 服务项目点击事件
-   */
   onServiceTap(e) {
-    const id = e.currentTarget.dataset.id;
-    wx.showToast({
-      title: '服务详情页开发中',
-      icon: 'none'
+    const service = e.detail.service || {};
+    if (!service.id) return;
+    wx.navigateTo({
+      url: `/pages/services/detail?id=${service.id}`
     });
-    // 后续可跳转到服务详情页
-    // wx.navigateTo({
-    //   url: `/pages/service/detail?id=${id}`
-    // });
   },
 
-  /**
-   * 拨打电话
-   */
+  onBookTap(e) {
+    const service = e.detail.service || {};
+    if (!service.id) return;
+    wx.navigateTo({
+      url: `/pages/booking/create?serviceId=${service.id}`
+    });
+  },
+
+  onViewMoreServices() {
+    wx.switchTab({ url: '/pages/services/list' });
+  },
+
   onCallPhone() {
-    wx.makePhoneCall({
-      phoneNumber: this.data.contact.phone
-    });
+    const phoneNumber = this.data.contact.mobile || this.data.contact.phone;
+    if (!phoneNumber) {
+      wx.showToast({ title: '暂无联系电话', icon: 'none' });
+      return;
+    }
+    wx.makePhoneCall({ phoneNumber });
   },
 
-  /**
-   * 复制微信号
-   */
   onCopyWechat() {
+    if (!this.data.contact.wechat) {
+      wx.showToast({ title: '暂无微信号', icon: 'none' });
+      return;
+    }
     wx.setClipboardData({
       data: this.data.contact.wechat,
       success: () => {
-        wx.showToast({
-          title: '微信号已复制',
-          icon: 'success'
-        });
+        wx.showToast({ title: '微信号已复制', icon: 'success' });
       }
     });
+  },
+
+  onAboutMore() {
+    wx.showModal({
+      title: '关于我们',
+      content: this.data.aboutUs,
+      showCancel: false
+    });
+  },
+
+  onJoinConsult() {
+    if (!this.data.joinInfo.phone) {
+      wx.showToast({ title: '暂无加盟电话', icon: 'none' });
+      return;
+    }
+    wx.makePhoneCall({ phoneNumber: this.data.joinInfo.phone });
   }
 });

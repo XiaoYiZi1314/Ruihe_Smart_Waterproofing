@@ -1,0 +1,15 @@
+.rh-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.rh-card--pad {
+  padding: 28rpx;
+}
+
+.rh-card--flush {
+  border-radius: 0;
+  box-shadow: none;
+}

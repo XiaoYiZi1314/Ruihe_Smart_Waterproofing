@@ -1,0 +1,32 @@
+.rh-status {
+  font-size: 22rpx;
+  padding: 6rpx 18rpx;
+  border-radius: 20rpx;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.rh-status--pending {
+  background: var(--color-pending-bg);
+  color: var(--color-orange);
+}
+
+.rh-status--confirmed {
+  background: var(--color-confirmed-bg);
+  color: var(--color-brand);
+}
+
+.rh-status--doing {
+  background: var(--color-doing-bg);
+  color: var(--color-green);
+}
+
+.rh-status--done {
+  background: var(--color-done-bg);
+  color: var(--color-gray);
+}
+
+.rh-status--cancel {
+  background: var(--color-cancel-bg);
+  color: var(--color-red);
+}

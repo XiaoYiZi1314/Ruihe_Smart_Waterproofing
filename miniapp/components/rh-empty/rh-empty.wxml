@@ -1,0 +1,5 @@
+<view class="rh-empty">
+  <rh-icon name="{{icon}}" size="112" />
+  <text class="rh-empty__text">{{text}}</text>
+  <slot></slot>
+</view>

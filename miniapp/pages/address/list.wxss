@@ -1,0 +1,37 @@
+.addr-wrap {
+  padding: 12rpx 24rpx;
+}
+
+.addr-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.addr-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-right: 16rpx;
+}
+
+.addr-phone {
+  font-size: 24rpx;
+  color: var(--color-text-secondary);
+}
+
+.addr-text {
+  margin-top: 16rpx;
+  font-size: 25rpx;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.addr-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16rpx;
+  margin-top: 24rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid var(--color-divider);
+}

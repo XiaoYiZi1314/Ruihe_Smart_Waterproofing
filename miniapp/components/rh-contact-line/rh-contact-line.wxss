@@ -1,0 +1,43 @@
+:host {
+  display: block;
+}
+
+:host + :host .rh-contact {
+  border-top: 1rpx solid var(--color-divider);
+}
+
+.rh-contact {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 18rpx 0;
+}
+
+.rh-contact__ico {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: var(--radius-md);
+  background: var(--color-brand-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rh-contact__txt {
+  flex: 1;
+  min-width: 0;
+}
+
+.rh-contact__title {
+  display: block;
+  font-size: 25rpx;
+  color: var(--color-text-body);
+}
+
+.rh-contact__sub {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: 22rpx;
+  margin-top: 2rpx;
+}

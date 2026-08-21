@@ -1,0 +1,17 @@
+.rh-sec {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rh-sec__title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.rh-sec__more {
+  font-size: 24rpx;
+  color: var(--color-brand);
+  font-weight: 400;
+}

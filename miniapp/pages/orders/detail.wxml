@@ -1,0 +1,86 @@
+<view class="page-wrap page-wrap--footer">
+  <view wx:if="{{!loading && order}}">
+    <view class="status-head">
+      <rh-status-tag status="{{statusMeta.tagClass}}" text="{{statusMeta.text}}" />
+      <view class="status-desc">{{statusMeta.desc}}</view>
+    </view>
+
+    <view class="detail-block">
+      <rh-card>
+        <rh-section-title title="服务信息" />
+        <rh-info-row label="工单号" value="{{order.order_no}}" />
+        <rh-info-row label="服务项目" value="{{order.service_name}}" />
+        <rh-info-row wx:if="{{order.expected_price}}" label="期望价格" value="¥{{order.expected_price}}" emphasize />
+        <rh-info-row wx:if="{{order.final_price}}" label="最终价格" value="¥{{order.final_price}}" emphasize />
+      </rh-card>
+    </view>
+
+    <view class="detail-block">
+      <rh-card>
+        <rh-section-title title="联系信息" />
+        <rh-info-row label="联系人" value="{{order.contact_name}}" />
+        <rh-info-row label="联系电话" value="{{order.contact_phone}}" />
+        <rh-info-row label="服务地址" value="{{order.full_address}}" />
+      </rh-card>
+    </view>
+
+    <view class="detail-block" wx:if="{{order.worker_name}}">
+      <rh-card>
+        <rh-section-title title="施工师傅" />
+        <view class="master-box">
+          <rh-icon name="user" tone="brand" size="28" />
+          <text>分配师傅：{{order.worker_name}} {{maskedWorkerPhone}}</text>
+        </view>
+      </rh-card>
+    </view>
+
+    <view class="detail-block" wx:if="{{order.images && order.images.length > 0}}">
+      <rh-card>
+        <rh-section-title title="现场图片" />
+        <view class="images-grid">
+          <image
+            wx:for="{{order.images}}"
+            wx:key="id"
+            class="scene-image"
+            src="{{item.image_url}}"
+            mode="aspectFill"
+            bindtap="onPreviewImage"
+            data-url="{{item.image_url}}"
+          />
+        </view>
+      </rh-card>
+    </view>
+
+    <view class="detail-block" wx:if="{{order.remark}}">
+      <rh-card>
+        <rh-section-title title="备注说明" />
+        <view class="remark-text">{{order.remark}}</view>
+      </rh-card>
+    </view>
+
+    <view class="detail-block">
+      <rh-card>
+        <rh-section-title title="时间记录" />
+        <rh-info-row label="创建时间" value="{{createdAt}}" />
+        <rh-info-row wx:if="{{confirmedAt}}" label="确认时间" value="{{confirmedAt}}" />
+        <rh-info-row wx:if="{{startedAt}}" label="开始时间" value="{{startedAt}}" />
+        <rh-info-row wx:if="{{completedAt}}" label="完成时间" value="{{completedAt}}" />
+        <rh-info-row wx:if="{{cancelledAt}}" label="取消时间" value="{{cancelledAt}}" />
+      </rh-card>
+    </view>
+  </view>
+
+  <rh-empty wx:if="{{loading}}" text="加载中..." />
+
+  <rh-sticky-bar wx:if="{{!loading && order}}">
+    <rh-button variant="line" size="lg" text="联系客服" bind:tap="onCallService" />
+    <rh-button
+      wx:if="{{order.status === 'pending'}}"
+      variant="danger"
+      size="lg"
+      block
+      text="取消工单"
+      bind:tap="onCancelOrder"
+    />
+  </rh-sticky-bar>
+</view>

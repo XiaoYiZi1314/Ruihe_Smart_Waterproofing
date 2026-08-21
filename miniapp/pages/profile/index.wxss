@@ -1,0 +1,74 @@
+.profile-head {
+  background: linear-gradient(135deg, #1A5CFF, #2B7BE4 60%, #5B9AF5);
+  padding: 48rpx 36rpx 52rpx;
+  color: #ffffff;
+  border-radius: 0 0 36rpx 36rpx;
+}
+
+.profile-top {
+  display: flex;
+  align-items: center;
+  gap: 26rpx;
+}
+
+.avatar {
+  width: 116rpx;
+  height: 116rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.avatar--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-name {
+  font-size: 34rpx;
+  font-weight: 600;
+}
+
+.profile-phone {
+  font-size: 25rpx;
+  opacity: 0.9;
+  margin-top: 6rpx;
+}
+
+.profile-vip {
+  margin-top: 28rpx;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 20rpx;
+  padding: 20rpx 26rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 24rpx;
+}
+
+.profile-vip__more {
+  opacity: 0.85;
+}
+
+.menu-wrap {
+  margin: 28rpx 24rpx;
+}
+
+.logout-btn {
+  margin: 36rpx 24rpx;
+  width: calc(100% - 48rpx);
+  padding: 26rpx;
+  text-align: center;
+  background: #ffffff;
+  color: var(--color-red);
+  border-radius: var(--radius-xl);
+  font-size: 28rpx;
+  font-weight: 500;
+  box-shadow: var(--shadow);
+  border: none;
+}
+
+.logout-btn::after {
+  border: none;
+}

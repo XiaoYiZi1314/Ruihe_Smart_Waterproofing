@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>瑞和智慧·防水堵漏预约服务系统 - 小程序端原型</title>
+<style>
+  :root{
+    --primary:#1A5CFF;
+    --brand:#2B7BE4;
+    --light:#5B9AF5;
+    --orange:#FAAD14;
+    --green:#52C41A;
+    --gray:#9CA3AF;
+    --red:#F5222D;
+    --bg:#F4F6FA;
+    --shadow:0 2px 8px rgba(15,23,42,0.05);
+    --shadow2:0 4px 14px rgba(15,23,42,0.06);
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    font-family:var(--font);
+    background:linear-gradient(135deg,#E8EDF5,#DCE3EE);
+    color:#1F2937;
+    font-size:14px;
+    -webkit-font-smoothing:antialiased;
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;padding:24px;
+  }
+
+  /* ===== 手机外框 ===== */
+  .phone{
+    width:375px;height:812px;
+    background:#0B1220;
+    border-radius:40px;
+    padding:11px;
+    box-shadow:0 22px 60px rgba(15,23,42,0.35),0 0 0 2px #1f2937 inset;
+    position:relative;
+    flex-shrink:0;
+  }
+  .phone::before{ /* 顶部刘海 */
+    content:"";position:absolute;top:11px;left:50%;transform:translateX(-50%);
+    width:150px;height:26px;background:#0B1220;border-radius:0 0 18px 18px;z-index:60;
+  }
+  .screen{
+    width:100%;height:100%;background:var(--bg);
+    border-radius:30px;overflow:hidden;position:relative;
+    display:flex;flex-direction:column;
+  }
+
+  /* ===== 状态栏 ===== */
+  .statusbar{
+    height:44px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 26px 0 22px;font-size:14px;font-weight:600;color:#0B1220;
+    padding-top:6px;
+  }
+  .statusbar .right{display:flex;align-items:center;gap:5px;}
+  .statusbar svg{display:block;}
+
+  /* ===== 导航栏 ===== */
+  .navbar{
+    height:44px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;background:#fff;border-bottom:1px solid #EEF1F6;
+  }
+  .navbar .nb-title{font-size:16px;font-weight:600;color:#1F2937;}
+  .navbar .nb-back{position:absolute;left:14px;top:50%;transform:translateY(-50%);cursor:pointer;display:none;}
+  .navbar.transparent{background:transparent;border-bottom:none;}
+  .navbar.transparent .nb-title{color:#fff;}
+
+  /* ===== 内容区 ===== */
+  .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative;}
+  .content::-webkit-scrollbar{width:0;}
+  .page{display:none;padding-bottom:16px;animation:fade .28s ease;}
+  .page.show{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+  /* ===== Tab 栏 ===== */
+  .tabbar{
+    height:62px;flex-shrink:0;background:#fff;
+    border-top:1px solid #EEF1F6;
+    display:flex;align-items:stretch;
+    padding-bottom:8px;
+  }
+  .tab{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:3px;cursor:pointer;color:#9CA3AF;transition:color .18s;
+  }
+  .tab.active{color:var(--brand);}
+  .tab .t-label{font-size:10.5px;}
+  .tab svg{transition:transform .18s;}
+  .tab.active svg{transform:translateY(-1px);}
+
+  /* ===== 通用 ===== */
+  .dynamic-note{
+    display:inline-flex;align-items:center;gap:4px;
+    font-size:10px;color:#9CA3AF;
+    border:1px dashed #C9D2E0;border-radius:6px;
+    padding:2px 6px;margin:6px 0 0;background:#F8FAFD;
+  }
+  .card{background:#fff;border-radius:12px;box-shadow:var(--shadow);padding:14px;}
+  .sec-title{font-size:15px;font-weight:600;color:#1F2937;display:flex;align-items:center;justify-content:space-between;}
+  .sec-title .more{font-size:12px;color:var(--brand);font-weight:400;cursor:pointer;}
+  .btn{border:none;cursor:pointer;font-family:inherit;border-radius:8px;transition:all .18s;}
+  .btn-brand{background:var(--brand);color:#fff;}
+  .btn-brand:active{transform:scale(.96);}
+  .btn-line{background:#fff;color:var(--brand);border:1px solid var(--brand);}
+
+  /* ===== 轮播图 ===== */
+  .carousel{
+    height:160px;margin:12px;border-radius:12px;overflow:hidden;position:relative;
+    box-shadow:var(--shadow2);
+  }
+  .slides{display:flex;height:100%;transition:transform .45s ease;}
+  .slide{
+    min-width:100%;height:100%;display:flex;flex-direction:column;justify-content:flex-end;
+    padding:16px;color:#fff;position:relative;
+  }
+  .slide h3{font-size:16px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.15);}
+  .slide p{font-size:11px;opacity:.9;margin-top:3px;text-shadow:0 1px 4px rgba(0,0,0,.15);}
+  .dots{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:5px;}
+  .dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.5);transition:all .25s;}
+  .dot.on{width:16px;border-radius:3px;background:#fff;}
+
+  /* ===== 搜索框 ===== */
+  .search{
+    margin:0 12px 12px;height:36px;background:#fff;border-radius:18px;
+    display:flex;align-items:center;gap:7px;padding:0 14px;box-shadow:var(--shadow);
+  }
+  .search input{border:none;outline:none;flex:1;font-size:13px;background:transparent;font-family:inherit;color:#1F2937;}
+  .search input::placeholder{color:#9CA3AF;}
+
+  /* ===== 功能入口 ===== */
+  .quick-row{display:flex;justify-content:space-around;padding:6px 6px 14px;}
+  .quick{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;}
+  .quick .q-ico{
+    width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;
+    box-shadow:0 4px 10px rgba(43,123,228,.25);
+  }
+  .quick .q-label{font-size:11.5px;color:#374151;}
+
+  /* ===== 分类标签栏 ===== */
+  .tags{display:flex;gap:8px;overflow-x:auto;padding:0 12px 12px;scrollbar-width:none;}
+  .tags::-webkit-scrollbar{display:none;}
+  .tag{
+    flex-shrink:0;font-size:12.5px;padding:6px 13px;border-radius:16px;
+    background:#fff;color:#4B5563;box-shadow:var(--shadow);cursor:pointer;transition:all .18s;
+  }
+  .tag.on{background:var(--brand);color:#fff;box-shadow:0 3px 8px rgba(43,123,228,.3);}
+
+  /* ===== 服务卡片 ===== */
+  .service-card{
+    display:flex;gap:12px;background:#fff;border-radius:12px;padding:12px;margin:0 12px 12px;
+    box-shadow:var(--shadow);cursor:pointer;transition:transform .18s,box-shadow .18s;
+  }
+  .service-card:active{transform:scale(.985);box-shadow:var(--shadow2);}
+  .svc-cover{
+    width:84px;height:84px;border-radius:10px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;color:#fff;
+  }
+  .svc-body{flex:1;display:flex;flex-direction:column;justify-content:space-between;min-width:0;}
+  .svc-name{font-size:14px;font-weight:600;color:#1F2937;}
+  .svc-desc{font-size:11.5px;color:#6B7280;line-height:1.4;margin-top:3px;
+    display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;}
+  .svc-foot{display:flex;align-items:center;justify-content:space-between;margin-top:6px;}
+  .svc-price{color:var(--red);font-size:13px;font-weight:700;}
+  .svc-price small{font-size:10px;font-weight:400;}
+  .svc-book{font-size:12px;padding:5px 12px;}
+
+  /* ===== 联系我们 / 关于我们 ===== */
+  .contact-line{display:flex;align-items:center;gap:10px;padding:9px 0;}
+  .contact-line + .contact-line{border-top:1px solid #F1F3F7;}
+  .contact-line .ci-ico{
+    width:30px;height:30px;border-radius:8px;background:#EAF2FF;color:var(--brand);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .contact-line .ci-txt{font-size:12.5px;color:#374151;flex:1;}
+  .contact-line .ci-txt small{display:block;color:#9CA3AF;font-size:11px;margin-top:1px;}
+
+  /* ===== 工单卡片 ===== */
+  .order-card{background:#fff;border-radius:12px;padding:14px;margin:0 12px 12px;box-shadow:var(--shadow);}
+  .order-top{display:flex;align-items:center;justify-content:space-between;}
+  .order-no{font-size:11px;color:#9CA3AF;}
+  .status-tag{font-size:11px;padding:3px 9px;border-radius:10px;font-weight:500;}
+  .st-pending{background:#FFF7E6;color:var(--orange);}
+  .st-confirmed{background:#E8F1FF;color:var(--brand);}
+  .st-doing{background:#EAFBF1;color:var(--green);}
+  .st-done{background:#F1F3F7;color:var(--gray);}
+  .st-cancel{background:#FDEEEE;color:var(--red);}
+  .order-name{font-size:15px;font-weight:600;color:#1F2937;margin:9px 0;}
+  .order-line{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:#6B7280;margin-top:6px;}
+  .order-line .ol-ico{flex-shrink:0;margin-top:1px;color:#9CA3AF;}
+  .order-line.master{background:#F6F9FF;border-radius:8px;padding:7px 9px;margin-top:8px;color:#2B7BE4;}
+  .order-foot{display:flex;justify-content:flex-end;gap:9px;margin-top:12px;border-top:1px solid #F1F3F7;padding-top:11px;}
+  .order-foot .btn{font-size:12px;padding:6px 14px;}
+
+  .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 0;color:#9CA3AF;}
+  .empty-state svg{margin-bottom:12px;opacity:.6;}
+  .empty-state p{font-size:13px;}
+
+  /* ===== 我的页面 ===== */
+  .profile-head{
+    background:linear-gradient(135deg,#1A5CFF,#2B7BE4 60%,#5B9AF5);
+    padding:24px 18px 26px;color:#fff;border-radius:0 0 18px 18px;
+  }
+  .profile-top{display:flex;align-items:center;gap:13px;}
+  .avatar{
+    width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.22);
+    display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.4);
+  }
+  .profile-name{font-size:17px;font-weight:600;}
+  .profile-phone{font-size:12.5px;opacity:.9;margin-top:3px;}
+  .profile-vip{
+    margin-top:14px;background:rgba(255,255,255,.16);border-radius:10px;padding:10px 13px;
+    display:flex;align-items:center;justify-content:space-between;font-size:12px;
+  }
+  .menu-list{margin:14px 12px;background:#fff;border-radius:12px;box-shadow:var(--shadow);overflow:hidden;}
+  .menu-row{display:flex;align-items:center;gap:11px;padding:14px 14px;cursor:pointer;transition:background .15s;}
+  .menu-row:active{background:#F6F8FB;}
+  .menu-row + .menu-row{border-top:1px solid #F1F3F7;}
+  .menu-row .mr-ico{
+    width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;
+  }
+  .menu-row .mr-txt{flex:1;font-size:14px;color:#1F2937;}
+  .menu-row .mr-arrow{color:#D1D5DB;}
+  .logout-btn{
+    margin:18px 12px;width:calc(100% - 24px);padding:13px;text-align:center;
+    background:#fff;color:var(--red);border-radius:12px;font-size:14px;font-weight:500;
+    box-shadow:var(--shadow);cursor:pointer;border:none;font-family:inherit;
+  }
+
+  .load-more{text-align:center;font-size:12px;color:#9CA3AF;padding:14px 0 6px;}
+
+  /* ===== 弹窗 ===== */
+  .mask{
+    position:absolute;inset:0;background:rgba(11,18,32,.5);z-index:90;
+    opacity:0;visibility:hidden;transition:opacity .28s;
+  }
+  .mask.show{opacity:1;visibility:visible;}
+  .sheet{
+    position:absolute;left:0;right:0;bottom:0;z-index:91;background:#fff;
+    border-radius:18px 18px 0 0;max-height:88%;overflow-y:auto;
+    transform:translateY(100%);transition:transform .32s cubic-bezier(.2,.8,.2,1);
+  }
+  .sheet.show{transform:translateY(0);}
+  .sheet-handle{width:38px;height:4px;background:#E2E6EE;border-radius:2px;margin:9px auto 4px;}
+  .sheet-close{
+    position:absolute;top:12px;right:14px;width:28px;height:28px;border-radius:50%;
+    background:#F1F3F7;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6B7280;
+  }
+  .detail-banner{height:180px;border-radius:0;color:#fff;display:flex;align-items:flex-end;padding:18px;}
+  .detail-banner h3{font-size:18px;font-weight:700;}
+  .detail-price{font-size:20px;color:var(--red);font-weight:700;margin:14px 16px 4px;}
+  .detail-price small{font-size:12px;color:#9CA3AF;font-weight:400;}
+  .detail-sec{padding:6px 16px 14px;}
+  .detail-sec h4{font-size:14px;font-weight:600;margin-bottom:8px;color:#1F2937;}
+  .detail-sec p{font-size:12.5px;color:#6B7280;line-height:1.7;}
+  .detail-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;}
+  .detail-tags span{font-size:11px;background:#EAF2FF;color:var(--brand);padding:3px 9px;border-radius:6px;}
+  .sheet-foot{
+    position:sticky;bottom:0;background:#fff;border-top:1px solid #EEF1F6;
+    padding:11px 16px calc(13px + env(safe-area-inset-bottom));
+  }
+  .sheet-foot .btn{width:100%;padding:13px;font-size:15px;font-weight:600;}
+
+  /* 预约表单 */
+  .form-tip{
+    margin:0 16px 12px;background:#EAF2FF;border-radius:8px;padding:9px 12px;
+    font-size:11.5px;color:var(--brand);display:flex;align-items:center;gap:6px;
+  }
+  .form-row{padding:13px 16px;border-bottom:1px solid #F1F3F7;}
+  .form-label{font-size:13px;color:#374151;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+  .form-label .req{color:var(--red);}
+  .form-input{
+    width:100%;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;font-size:13px;
+    outline:none;font-family:inherit;background:#F8FAFD;color:#1F2937;transition:all .18s;
+  }
+  .form-input:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 3px rgba(43,123,228,.1);}
+  textarea.form-input{resize:none;height:66px;line-height:1.5;}
+  .form-value{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .form-value .ph{color:#9CA3AF;font-size:13px;}
+  .slot-pick{display:flex;gap:7px;flex-wrap:wrap;margin-top:4px;}
+  .slot{font-size:12px;padding:7px 12px;border-radius:8px;background:#F1F3F7;color:#4B5563;cursor:pointer;transition:all .15s;}
+  .slot.on{background:var(--brand);color:#fff;}
+
+  .toast{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.9);
+    background:rgba(11,18,32,.85);color:#fff;padding:14px 22px;border-radius:12px;font-size:13px;
+    z-index:120;opacity:0;visibility:hidden;transition:all .25s;text-align:center;line-height:1.5;
+  }
+  .toast.show{opacity:1;visibility:visible;transform:translate(-50%,-50%) scale(1);}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="screen">
+
+    <!-- 状态栏 -->
+    <div class="statusbar">
+      <span>9:41</span>
+      <div class="right">
+        <!-- 信号 -->
+        <svg width="17" height="11" viewBox="0 0 17 11"><g fill="#0B1220"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="3" width="3" height="8" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></g></svg>
+        <!-- WiFi -->
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 11.2l2.2-2.7a3.4 3.4 0 00-4.4 0L8 11.2z" fill="#0B1220"/><path d="M3.2 6.4a7 7 0 019.6 0" stroke="#0B1220" stroke-width="1.6" stroke-linecap="round"/><path d="M1 3.8a10.4 10.4 0 0114 0" stroke="#0B1220" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <!-- 电池 -->
+        <svg width="26" height="12" viewBox="0 0 26 12"><rect x="0.5" y="0.5" width="22" height="11" rx="2.6" fill="none" stroke="#0B1220" stroke-opacity=".4"/><rect x="2" y="2" width="17" height="8" rx="1.4" fill="#0B1220"/><rect x="23.5" y="3.5" width="2" height="5" rx="1" fill="#0B1220" fill-opacity=".4"/></svg>
+      </div>
+    </div>
+
+    <!-- 导航栏 -->
+    <div class="navbar" id="navbar">
+      <div class="nb-back" id="nbBack">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="#1F2937" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="nb-title" id="nbTitle">瑞和智慧</div>
+    </div>
+
+    <!-- 内容区 -->
+    <div class="content" id="content">
+
+      <!-- ============ 页面1 首页 ============ -->
+      <div class="page show" data-page="home">
+        <!-- 轮播图 -->
+        <div class="carousel" id="carousel">
+          <div class="slides" id="slides">
+            <div class="slide" style="background:linear-gradient(135deg,#1A5CFF,#5B9AF5);">
+              <h3>专业防水堵漏服务</h3>
+              <p>20年施工经验 · 免费上门勘测</p>
+            </div>
+            <div class="slide" style="background:linear-gradient(135deg,#2B7BE4,#5B9AF5);">
+              <h3>雨季防水专项保障</h3>
+              <p>屋顶/外墙/卫生间 全屋解决方案</p>
+            </div>
+            <div class="slide" style="background:linear-gradient(135deg,#1A5CFF,#2B7BE4);">
+              <h3>质保5年 安心无忧</h3>
+              <p>签约施工 · 全国联保</p>
+            </div>
+          </div>
+          <div class="dots" id="dots">
+            <span class="dot on"></span><span class="dot"></span><span class="dot"></span>
+          </div>
+        </div>
+        <div style="margin:0 12px;"><span class="dynamic-note">【动态内容·管理端站点配置】</span></div>
+
+        <!-- 搜索框 -->
+        <div class="search" style="margin-top:10px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#9CA3AF" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="text" placeholder="搜索防水服务...">
+        </div>
+
+        <!-- 功能入口 -->
+        <div class="quick-row">
+          <div class="quick" data-jump="service">
+            <div class="q-ico" style="background:linear-gradient(135deg,#1A5CFF,#2B7BE4);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="2" stroke="#fff" stroke-width="1.8"/><path d="M3 9h18M8 3v4M16 3v4" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><path d="M8.5 14l2 2 4-4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <span class="q-label">预约服务</span>
+          </div>
+          <div class="quick" data-jump="order">
+            <div class="q-ico" style="background:linear-gradient(135deg,#2B7BE4,#5B9AF5);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 3h11l3 3v15H5z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M16 3v3h3M8 11h8M8 15h6" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <span class="q-label">工单查询</span>
+          </div>
+          <div class="quick" data-jump="consult">
+            <div class="q-ico" style="background:linear-gradient(135deg,#5B9AF5,#7DB5FF);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 5h16v11H8l-4 4z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 9h8M8 12h5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <span class="q-label">在线咨询</span>
+          </div>
+          <div class="quick" data-jump="about">
+            <div class="q-ico" style="background:linear-gradient(135deg,#1A5CFF,#5B9AF5);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="1.8"/><path d="M12 16v-5M12 8h.01" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <span class="q-label">关于我们</span>
+          </div>
+        </div>
+
+        <!-- 分类标签栏 -->
+        <div class="tags" data-tag-group="home">
+          <span class="tag on">全部</span>
+          <span class="tag">屋顶防水</span>
+          <span class="tag">卫生间堵漏</span>
+          <span class="tag">地下室防潮</span>
+          <span class="tag">外墙渗水</span>
+          <span class="tag">阳台防水</span>
+        </div>
+
+        <!-- 热门服务 -->
+        <div style="padding:0 14px;">
+          <div class="sec-title">
+            <span>🔥 热门服务</span>
+            <span class="more" data-jump="service">查看更多 ›</span>
+          </div>
+        </div>
+        <div style="margin-top:10px;" id="hotList">
+          <!-- 服务卡片由 JS 渲染 -->
+        </div>
+
+        <!-- 联系我们 -->
+        <div style="padding:4px 12px;">
+          <div class="card">
+            <div class="sec-title" style="margin-bottom:6px;"><span>📞 联系我们</span></div>
+            <div class="contact-line">
+              <div class="ci-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 5c0 8 7 15 15 15l1-3-4-2-2 2c-3-1-6-4-7-7l2-2-2-4-3 1z" stroke="#2B7BE4" stroke-width="1.7" stroke-linejoin="round"/></svg></div>
+              <div class="ci-txt">400-888-6688<small>全国服务热线 · 7×24小时</small></div>
+            </div>
+            <div class="contact-line">
+              <div class="ci-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6 7-11a7 7 0 10-14 0c0 5 7 11 7 11z" stroke="#2B7BE4" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.5" stroke="#2B7BE4" stroke-width="1.7"/></svg></div>
+              <div class="ci-txt">上海市闵行区虹桥商务区·瑞和大厦<small>各城市均设有服务网点</small></div>
+            </div>
+            <div class="contact-line">
+              <div class="ci-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#2B7BE4" stroke-width="1.7"/><path d="M12 7v5l3 2" stroke="#2B7BE4" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div class="ci-txt">周一至周日 08:00 - 20:00<small>节假日正常营业</small></div>
+            </div>
+            <span class="dynamic-note">【动态内容·管理端站点配置】</span>
+          </div>
+        </div>
+
+        <!-- 关于我们 -->
+        <div style="padding:4px 12px 6px;">
+          <div class="card">
+            <div class="sec-title" style="margin-bottom:8px;"><span>🏢 关于我们</span></div>
+            <p style="font-size:12.5px;color:#6B7280;line-height:1.7;">瑞和智慧防水工程有限公司，专注建筑防水堵漏领域20年，拥有甲级施工资质，服务覆盖全国200+城市。以"科技防水、匠心堵漏"为理念，为客户提供勘测、设计、施工、质保一站式解决方案。</p>
+            <div style="margin-top:8px;"><span class="more" style="font-size:12px;color:var(--brand);cursor:pointer;">查看更多 ›</span></div>
+            <span class="dynamic-note">【动态内容·管理端站点配置】</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 页面2 服务列表 ============ -->
+      <div class="page" data-page="service">
+        <div class="search" style="margin-top:12px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#9CA3AF" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="text" placeholder="搜索防水服务...">
+        </div>
+        <div class="tags" data-tag-group="service">
+          <span class="tag on">全部</span>
+          <span class="tag">屋顶防水</span>
+          <span class="tag">卫生间堵漏</span>
+          <span class="tag">地下室防潮</span>
+          <span class="tag">外墙渗水</span>
+          <span class="tag">阳台防水</span>
+        </div>
+        <div id="serviceList" style="padding-top:2px;"></div>
+        <div class="load-more">— 上拉加载更多 —</div>
+      </div>
+
+      <!-- ============ 页面3 工单列表 ============ -->
+      <div class="page" data-page="order">
+        <div class="tags" data-tag-group="order" style="padding-top:12px;">
+          <span class="tag on" data-status="all">全部</span>
+          <span class="tag" data-status="pending">待确认</span>
+          <span class="tag" data-status="confirmed">已确认</span>
+          <span class="tag" data-status="doing">进行中</span>
+          <span class="tag" data-status="done">已完成</span>
+          <span class="tag" data-status="cancel">已取消</span>
+        </div>
+        <div id="orderList" style="padding-top:2px;"></div>
+      </div>
+
+      <!-- ============ 页面4 我的 ============ -->
+      <div class="page" data-page="me">
+        <div class="profile-head">
+          <div class="profile-top">
+            <div class="avatar"><svg width="30" height="30" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#fff" stroke-width="1.8"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+            <div>
+              <div class="profile-name">张先生</div>
+              <div class="profile-phone">138 **** 6666</div>
+            </div>
+          </div>
+          <div class="profile-vip">
+            <span>✓ 认证会员 · 享专属服务保障</span>
+            <span style="opacity:.85;">查看权益 ›</span>
+          </div>
+        </div>
+
+        <div class="menu-list">
+          <div class="menu-row" data-jump="order">
+            <div class="mr-ico" style="background:linear-gradient(135deg,#1A5CFF,#2B7BE4);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 3h11l3 3v15H5z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M16 3v3h3M8 11h8M8 15h6" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+            <div class="mr-txt">我的工单</div>
+            <span class="mr-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#D1D5DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
+          <div class="menu-row">
+            <div class="mr-ico" style="background:linear-gradient(135deg,#2B7BE4,#5B9AF5);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6 7-11a7 7 0 10-14 0c0 5 7 11 7 11z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.5" stroke="#fff" stroke-width="1.8"/></svg></div>
+            <div class="mr-txt">地址管理</div>
+            <span class="mr-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#D1D5DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
+          <div class="menu-row">
+            <div class="mr-ico" style="background:linear-gradient(135deg,#5B9AF5,#7DB5FF);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 5h16v11H8l-4 4z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 9h8M8 12h5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+            <div class="mr-txt">联系客服</div>
+            <span class="mr-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#D1D5DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
+          <div class="menu-row" data-jump="about">
+            <div class="mr-ico" style="background:linear-gradient(135deg,#1A5CFF,#5B9AF5);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="1.8"/><path d="M12 16v-5M12 8h.01" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+            <div class="mr-txt">关于我们</div>
+            <span class="mr-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#D1D5DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
+          <div class="menu-row">
+            <div class="mr-ico" style="background:linear-gradient(135deg,#6B7280,#9CA3AF);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#fff" stroke-width="1.8"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+            <div class="mr-txt">设置</div>
+            <span class="mr-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#D1D5DB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
+        </div>
+
+        <button class="logout-btn" id="logoutBtn">退出登录</button>
+      </div>
+
+    </div>
+
+    <!-- Tab 栏 -->
+    <div class="tabbar" id="tabbar">
+      <div class="tab active" data-tab="home">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <span class="t-label">首页</span>
+      </div>
+      <div class="tab" data-tab="service">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 9h18M8 4v5M16 4v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span class="t-label">服务</span>
+      </div>
+      <div class="tab" data-tab="order">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 3h11l3 3v15H5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M16 3v3h3M8 11h8M8 15h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span class="t-label">工单</span>
+      </div>
+      <div class="tab" data-tab="me">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span class="t-label">我的</span>
+      </div>
+    </div>
+
+    <!-- 弹窗遮罩 -->
+    <div class="mask" id="mask"></div>
+
+    <!-- 服务详情弹窗 -->
+    <div class="sheet" id="detailSheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-close" id="detailClose">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="#6B7280" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="detail-banner" id="detailBanner">
+        <h3 id="detailName">服务名称</h3>
+      </div>
+      <div class="detail-price"><span id="detailPrice">¥0</span> <small>参考价格</small></div>
+      <div class="detail-sec">
+        <h4>服务亮点</h4>
+        <div class="detail-tags" id="detailTags"></div>
+      </div>
+      <div class="detail-sec">
+        <h4>服务介绍</h4>
+        <p id="detailDesc"></p>
+      </div>
+      <div class="detail-sec">
+        <h4>服务流程</h4>
+        <p style="color:#6B7280;">① 在线预约 → ② 上门勘测 → ③ 方案确认 → ④ 施工作业 → ⑤ 验收质保</p>
+      </div>
+      <div class="sheet-foot">
+        <button class="btn btn-brand" id="goBook">立即预约</button>
+      </div>
+    </div>
+
+    <!-- 预约表单弹窗 -->
+    <div class="sheet" id="bookSheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-close" id="bookClose">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="#6B7280" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </div>
+      <div style="padding:16px 16px 4px;"><h3 style="font-size:17px;font-weight:600;">预约服务</h3></div>
+      <div class="form-tip">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#2B7BE4" stroke-width="1.8"/><path d="M12 8h.01M11 12h1v4h1" stroke="#2B7BE4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        提交后生成待确认工单，客服将在30分钟内联系您
+      </div>
+      <div class="form-row">
+        <div class="form-label">服务项目<span class="req">*</span></div>
+        <div class="form-value"><span id="bookService" style="font-size:13px;color:#1F2937;font-weight:500;">屋顶防水施工</span><span style="font-size:11px;color:#9CA3AF;">已选择</span></div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">预约日期<span class="req">*</span></div>
+        <div class="slot-pick" id="datePick">
+          <span class="slot on">今天</span>
+          <span class="slot">明天</span>
+          <span class="slot">08-10</span>
+          <span class="slot">08-11</span>
+          <span class="slot">08-12</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">时间段<span class="req">*</span></div>
+        <div class="slot-pick" id="timePick">
+          <span class="slot on">上午 08-12</span>
+          <span class="slot">下午 13-18</span>
+          <span class="slot">晚上 18-20</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">服务地址<span class="req">*</span></div>
+        <div class="form-value" style="cursor:pointer;">
+          <span style="font-size:13px;color:#1F2937;">上海市闵行区虹桥商务区·瑞和大厦</span>
+          <span class="ph">选择地址 ›</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">联系人姓名<span class="req">*</span></div>
+        <input class="form-input" type="text" placeholder="请输入联系人姓名" value="张先生">
+      </div>
+      <div class="form-row">
+        <div class="form-label">联系电话<span class="req">*</span></div>
+        <input class="form-input" type="tel" placeholder="请输入联系电话" value="138 6666 6666">
+      </div>
+      <div class="form-row">
+        <div class="form-label">备注信息</div>
+        <textarea class="form-input" placeholder="请描述渗漏情况、位置等（选填）"></textarea>
+      </div>
+      <div class="sheet-foot">
+        <button class="btn btn-brand" id="submitBook">提交预约</button>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+  </div>
+</div>
+
+<script>
+  // ===== 数据 =====
+  var services = [
+    {name:"屋顶防水施工",desc:"SBS卷材+聚氨酯涂层 双重防水工艺",price:380,grad:"linear-gradient(135deg,#1A5CFF,#5B9AF5)",tags:["质保5年","免费勘测","签约施工"],
+      descFull:"采用优质SBS改性沥青防水卷材与聚氨酯防水涂料复合施工工艺，适用于平顶/坡顶各类屋面。基层处理 → 防水层铺设 → 保护层施工，全面解决屋面渗漏、积水问题。"},
+    {name:"卫生间防水堵漏",desc:"免砸砖注浆堵漏 2小时见效",price:260,grad:"linear-gradient(135deg,#2B7BE4,#5B9AF5)",tags:["免砸砖","2小时完工","环保材料"],
+      descFull:"采用高压注浆技术，无需破坏原有瓷砖，针对卫生间地面、墙面渗漏精准堵漏。环保无毒材料，施工快速，2小时内即可见效，不影响日常使用。"},
+    {name:"地下室防潮处理",desc:"抗渗结晶+排水系统综合方案",price:520,grad:"linear-gradient(135deg,#5B9AF5,#7DB5FF)",tags:["深层防潮","结构补强","综合方案"],
+      descFull:"针对地下室返潮、渗水问题，采用水泥基渗透结晶防水涂料配合排水系统设计，从结构内部封堵水路，同时构建有效排水通道，实现长期干燥。"},
+    {name:"外墙渗水维修",desc:"高空作业+外墙透明防水",price:340,grad:"linear-gradient(135deg,#1A5CFF,#2B7BE4)",tags:["高空资质","透明无痕","耐候10年"],
+      descFull:"专业高空作业团队，对外墙裂缝、窗台渗水进行排查维修。采用透明防水涂料，施工后无色无痕不影响外观，耐候性达10年以上。"},
+    {name:"阳台防水翻新",desc:"整体翻新+排水坡度修复",price:290,grad:"linear-gradient(135deg,#2B7BE4,#7DB5FF)",tags:["整体翻新","排水修复","美观耐用"],
+      descFull:"阳台防水整体翻新服务，包含旧防水层铲除、基层修复、排水坡度调整、新防水层施工及闭水试验。彻底解决阳台渗水至楼下问题。"}
+  ];
+
+  var orders = [
+    {no:"RH20260807001",status:"pending",statusText:"待确认",name:"屋顶防水施工",time:"2026-08-09 上午 08-12",addr:"上海市闵行区虹桥商务区·瑞和大厦16楼",master:null},
+    {no:"RH20260805003",status:"confirmed",statusText:"已确认",name:"卫生间防水堵漏",time:"2026-08-08 下午 13-18",addr:"上海市浦东新区张江高科技园区博云路2号",master:"王师傅 138****6666"},
+    {no:"RH20260803012",status:"doing",statusText:"进行中",name:"外墙渗水维修",time:"2026-08-08 上午 08-12",addr:"上海市徐汇区漕河泾开发区桂平路333号",master:"李师傅 139****8888"},
+    {no:"RH20260728008",status:"done",statusText:"已完成",name:"地下室防潮处理",time:"2026-07-29 全天",addr:"上海市长宁区临空经济园区通协路288号",master:"赵师傅 137****2233"},
+    {no:"RH20260720005",status:"cancel",statusText:"已取消",name:"阳台防水翻新",time:"2026-07-22 下午 13-18",addr:"上海市普陀区长征工业区同普路1133号",master:null}
+  ];
+
+  var statusMap = {pending:"st-pending",confirmed:"st-confirmed",doing:"st-doing",done:"st-done",cancel:"st-cancel"};
+
+  // ===== 渲染服务卡片 =====
+  function svcCard(s){
+    return '<div class="service-card" data-svc="'+s.name+'">'+
+      '<div class="svc-cover" style="background:'+s.grad+';">'+
+        '<svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-4 8-8 10-4-2-8-5-8-10V6z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" stroke-opacity=".85"/><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+      '</div>'+
+      '<div class="svc-body">'+
+        '<div>'+
+          '<div class="svc-name">'+s.name+'</div>'+
+          '<div class="svc-desc">'+s.desc+'</div>'+
+        '</div>'+
+        '<div class="svc-foot">'+
+          '<span class="svc-price">¥'+s.price+'<small>起</small></span>'+
+          '<button class="btn btn-brand svc-book" data-book="'+s.name+'">立即预约</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  function renderHot(){
+    document.getElementById('hotList').innerHTML = svcCard(services[0]) + svcCard(services[1]) + svcCard(services[3]);
+  }
+  function renderService(){
+    document.getElementById('serviceList').innerHTML = services.map(svcCard).join('');
+  }
+
+  // ===== 渲染工单 =====
+  function orderCard(o){
+    var master = o.master ? '<div class="order-line master"><svg class="ol-ico" width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#2B7BE4" stroke-width="2"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6" stroke="#2B7BE4" stroke-width="2" stroke-linecap="round"/></svg>分配师傅：'+o.master+'</div>' : '';
+    var btns = '';
+    if(o.status==='pending') btns = '<button class="btn btn-line">取消预约</button><button class="btn btn-line">催单</button>';
+    else if(o.status==='confirmed') btns = '<button class="btn btn-line">联系师傅</button>';
+    else if(o.status==='doing') btns = '<button class="btn btn-line">联系师傅</button><button class="btn btn-brand">查看进度</button>';
+    else if(o.status==='done') btns = '<button class="btn btn-brand">评价服务</button>';
+    else if(o.status==='cancel') btns = '<button class="btn btn-line">重新预约</button>';
+    return '<div class="order-card" data-status="'+o.status+'">'+
+      '<div class="order-top"><span class="order-no">工单号：'+o.no+'</span><span class="status-tag '+statusMap[o.status]+'">'+o.statusText+'</span></div>'+
+      '<div class="order-name">'+o.name+'</div>'+
+      '<div class="order-line"><svg class="ol-ico" width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#9CA3AF" stroke-width="1.8"/><path d="M12 7v5l3 2" stroke="#9CA3AF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>预约时间：'+o.time+'</div>'+
+      '<div class="order-line"><svg class="ol-ico" width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6 7-11a7 7 0 10-14 0c0 5 7 11 7 11z" stroke="#9CA3AF" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.3" stroke="#9CA3AF" stroke-width="1.8"/></svg>'+o.addr+'</div>'+
+      master+
+      '<div class="order-foot">'+btns+'</div>'+
+    '</div>';
+  }
+
+  function renderOrders(status){
+    var list = status==='all' ? orders : orders.filter(function(o){return o.status===status;});
+    var box = document.getElementById('orderList');
+    if(list.length===0){
+      box.innerHTML = '<div class="empty-state"><svg width="56" height="56" viewBox="0 0 24 24" fill="none"><path d="M5 3h11l3 3v15H5z" stroke="#9CA3AF" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 3v3h3" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round"/><path d="M8 11h8M8 15h6" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round"/></svg><p>暂无相关工单</p></div>';
+    } else {
+      box.innerHTML = list.map(orderCard).join('');
+    }
+  }
+
+  renderHot();
+  renderService();
+  renderOrders('all');
+
+  // ===== Tab 切换 =====
+  var titleMap = {home:"瑞和智慧",service:"服务项目",order:"我的工单",me:"我的"};
+  var tabs = document.querySelectorAll('.tab');
+  var pages = document.querySelectorAll('.page');
+  var nbTitle = document.getElementById('nbTitle');
+  var content = document.getElementById('content');
+
+  function switchTab(name){
+    tabs.forEach(function(t){t.classList.toggle('active', t.dataset.tab===name);});
+    pages.forEach(function(p){p.classList.toggle('show', p.dataset.page===name);});
+    nbTitle.textContent = titleMap[name];
+    content.scrollTop = 0;
+  }
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){ switchTab(t.dataset.tab); });
+  });
+
+  // 跳转（功能入口/菜单）
+  document.querySelectorAll('[data-jump]').forEach(function(el){
+    el.addEventListener('click', function(e){
+      e.stopPropagation();
+      var j = el.dataset.jump;
+      if(j==='service'||j==='order'||j==='me'){ switchTab(j); }
+      else if(j==='consult'){ showToast('正在为您接通在线客服...'); }
+      else if(j==='about'){ showToast('关于瑞和智慧：专注防水堵漏20年'); }
+    });
+  });
+
+  // ===== 分类标签切换 =====
+  document.querySelectorAll('[data-tag-group]').forEach(function(grp){
+    grp.querySelectorAll('.tag').forEach(function(tag){
+      tag.addEventListener('click', function(){
+        grp.querySelectorAll('.tag').forEach(function(t){t.classList.remove('on');});
+        tag.classList.add('on');
+      });
+    });
+  });
+
+  // ===== 工单状态切换 =====
+  var orderTags = document.querySelectorAll('[data-tag-group="order"] .tag');
+  orderTags.forEach(function(tag){
+    tag.addEventListener('click', function(){
+      orderTags.forEach(function(t){t.classList.remove('on');});
+      tag.classList.add('on');
+      renderOrders(tag.dataset.status);
+    });
+  });
+
+  // ===== 轮播图 =====
+  var idx = 0, total = 3;
+  var slides = document.getElementById('slides');
+  var dots = document.querySelectorAll('#dots .dot');
+  function goSlide(i){
+    idx = i;
+    slides.style.transform = 'translateX(-'+(idx*100)+'%)';
+    dots.forEach(function(d,n){d.classList.toggle('on', n===idx);});
+  }
+  setInterval(function(){
+    goSlide((idx+1)%total);
+  }, 3500);
+
+  // ===== 弹窗 =====
+  var mask = document.getElementById('mask');
+  var detailSheet = document.getElementById('detailSheet');
+  var bookSheet = document.getElementById('bookSheet');
+
+  function openMask(){ mask.classList.add('show'); }
+  function closeAll(){ mask.classList.remove('show'); detailSheet.classList.remove('show'); bookSheet.classList.remove('show'); }
+  mask.addEventListener('click', closeAll);
+  document.getElementById('detailClose').addEventListener('click', closeAll);
+  document.getElementById('bookClose').addEventListener('click', closeAll);
+
+  function findSvc(name){
+    return services.filter(function(s){return s.name===name;})[0];
+  }
+
+  // 服务卡片点击 -> 详情
+  document.addEventListener('click', function(e){
+    var card = e.target.closest('.service-card');
+    if(card && !e.target.closest('.svc-book')){
+      var s = findSvc(card.dataset.svc);
+      if(s){
+        document.getElementById('detailName').textContent = s.name;
+        document.getElementById('detailPrice').textContent = '¥'+s.price;
+        document.getElementById('detailBanner').style.background = s.grad;
+        document.getElementById('detailDesc').textContent = s.descFull;
+        document.getElementById('detailTags').innerHTML = s.tags.map(function(t){return '<span>'+t+'</span>';}).join('');
+        document.getElementById('bookService').textContent = s.name;
+        openMask();
+        detailSheet.classList.add('show');
+      }
+    }
+    // 立即预约按钮（卡片内）
+    var bookBtn = e.target.closest('[data-book]');
+    if(bookBtn){
+      e.stopPropagation();
+      var s2 = findSvc(bookBtn.dataset.book);
+      if(s2){ document.getElementById('bookService').textContent = s2.name; }
+      openMask();
+      detailSheet.classList.remove('show');
+      bookSheet.classList.add('show');
+    }
+  });
+
+  // 详情 -> 立即预约
+  document.getElementById('goBook').addEventListener('click', function(){
+    detailSheet.classList.remove('show');
+    bookSheet.classList.add('show');
+  });
+
+  // 预约表单 slot 选择
+  function bindSlot(id){
+    var box = document.getElementById(id);
+    box.querySelectorAll('.slot').forEach(function(s){
+      s.addEventListener('click', function(){
+        box.querySelectorAll('.slot').forEach(function(x){x.classList.remove('on');});
+        s.classList.add('on');
+      });
+    });
+  }
+  bindSlot('datePick');
+  bindSlot('timePick');
+
+  // 提交预约
+  document.getElementById('submitBook').addEventListener('click', function(){
+    closeAll();
+    showToast('预约提交成功\n客服将在30分钟内联系您确认');
+    setTimeout(function(){ switchTab('order'); }, 900);
+  });
+
+  // 退出登录
+  document.getElementById('logoutBtn').addEventListener('click', function(){
+    showToast('已退出登录');
+  });
+
+  // ===== Toast =====
+  var toastTimer;
+  function showToast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2000);
+  }
+</script>
+
+</body>
+</html>

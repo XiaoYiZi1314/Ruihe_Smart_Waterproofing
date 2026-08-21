@@ -1,0 +1,26 @@
+.rh-tags {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.rh-tags__row {
+  display: inline-flex;
+  gap: 16rpx;
+  padding: 0 24rpx 24rpx;
+}
+
+.rh-tag {
+  flex-shrink: 0;
+  font-size: 25rpx;
+  padding: 12rpx 26rpx;
+  border-radius: 32rpx;
+  background: var(--color-surface);
+  color: #4B5563;
+  box-shadow: var(--shadow);
+}
+
+.rh-tag.is-on {
+  background: var(--color-brand);
+  color: #ffffff;
+  box-shadow: var(--shadow-brand);
+}

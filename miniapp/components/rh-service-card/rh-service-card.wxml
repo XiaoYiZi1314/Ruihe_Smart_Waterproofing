@@ -1,0 +1,23 @@
+<view class="rh-svc" hover-class="rh-svc--active" bindtap="onTap">
+  <image wx:if="{{view.cover}}" class="rh-svc__cover" src="{{view.cover}}" mode="aspectFill" />
+  <view wx:else class="rh-svc__cover rh-svc__cover--grad" style="background: {{view.gradient}};">
+    <rh-icon name="shield" tone="white" size="68" />
+  </view>
+  <view class="rh-svc__body">
+    <view>
+      <view class="rh-svc__name">{{view.name}}</view>
+      <view class="rh-svc__desc">{{view.desc}}</view>
+    </view>
+    <view class="rh-svc__foot">
+      <view class="rh-svc__price">
+        {{view.priceMain}}<text class="rh-svc__unit">{{view.priceSuffix}}</text>
+      </view>
+      <rh-button
+        wx:if="{{showBook}}"
+        size="sm"
+        text="立即预约"
+        catch:tap="onBook"
+      />
+    </view>
+  </view>
+</view>

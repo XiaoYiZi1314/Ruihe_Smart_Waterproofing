@@ -1,0 +1,45 @@
+.status-head {
+  padding: 32rpx 32rpx 8rpx;
+}
+
+.status-desc {
+  margin-top: 16rpx;
+  font-size: 26rpx;
+  color: var(--color-text-secondary);
+}
+
+.detail-block {
+  padding: 12rpx 24rpx;
+}
+
+.master-box {
+  margin-top: 16rpx;
+  background: var(--color-master-bg);
+  border-radius: var(--radius-md);
+  padding: 16rpx 18rpx;
+  color: var(--color-brand);
+  font-size: 24rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.images-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.scene-image {
+  width: 188rpx;
+  height: 188rpx;
+  border-radius: var(--radius-md);
+}
+
+.remark-text {
+  margin-top: 16rpx;
+  font-size: 25rpx;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}

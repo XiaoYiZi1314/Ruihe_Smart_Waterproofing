@@ -1,102 +1,102 @@
-<view class="container">
-  <!-- 轮播图 -->
-  <swiper class="banner-swiper" indicator-dots autoplay interval="3000" circular>
-    <swiper-item wx:for="{{banners}}" wx:key="id" bindtap="onBannerTap" data-link="{{item.link}}">
-      <image class="banner-image" src="{{item.image}}" mode="aspectFill" />
+<view class="page-wrap">
+  <swiper
+    class="home-carousel"
+    indicator-dots
+    indicator-color="rgba(255,255,255,0.5)"
+    indicator-active-color="#ffffff"
+    autoplay
+    circular
+    interval="3500"
+  >
+    <swiper-item
+      wx:for="{{banners}}"
+      wx:key="id"
+      bindtap="onBannerTap"
+      data-banner="{{item}}"
+    >
+      <view class="home-slide" style="background: {{item.gradient}};">
+        <image wx:if="{{item.image_url}}" class="home-slide__img" src="{{item.image_url}}" mode="aspectFill" />
+        <view class="home-slide__mask">
+          <view class="home-slide__title">{{item.title}}</view>
+          <view class="home-slide__sub">{{item.subtitle}}</view>
+        </view>
+      </view>
     </swiper-item>
   </swiper>
 
-  <!-- 热门服务 -->
-  <view class="section">
-    <view class="section-header">
-      <view class="section-title">热门服务</view>
-      <view class="section-subtitle">专业防水 品质保障</view>
-    </view>
-    <view class="services-grid">
-      <view class="service-card" wx:for="{{services}}" wx:key="id" bindtap="onServiceTap" data-id="{{item.id}}">
-        <image class="service-image" src="{{item.image}}" mode="aspectFill" />
-        <view class="service-info">
-          <text class="service-name">{{item.name}}</text>
-          <text class="service-desc">{{item.desc}}</text>
-          <view class="service-footer">
-            <text class="service-price">¥{{item.price}}</text>
-            <view class="service-action">查看详情</view>
-          </view>
-        </view>
-      </view>
-    </view>
+  <rh-search-bar
+    value="{{keyword}}"
+    bind:input="onSearchInput"
+    bind:confirm="onSearchConfirm"
+  />
+
+  <rh-quick-entry bind:tap="onQuickTap" />
+
+  <rh-tag-bar
+    items="{{categoryTags}}"
+    active-key="{{currentCategoryId}}"
+    bind:change="onCategoryChange"
+  />
+
+  <view class="page-pad">
+    <rh-section-title title="🔥 热门服务" more="查看更多 ›" bind:more="onViewMoreServices" />
+  </view>
+  <view class="home-list">
+    <rh-service-card
+      wx:for="{{services}}"
+      wx:key="id"
+      service="{{item}}"
+      bind:tap="onServiceTap"
+      bind:book="onBookTap"
+    />
+    <rh-empty wx:if="{{!loading && services.length === 0}}" text="暂无热门服务" />
   </view>
 
-  <!-- 联系我们 -->
-  <view class="section">
-    <view class="section-header">
-      <view class="section-title">联系我们</view>
-      <view class="section-subtitle">全天候为您服务</view>
-    </view>
-    <view class="contact-card">
-      <view class="contact-item">
-        <view class="contact-icon">📍</view>
-        <view class="contact-content">
-          <text class="contact-label">服务地址</text>
-          <text class="contact-value">{{contact.address}}</text>
-        </view>
-      </view>
-      <view class="contact-item" bindtap="onCallPhone">
-        <view class="contact-icon">📞</view>
-        <view class="contact-content">
-          <text class="contact-label">联系电话</text>
-          <text class="contact-value link">{{contact.phone}}</text>
-        </view>
-      </view>
-      <view class="contact-item">
-        <view class="contact-icon">⏰</view>
-        <view class="contact-content">
-          <text class="contact-label">营业时间</text>
-          <text class="contact-value">{{contact.hours}}</text>
-        </view>
-      </view>
-      <view class="contact-item" bindtap="onCopyWechat">
-        <view class="contact-icon">💬</view>
-        <view class="contact-content">
-          <text class="contact-label">微信号</text>
-          <text class="contact-value link">{{contact.wechat}}</text>
-        </view>
-      </view>
-    </view>
+  <view class="home-block" wx:if="{{contact.phone || contact.mobile || contact.address}}">
+    <rh-card>
+      <rh-section-title title="📞 联系我们" />
+      <view class="home-card-gap"></view>
+      <rh-contact-line
+        wx:if="{{contact.mobile || contact.phone}}"
+        icon="phone"
+        title="{{contact.mobile || contact.phone}}"
+        subtitle="全国服务热线 · 7×24小时"
+        bind:tap="onCallPhone"
+      />
+      <rh-contact-line
+        wx:if="{{contact.address}}"
+        icon="location"
+        title="{{contact.address}}"
+        subtitle="各城市均设有服务网点"
+      />
+      <rh-contact-line
+        wx:if="{{contact.wechat}}"
+        icon="chat"
+        title="{{contact.wechat}}"
+        subtitle="点击复制微信号"
+        bind:tap="onCopyWechat"
+      />
+      <rh-contact-line
+        icon="clock"
+        title="周一至周日 08:00 - 20:00"
+        subtitle="节假日正常营业"
+      />
+    </rh-card>
   </view>
 
-  <!-- 关于我们 -->
-  <view class="section">
-    <view class="section-header">
-      <view class="section-title">关于我们</view>
-      <view class="section-subtitle">专业 诚信 高效</view>
-    </view>
-    <view class="about-card">
-      <text class="about-text">{{aboutUs}}</text>
-    </view>
+  <view class="home-block" id="about" wx:if="{{aboutUs}}">
+    <rh-card>
+      <rh-section-title title="🏢 关于我们" />
+      <view class="about-text">{{aboutUs}}</view>
+      <view class="about-more" bindtap="onAboutMore">查看更多 ›</view>
+    </rh-card>
   </view>
 
-  <!-- 加盟信息 -->
-  <view class="section">
-    <view class="section-header">
-      <view class="section-title">加盟合作</view>
-      <view class="section-subtitle">携手共赢 共创未来</view>
-    </view>
-    <view class="join-card">
-      <text class="join-desc">{{joinInfo.description}}</text>
-      <view class="join-benefits">
-        <view class="benefit-item" wx:for="{{joinInfo.benefits}}" wx:key="index">
-          <text class="benefit-dot">●</text>
-          <text class="benefit-text">{{item}}</text>
-        </view>
-      </view>
-      <view class="join-phone">
-        <text>加盟热线：</text>
-        <text class="phone-number" bindtap="onCallPhone">{{joinInfo.phone}}</text>
-      </view>
-    </view>
+  <view class="home-block" wx:if="{{joinInfo.phone}}">
+    <rh-card>
+      <rh-section-title title="🤝 加盟合作" />
+      <view class="about-text" wx:if="{{joinInfo.description}}">{{joinInfo.description}}</view>
+      <view class="join-phone" bindtap="onJoinConsult">加盟热线：{{joinInfo.phone}}</view>
+    </rh-card>
   </view>
-
-  <!-- 底部留白 -->
-  <view class="footer-spacer"></view>
 </view>

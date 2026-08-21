@@ -1,9 +1,93 @@
+@import './styles/tokens.wxss';
+
 page {
-  background-color: #111827;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-  color: #F8FAFC;
+  background-color: var(--color-bg);
+  font-family: var(--font-family);
+  color: var(--color-text);
+  font-size: 28rpx;
+  line-height: 1.5;
+  min-height: 100%;
 }
 
-.container {
+.page-wrap {
   min-height: 100vh;
+  background: var(--color-bg);
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+}
+
+.page-wrap--footer {
+  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
+}
+
+.page-pad {
+  padding: 0 24rpx;
+}
+
+.page-gap {
+  height: 8rpx;
+}
+
+.text-brand {
+  color: var(--color-brand);
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-danger {
+  color: var(--color-red);
+}
+
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rh-input {
+  width: 100%;
+  border: 1rpx solid var(--color-input-border);
+  border-radius: var(--radius-md);
+  padding: 20rpx 24rpx;
+  font-size: 26rpx;
+  background: var(--color-input-bg);
+  color: var(--color-text);
+  box-sizing: border-box;
+}
+
+.rh-input--area {
+  min-height: 132rpx;
+  width: 100%;
+  line-height: 1.5;
+}
+
+.rh-form-value {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  font-size: 26rpx;
+  color: var(--color-text);
+}
+
+.rh-form-value__ph {
+  color: var(--color-text-muted);
+  font-size: 26rpx;
+}
+
+.rh-form-tip {
+  margin: 0 32rpx 24rpx;
+  background: var(--color-brand-soft);
+  border-radius: var(--radius-md);
+  padding: 18rpx 24rpx;
+  font-size: 23rpx;
+  color: var(--color-brand);
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
 }

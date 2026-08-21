@@ -8,7 +8,7 @@ Page({
   onLoad() {
     // 检查是否已登录
     if (auth.checkLogin()) {
-      wx.redirectTo({
+      wx.reLaunch({
         url: '/pages/index/index'
       });
     }
@@ -34,7 +34,7 @@ Page({
             });
 
             setTimeout(() => {
-              wx.redirectTo({
+              wx.reLaunch({
                 url: '/pages/index/index'
               });
             }, 1500);

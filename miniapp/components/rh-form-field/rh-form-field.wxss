@@ -1,0 +1,42 @@
+:host {
+  display: block;
+}
+
+.rh-field {
+  padding: 26rpx 32rpx;
+  border-bottom: 1rpx solid var(--color-divider);
+  background: var(--color-surface);
+}
+
+.rh-field__label {
+  font-size: 26rpx;
+  color: var(--color-text-body);
+  margin-bottom: 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.rh-field__req {
+  color: var(--color-red);
+}
+
+.rh-field__control {
+  width: 100%;
+}
+
+.rh-input {
+  width: 100%;
+  border: 1rpx solid var(--color-input-border);
+  border-radius: var(--radius-md);
+  padding: 20rpx 24rpx;
+  font-size: 26rpx;
+  background: var(--color-input-bg);
+  color: var(--color-text);
+  box-sizing: border-box;
+}
+
+.rh-input--area {
+  min-height: 132rpx;
+  line-height: 1.5;
+}

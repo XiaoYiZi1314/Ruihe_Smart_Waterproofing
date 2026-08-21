@@ -1,0 +1,28 @@
+<view class="page-wrap">
+  <rh-search-bar
+    value="{{keyword}}"
+    bind:input="onSearchInput"
+    bind:confirm="onSearchConfirm"
+  />
+
+  <rh-tag-bar
+    items="{{categories}}"
+    active-key="{{currentCategoryId}}"
+    bind:change="onCategoryTap"
+  />
+
+  <rh-service-card
+    wx:for="{{services}}"
+    wx:key="id"
+    service="{{item}}"
+    bind:tap="onServiceTap"
+    bind:book="onBookTap"
+  />
+
+  <rh-empty wx:if="{{!loading && services.length === 0}}" text="暂无服务项目" />
+  <rh-load-more
+    wx:if="{{services.length > 0}}"
+    loading="{{loading}}"
+    finished="{{!hasMore}}"
+  />
+</view>

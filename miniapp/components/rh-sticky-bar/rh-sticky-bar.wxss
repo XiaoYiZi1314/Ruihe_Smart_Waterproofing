@@ -1,0 +1,13 @@
+.rh-sticky {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  background: #ffffff;
+  border-top: 1rpx solid var(--color-border);
+  padding: 22rpx 32rpx calc(26rpx + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}

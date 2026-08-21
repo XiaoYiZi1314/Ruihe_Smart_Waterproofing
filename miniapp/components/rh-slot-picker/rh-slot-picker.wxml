@@ -1,0 +1,11 @@
+<view class="rh-slots">
+  <view
+    wx:for="{{options}}"
+    wx:key="value"
+    class="rh-slot {{value === item.value ? 'is-on' : ''}}"
+    data-value="{{item.value}}"
+    bindtap="onTap"
+  >
+    {{item.label}}
+  </view>
+</view>

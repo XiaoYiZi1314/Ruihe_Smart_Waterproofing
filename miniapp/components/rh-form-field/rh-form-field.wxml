@@ -1,0 +1,9 @@
+<view class="rh-field">
+  <view class="rh-field__label">
+    <text>{{label}}</text>
+    <text wx:if="{{required}}" class="rh-field__req">*</text>
+  </view>
+  <view class="rh-field__control">
+    <slot></slot>
+  </view>
+</view>

@@ -1,0 +1,13 @@
+<scroll-view class="rh-tags" scroll-x show-scrollbar="{{false}}">
+  <view class="rh-tags__row">
+    <view
+      wx:for="{{items}}"
+      wx:key="key"
+      class="rh-tag {{activeKey === item.key ? 'is-on' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onTap"
+    >
+      {{item.label}}
+    </view>
+  </view>
+</scroll-view>

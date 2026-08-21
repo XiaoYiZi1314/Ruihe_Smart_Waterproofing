@@ -1,0 +1,19 @@
+.rh-slots {
+  display: flex;
+  gap: 14rpx;
+  flex-wrap: wrap;
+  margin-top: 8rpx;
+}
+
+.rh-slot {
+  font-size: 24rpx;
+  padding: 14rpx 24rpx;
+  border-radius: var(--radius-md);
+  background: var(--color-slot-bg);
+  color: #4B5563;
+}
+
+.rh-slot.is-on {
+  background: var(--color-brand);
+  color: #ffffff;
+}

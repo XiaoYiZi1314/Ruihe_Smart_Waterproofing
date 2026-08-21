@@ -5,6 +5,12 @@ const morgan = require('morgan');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
+const bannerRoutes = require('./routes/banners');
+const categoryRoutes = require('./routes/categories');
+const serviceRoutes = require('./routes/services');
+const addressRoutes = require('./routes/addresses');
+const orderRoutes = require('./routes/orders');
+const configRoutes = require('./routes/config');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,6 +33,12 @@ app.get('/health', (req, res) => {
 
 // API路由
 app.use('/api/auth', authRoutes);
+app.use('/api/banners', bannerRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/services', serviceRoutes);
+app.use('/api/addresses', addressRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/config', configRoutes);
 
 // 404处理
 app.use((req, res) => {

@@ -20,7 +20,7 @@
 - **后端服务** (Node.js + Express + MySQL)
 - **小程序端** (微信原生小程序)
 
-**当前状态**：✅ 第一阶段完成（基础搭建）
+**当前状态**：✅ 第二阶段完成（核心功能开发）
 
 ---
 
@@ -74,6 +74,9 @@ copy .env.example .env
 # 初始化数据库
 npm run migrate
 
+# 填充测试数据
+node scripts/seed.js
+
 # 启动服务
 npm run dev
 ```
@@ -122,14 +125,21 @@ Ruihe_Smart_Waterproofing/
 │   │   ├── utils/             # 工具函数
 │   │   └── app.js             # 应用入口
 │   ├── scripts/
-│   │   └── migrate.js         # 数据库迁移
+│   │   ├── migrate.js         # 数据库迁移
+│   │   ├── seed.js            # 测试数据填充
+│   │   └── test-api.js        # API测试脚本
 │   ├── package.json
 │   └── .env.example           # 环境变量模板
 │
 ├── miniapp/                    # 小程序
 │   ├── pages/
 │   │   ├── login/             # 登录页
-│   │   └── index/             # 首页
+│   │   ├── index/             # 首页
+│   │   ├── services/          # 服务列表和详情
+│   │   ├── booking/           # 预约页面
+│   │   ├── address/           # 地址管理
+│   │   ├── orders/            # 工单管理
+│   │   └── profile/           # 个人中心
 │   ├── utils/
 │   │   ├── request.js         # HTTP请求封装
 │   │   └── auth.js            # 认证工具
@@ -138,6 +148,8 @@ Ruihe_Smart_Waterproofing/
 │
 └── docs/                       # 文档
     ├── phase-1-development-guide.md
+    ├── phase-2-development-guide.md
+    ├── phase-2-deployment.md
     ├── deployment-guide.md
     ├── local-test-and-deployment.md
     └── PROJECT_SUMMARY.md
@@ -177,13 +189,27 @@ Ruihe_Smart_Waterproofing/
 - JWT 认证
 - 数据库设计
 
-### 🔲 开发中（第二阶段）
+### ✅ 已完成（第二阶段）
 
-- 服务详情页
-- 在线预约功能
-- 订单管理
-- 师傅端功能
-- 消息通知
+**用户端**：
+- 服务列表页（分类筛选、搜索）
+- 服务详情页（图片轮播、价格、特点）
+- 地址管理（新增、编辑、删除、设置默认）
+- 在线预约（选择地址、时间、填写备注）
+- 工单管理（列表、详情、状态筛选）
+- 工单操作（取消、评价）
+- 个人中心（用户信息、快捷入口）
+
+**后端**：
+- 完整的 RESTful API
+- 轮播图管理接口
+- 分类管理接口
+- 服务管理接口
+- 地址管理接口
+- 工单管理接口
+- 网站配置接口
+- 数据库模型和关系
+- 测试数据种子脚本
 
 ### 🔲 规划中（第三阶段）
 
@@ -200,6 +226,8 @@ Ruihe_Smart_Waterproofing/
 |------|------|
 | [本地测试与部署指南](docs/local-test-and-deployment.md) | ⭐ 最详细的本地开发和生产部署教程 |
 | [第一阶段开发指南](docs/phase-1-development-guide.md) | 第一阶段的需求和实现说明 |
+| [第二阶段开发指南](docs/phase-2-development-guide.md) | 第二阶段的需求和实现说明 |
+| [第二阶段部署指南](docs/phase-2-deployment.md) | ⭐ 第二阶段部署和测试指南 |
 | [部署文档](docs/deployment-guide.md) | 生产环境部署参考 |
 | [项目总结](PROJECT_SUMMARY.md) | 项目功能和技术总览 |
 | [后端 README](backend/README.md) | 后端 API 接口文档 |
@@ -218,19 +246,21 @@ Ruihe_Smart_Waterproofing/
 
 ```
 第一阶段 ████████████████████████████████ 100% ✅
-第二阶段 ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0%
+第二阶段 ████████████████████████████████ 100% ✅
 第三阶段 ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░   0%
 ```
 
-### 第二阶段计划
+### 第三阶段计划
 
-- [ ] 服务详情页（图片、价格、施工流程）
-- [ ] 在线预约表单
-- [ ] 订单列表和详情
-- [ ] 师傅注册和认证
+- [ ] 工单流转（师傅接单、施工、完工）
+- [ ] 师傅端小程序
+- [ ] 微信支付集成
+- [ ] 实时消息推送
 - [ ] 服务评价系统
+- [ ] 管理后台系统
+- [ ] 数据统计分析
 
-预计完成时间：2-3 周
+预计完成时间：3-4 周
 
 ---
 
@@ -281,6 +311,20 @@ Authorization: Bearer <token>
   }
 }
 ```
+
+### 其他接口
+
+详细的 API 文档请查看：
+- [后端 README](backend/README.md) - 完整的 API 接口文档
+- [第二阶段部署指南](docs/phase-2-deployment.md) - API 接口列表
+
+主要接口包括：
+- **轮播图**: GET /api/banners
+- **服务分类**: GET /api/categories
+- **服务项目**: GET /api/services, GET /api/services/:id
+- **地址管理**: GET/POST/PUT/DELETE /api/addresses
+- **工单管理**: GET/POST /api/orders, PUT /api/orders/:id/cancel
+- **站点配置**: GET /api/config
 
 ---
 
@@ -393,9 +437,9 @@ ISC
 
 ---
 
-**项目版本**: v1.0.0  
-**最后更新**: 2026-08-14  
-**状态**: 第一阶段完成 ✅
+**项目版本**: v2.0.0  
+**最后更新**: 2026-08-20  
+**状态**: 第二阶段完成 ✅
 
 ---
 

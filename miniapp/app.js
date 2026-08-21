@@ -45,6 +45,7 @@ App({
 
   globalData: {
     userInfo: null,
-    apiBaseUrl: 'http://localhost:3000' // 生产环境修改为实际域名
+    apiBaseUrl: 'https://ruihezhihui.cn',
+    serviceKeyword: ''
   }
 });

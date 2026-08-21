@@ -1,0 +1,40 @@
+<view class="page-wrap">
+  <view class="profile-head">
+    <view class="profile-top">
+      <image
+        wx:if="{{userInfo.avatar_url}}"
+        class="avatar"
+        src="{{userInfo.avatar_url}}"
+        mode="aspectFill"
+      />
+      <view wx:else class="avatar avatar--placeholder">
+        <rh-icon name="user" tone="white" size="56" />
+      </view>
+      <view>
+        <view class="profile-name">{{userInfo.nickname || '微信用户'}}</view>
+        <view class="profile-phone">{{displayPhone || '未绑定手机号'}}</view>
+      </view>
+    </view>
+    <view class="profile-vip">
+      <text>✓ 认证会员 · 享专属服务保障</text>
+      <text class="profile-vip__more">查看权益 ›</text>
+    </view>
+  </view>
+
+  <view class="menu-wrap">
+    <rh-card padding="{{false}}">
+      <rh-menu-item
+        wx:for="{{menuItems}}"
+        wx:key="id"
+        icon="{{item.icon}}"
+        title="{{item.title}}"
+        gradient="{{item.gradient}}"
+        badge="{{item.badge}}"
+        data-id="{{item.id}}"
+        bind:tap="onMenuTap"
+      />
+    </rh-card>
+  </view>
+
+  <button class="logout-btn" bindtap="onLogout">退出登录</button>
+</view>

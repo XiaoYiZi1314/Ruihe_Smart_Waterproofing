@@ -1,0 +1,30 @@
+<view class="rh-order" bindtap="onTap">
+  <view class="rh-order__top">
+    <text class="rh-order__no">工单号：{{view.no}}</text>
+    <rh-status-tag status="{{view.tagClass}}" text="{{view.statusText}}" />
+  </view>
+  <view class="rh-order__name">{{view.name}}</view>
+  <view wx:if="{{view.time}}" class="rh-order__line">
+    <rh-icon name="clock" size="26" />
+    <text>预约时间：{{view.time}}</text>
+  </view>
+  <view wx:if="{{view.addr}}" class="rh-order__line">
+    <rh-icon name="location" size="26" />
+    <text>{{view.addr}}</text>
+  </view>
+  <view wx:if="{{view.master}}" class="rh-order__line rh-order__line--master">
+    <rh-icon name="user" tone="brand" size="26" />
+    <text>分配师傅：{{view.master}}</text>
+  </view>
+  <view wx:if="{{view.actions.length}}" class="rh-order__foot">
+    <rh-button
+      wx:for="{{view.actions}}"
+      wx:key="key"
+      size="sm"
+      variant="{{item.variant}}"
+      text="{{item.text}}"
+      data-action="{{item.key}}"
+      bind:tap="onAction"
+    />
+  </view>
+</view>

@@ -1,38 +1,26 @@
-<view class="login-container">
-  <view class="login-content">
-    <!-- Logo区域 -->
-    <view class="logo-section">
-      <view class="logo-icon">
-        <text class="icon">🏠</text>
-      </view>
-      <text class="app-name">瑞和防水</text>
-      <text class="app-slogan">专业防水 值得信赖</text>
+<view class="login-page">
+  <view class="login-hero">
+    <view class="login-logo">
+      <rh-icon name="shield" tone="white" size="80" />
     </view>
+    <text class="login-name">瑞和智慧</text>
+    <text class="login-slogan">专业防水堵漏 · 预约服务系统</text>
+  </view>
 
-    <!-- 登录按钮 -->
-    <view class="login-section">
-      <button
-        class="login-btn {{loading ? 'loading' : ''}}"
-        bindtap="onGetUserProfile"
-        disabled="{{loading}}"
-      >
-        <text wx:if="{{!loading}}">微信快捷登录</text>
-        <text wx:else>登录中...</text>
-      </button>
-
-      <view class="login-tips">
-        <text>登录即表示同意</text>
-        <text class="link">《用户协议》</text>
-        <text>和</text>
-        <text class="link">《隐私政策》</text>
-      </view>
-    </view>
-
-    <!-- 装饰元素 -->
-    <view class="decorations">
-      <view class="circle circle-1"></view>
-      <view class="circle circle-2"></view>
-      <view class="circle circle-3"></view>
+  <view class="login-panel">
+    <rh-button
+      variant="brand"
+      size="lg"
+      block
+      text="{{loading ? '登录中...' : '微信快捷登录'}}"
+      disabled="{{loading}}"
+      bind:tap="onGetUserProfile"
+    />
+    <view class="login-tips">
+      <text>登录即表示同意</text>
+      <text class="text-brand">《用户协议》</text>
+      <text>和</text>
+      <text class="text-brand">《隐私政策》</text>
     </view>
   </view>
 </view>

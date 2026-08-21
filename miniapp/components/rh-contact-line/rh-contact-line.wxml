@@ -1,0 +1,9 @@
+<view class="rh-contact" bindtap="onTap">
+  <view class="rh-contact__ico">
+    <rh-icon name="{{icon}}" tone="brand" size="32" />
+  </view>
+  <view class="rh-contact__txt">
+    <text class="rh-contact__title">{{title}}</text>
+    <text wx:if="{{subtitle}}" class="rh-contact__sub">{{subtitle}}</text>
+  </view>
+</view>

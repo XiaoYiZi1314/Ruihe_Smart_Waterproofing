@@ -1,0 +1,4 @@
+<view class="rh-sec">
+  <text class="rh-sec__title">{{title}}</text>
+  <text wx:if="{{more}}" class="rh-sec__more" bindtap="onMore">{{more}}</text>
+</view>

@@ -1,0 +1,13 @@
+<view class="rh-search {{gutter ? '' : 'rh-search--flush'}}" bindtap="onTap">
+  <rh-icon name="search" size="32" />
+  <input
+    class="rh-search__input"
+    placeholder="{{placeholder}}"
+    placeholder-class="rh-search__ph"
+    value="{{value}}"
+    disabled="{{disabled}}"
+    confirm-type="search"
+    bindinput="onInput"
+    bindconfirm="onConfirm"
+  />
+</view>

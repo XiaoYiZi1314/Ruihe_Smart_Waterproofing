@@ -139,6 +139,27 @@ backend/
 
 ## 部署说明
 
+### 当前生产部署信息（2026-08-15）
+
+| 项目 | 值 |
+|---|---|
+| 服务器 | 8.129.86.190（Ubuntu 22.04，2核1.6G） |
+| 域名 | https://ruihezhihui.cn（Nginx + Let's Encrypt 证书） |
+| 部署路径 | `/var/www/waterproof-backend` |
+| 数据库 | MySQL 8.0，库 `waterproof_system`，用户 `waterproof_user` |
+| 进程管理 | PM2，进程名 `waterproof-api`，已配置开机自启 |
+| 健康检查 | `curl https://ruihezhihui.cn/health` |
+
+验证命令：
+
+```bash
+curl https://ruihezhihui.cn/health                     # 健康检查
+curl -X POST https://ruihezhihui.cn/api/auth/login \
+  -H "Content-Type: application/json" -d '{"code":"真实code"}'   # 微信登录
+```
+
+> 注意：旧版 NestJS 演示项目已备份至 `/var/www/waterproof-backend-nestjs-legacy`（未运行）。
+
 ### 使用 PM2 部署
 
 ```bash

@@ -1,0 +1,6 @@
+<image
+  class="rh-icon"
+  src="{{src}}"
+  style="width: {{size}}rpx; height: {{size}}rpx;"
+  mode="aspectFit"
+/>

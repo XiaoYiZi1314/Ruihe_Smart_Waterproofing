@@ -1,0 +1,14 @@
+<view class="rh-quick-row">
+  <view
+    wx:for="{{items}}"
+    wx:key="key"
+    class="rh-quick"
+    data-key="{{item.key}}"
+    bindtap="onTap"
+  >
+    <view class="rh-quick__ico" style="background: {{item.gradient}};">
+      <rh-icon name="{{item.icon}}" tone="white" size="48" />
+    </view>
+    <text class="rh-quick__label">{{item.label}}</text>
+  </view>
+</view>

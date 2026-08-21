@@ -1,0 +1,81 @@
+<view class="page-wrap ds-page">
+  <view class="ds-hero">纯前端预览 · 用于核对 temp 原型还原质量</view>
+
+  <view class="ds-sec">
+    <rh-section-title title="颜色" />
+    <view class="ds-colors">
+      <view wx:for="{{colors}}" wx:key="name" class="ds-color">
+        <view class="ds-swatch" style="background: {{item.value}};"></view>
+        <text>{{item.name}}</text>
+        <text class="ds-code">{{item.value}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="ds-sec">
+    <rh-section-title title="字体" />
+    <view wx:for="{{fonts}}" wx:key="name" class="ds-font" style="font-size: {{item.size}}; font-weight: {{item.weight}};">
+      {{item.sample}}
+      <text class="ds-code">{{item.name}}</text>
+    </view>
+  </view>
+
+  <view class="ds-sec">
+    <rh-section-title title="按钮" />
+    <view class="ds-row">
+      <rh-button size="sm" text="立即预约" bind:tap="onDemoTap" />
+      <rh-button size="sm" variant="line" text="取消预约" />
+      <rh-button size="sm" variant="danger" text="退出登录" />
+    </view>
+    <view class="ds-gap"></view>
+    <rh-button size="lg" block text="提交预约" />
+  </view>
+
+  <view class="ds-sec">
+    <rh-section-title title="搜索 / 标签 / 选择" />
+    <rh-search-bar gutter="{{false}}" />
+    <rh-tag-bar items="{{tags}}" active-key="{{activeTag}}" bind:change="onTagChange" />
+    <rh-slot-picker options="{{slots}}" value="{{slotValue}}" bind:change="onSlotChange" />
+  </view>
+
+  <view class="ds-sec">
+    <rh-section-title title="快捷入口" />
+    <rh-quick-entry bind:tap="onDemoTap" />
+  </view>
+
+  <view class="ds-sec">
+    <rh-section-title title="服务卡片" />
+    <rh-service-card service="{{demoService}}" bind:tap="onDemoTap" bind:book="onDemoTap" />
+  </view>
+
+  <view class="ds-sec">
+    <rh-section-title title="工单卡片" />
+    <rh-order-card order="{{demoOrder}}" bind:tap="onDemoTap" bind:action="onDemoTap" />
+  </view>
+
+  <view class="ds-sec">
+    <rh-section-title title="卡片 / 联系 / 表单" />
+    <rh-card>
+      <rh-section-title title="📞 联系我们" />
+      <rh-contact-line icon="phone" title="400-888-6688" subtitle="全国服务热线 · 7×24小时" />
+      <rh-contact-line icon="location" title="上海市闵行区虹桥商务区·瑞和大厦" subtitle="各城市均设有服务网点" />
+    </rh-card>
+    <view class="ds-gap"></view>
+    <rh-form-field label="联系人姓名" required>
+      <input class="rh-input" placeholder="请输入联系人姓名" value="张先生" />
+    </rh-form-field>
+  </view>
+
+  <view class="ds-sec">
+    <rh-section-title title="状态 / 空态 / 加载" />
+    <view class="ds-row">
+      <rh-status-tag status="pending" text="待确认" />
+      <rh-status-tag status="confirmed" text="已确认" />
+      <rh-status-tag status="doing" text="进行中" />
+      <rh-status-tag status="done" text="已完成" />
+      <rh-status-tag status="cancel" text="已取消" />
+    </view>
+    <rh-empty text="暂无相关工单" />
+    <rh-load-more />
+  </view>
+</view>

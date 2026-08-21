@@ -1,0 +1,29 @@
+:host {
+  display: block;
+}
+
+.rh-info {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24rpx;
+  padding: 16rpx 0;
+}
+
+.rh-info__label {
+  font-size: 26rpx;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.rh-info__value {
+  font-size: 26rpx;
+  color: var(--color-text);
+  text-align: right;
+  flex: 1;
+}
+
+.rh-info__value.is-price {
+  color: var(--color-red);
+  font-weight: 700;
+}

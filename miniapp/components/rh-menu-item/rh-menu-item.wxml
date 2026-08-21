@@ -1,0 +1,8 @@
+<view class="rh-menu" hover-class="rh-menu--active" bindtap="onTap">
+  <view class="rh-menu__ico" style="background: {{gradient}};">
+    <rh-icon name="{{icon}}" tone="white" size="32" />
+  </view>
+  <text class="rh-menu__txt">{{title}}</text>
+  <view wx:if="{{badge > 0}}" class="rh-menu__badge">{{badge}}</view>
+  <rh-icon name="arrow" size="32" />
+</view>

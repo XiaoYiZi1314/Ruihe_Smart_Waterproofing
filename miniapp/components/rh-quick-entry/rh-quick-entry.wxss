@@ -1,0 +1,27 @@
+.rh-quick-row {
+  display: flex;
+  justify-content: space-around;
+  padding: 12rpx 12rpx 28rpx;
+}
+
+.rh-quick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.rh-quick__ico {
+  width: 92rpx;
+  height: 92rpx;
+  border-radius: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-quick);
+}
+
+.rh-quick__label {
+  font-size: 23rpx;
+  color: #374151;
+}
