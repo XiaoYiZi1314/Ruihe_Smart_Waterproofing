@@ -1,16 +1,13 @@
-:host {
-  display: block;
-}
-
-:host + :host .rh-contact {
-  border-top: 1rpx solid var(--color-divider);
-}
-
 .rh-contact {
   display: flex;
   align-items: center;
   gap: 20rpx;
   padding: 18rpx 0;
+  border-top: 1rpx solid var(--color-divider);
+}
+
+.rh-contact:first-child {
+  border-top: none;
 }
 
 .rh-contact__ico {

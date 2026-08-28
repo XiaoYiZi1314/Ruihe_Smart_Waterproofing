@@ -193,6 +193,8 @@ Page({
       const formData = {
         service_id: this.data.serviceId,
         address_id: this.data.selectedAddress.id,
+        contact_name: this.data.contactName,
+        contact_phone: this.data.contactPhone,
         remark: remarkParts.join('\n'),
         images: this.data.form.images
       };

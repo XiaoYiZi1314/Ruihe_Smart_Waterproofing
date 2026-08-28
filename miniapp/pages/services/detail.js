@@ -5,6 +5,8 @@ Page({
   data: {
     service: null,
     loading: true,
+    bannerImages: [],
+    currentBannerIndex: 0,
     bannerGradient: '',
     priceMain: '',
     priceSuffix: '',
@@ -29,9 +31,20 @@ Page({
       if (res.success) {
         const service = res.data;
         const price = theme.formatPrice(service.price_min, service.price_max, service.price_unit);
+        
+        // 构建图片轮播数组：封面图 + 详情图片
+        const bannerImages = [];
+        if (service.cover_image) {
+          bannerImages.push(service.cover_image);
+        }
+        if (service.images && Array.isArray(service.images)) {
+          bannerImages.push(...service.images);
+        }
+        
         this.setData({
           service,
           loading: false,
+          bannerImages,
           bannerGradient: theme.coverGradient(service.id || service.name),
           priceMain: price.main,
           priceSuffix: price.suffix ? `${price.suffix} · 参考价格` : '参考价格',
@@ -47,6 +60,20 @@ Page({
     } finally {
       wx.hideLoading();
     }
+  },
+
+  onBannerChange(e) {
+    this.setData({
+      currentBannerIndex: e.detail.current
+    });
+  },
+
+  onPreviewImage(e) {
+    const current = e.currentTarget.dataset.url;
+    wx.previewImage({
+      current,
+      urls: this.data.bannerImages
+    });
   },
 
   onConsult() {

@@ -14,6 +14,7 @@ const configRoutes = require('./routes/config');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || (process.env.NODE_ENV === 'production' ? '127.0.0.1' : '0.0.0.0');
 
 // 中间件
 app.use(helmet()); // 安全headers
@@ -59,11 +60,11 @@ app.use((err, req, res, next) => {
 });
 
 // 启动服务器
-app.listen(PORT, () => {
+app.listen(PORT, HOST, () => {
   console.log(`🚀 服务器启动成功！`);
-  console.log(`📡 监听端口: ${PORT}`);
+  console.log(`📡 监听地址: ${HOST}:${PORT}`);
   console.log(`🌍 环境: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 健康检查: http://localhost:${PORT}/health`);
+  console.log(`🔗 健康检查: http://127.0.0.1:${PORT}/health`);
 });
 
 module.exports = app;

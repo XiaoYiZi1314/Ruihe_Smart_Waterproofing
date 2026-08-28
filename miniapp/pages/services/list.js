@@ -1,5 +1,33 @@
 const api = require('../../utils/api');
 
+// 服务名称到真实图片的映射
+const SERVICE_COVER_MAP = {
+  '卫生间': '/assets/services/bathroom.jpg',
+  '阳台': '/assets/services/balcony.jpg',
+  '屋顶': '/assets/services/roof.jpg',
+  '地下室': '/assets/services/basement.jpg',
+  '定制': '/assets/services/custom.jpg'
+};
+
+// 为服务添加真实封面图片
+function addRealCovers(services) {
+  return services.map(service => {
+    // 如果后端已经提供了封面图片，优先使用
+    if (service.cover && !service.cover.includes('placeholder')) {
+      return service;
+    }
+    
+    // 根据服务名称匹配真实图片
+    for (const keyword in SERVICE_COVER_MAP) {
+      if (service.name && service.name.includes(keyword)) {
+        return { ...service, cover: SERVICE_COVER_MAP[keyword] };
+      }
+    }
+    
+    return service;
+  });
+}
+
 Page({
   data: {
     categories: [{ key: null, label: '全部' }],
@@ -63,12 +91,10 @@ Page({
       const res = await api.getServices(params);
 
       if (res.success) {
-        let list = refresh ? res.data : [...this.data.services, ...res.data];
-        if (this.data.keyword) {
-          const kw = this.data.keyword.toLowerCase();
-          list = list.filter((item) => (item.name || '').toLowerCase().includes(kw)
-            || (item.description || '').toLowerCase().includes(kw));
-        }
+        // 为服务数据添加真实封面图片
+        const servicesWithCovers = addRealCovers(res.data);
+        const list = refresh ? servicesWithCovers : [...this.data.services, ...servicesWithCovers];
+        
         this.setData({
           services: list,
           page: res.pagination ? res.pagination.page : 1,

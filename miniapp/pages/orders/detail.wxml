@@ -10,8 +10,8 @@
         <rh-section-title title="服务信息" />
         <rh-info-row label="工单号" value="{{order.order_no}}" />
         <rh-info-row label="服务项目" value="{{order.service_name}}" />
-        <rh-info-row wx:if="{{order.expected_price}}" label="期望价格" value="¥{{order.expected_price}}" emphasize />
-        <rh-info-row wx:if="{{order.final_price}}" label="最终价格" value="¥{{order.final_price}}" emphasize />
+        <rh-info-row wx:if="{{order.expected_price}}" label="期望价格" value="{{expectedPriceText}}" emphasize />
+        <rh-info-row wx:if="{{order.final_price}}" label="最终价格" value="{{finalPriceText}}" emphasize />
       </rh-card>
     </view>
 
@@ -75,11 +75,14 @@
   <rh-sticky-bar wx:if="{{!loading && order}}">
     <rh-button variant="line" size="lg" text="联系客服" bind:tap="onCallService" />
     <rh-button
-      wx:if="{{order.status === 'pending'}}"
+      wx:if="{{statusMeta.actions && statusMeta.actions.length > 0}}"
+      wx:for="{{statusMeta.actions}}"
+      wx:key="key"
+      wx:if="{{item.key === 'cancel'}}"
       variant="danger"
       size="lg"
       block
-      text="取消工单"
+      text="{{item.text}}"
       bind:tap="onCancelOrder"
     />
   </rh-sticky-bar>

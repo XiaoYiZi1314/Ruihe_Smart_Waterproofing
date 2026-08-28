@@ -19,11 +19,11 @@
   width: 144rpx;
   height: 144rpx;
   border-radius: 40rpx;
-  background: linear-gradient(135deg, #1A5CFF, #5B9AF5);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-brand-light));
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 16rpx 40rpx rgba(43, 123, 228, 0.28);
+  box-shadow: var(--shadow-brand);
   margin-bottom: 32rpx;
 }
 

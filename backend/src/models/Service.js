@@ -8,6 +8,7 @@ class Service {
     const {
       category_id,
       is_hot,
+      keyword,
       page = 1,
       limit = 10
     } = options;
@@ -37,13 +38,20 @@ class Service {
       params.push(is_hot);
     }
 
+    // 关键词搜索（搜索名称和描述）
+    if (keyword) {
+      query += ' AND (s.name LIKE ? OR s.description LIKE ?)';
+      const searchTerm = `%${keyword}%`;
+      params.push(searchTerm, searchTerm);
+    }
+
     // 排序
     query += ' ORDER BY s.sort_order ASC, s.created_at DESC';
 
     // 分页
     const offset = (page - 1) * limit;
     query += ' LIMIT ? OFFSET ?';
-    params.push(limit, offset);
+    params.push(Number(limit), Number(offset));
 
     const [rows] = await db.query(query, params);
 
@@ -59,6 +67,12 @@ class Service {
     if (is_hot !== undefined) {
       countQuery += ' AND is_hot = ?';
       countParams.push(is_hot);
+    }
+
+    if (keyword) {
+      countQuery += ' AND (name LIKE ? OR description LIKE ?)';
+      const searchTerm = `%${keyword}%`;
+      countParams.push(searchTerm, searchTerm);
     }
 
     const [countRows] = await db.query(countQuery, countParams);

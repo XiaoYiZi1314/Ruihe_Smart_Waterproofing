@@ -1,7 +1,3 @@
-:host {
-  display: block;
-}
-
 .rh-info {
   display: flex;
   align-items: flex-start;

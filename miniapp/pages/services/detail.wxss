@@ -1,26 +1,35 @@
 .detail-banner {
-  height: 360rpx;
+  height: 400rpx;
   position: relative;
-  color: #ffffff;
 }
 
-.detail-banner__img {
+.banner-swiper {
   width: 100%;
   height: 100%;
 }
 
-.detail-banner__mask {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 36rpx;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(11, 18, 32, 0.4) 100%);
+.banner-image {
+  width: 100%;
+  height: 100%;
 }
 
-.detail-banner__title {
-  font-size: 36rpx;
-  font-weight: 700;
+.banner-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-indicator {
+  position: absolute;
+  right: 24rpx;
+  bottom: 24rpx;
+  background: rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 28rpx;
 }
 
 .detail-price {
@@ -38,18 +47,17 @@
 }
 
 .detail-sec {
-  padding: 12rpx 32rpx 28rpx;
-}
-
-.detail-h {
-  font-size: 28rpx;
-  font-weight: 600;
-  margin-bottom: 16rpx;
-  color: var(--color-text);
+  padding: 24rpx 32rpx;
 }
 
 .detail-p {
-  font-size: 25rpx;
+  font-size: 26rpx;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+.detail-richtext {
+  font-size: 26rpx;
   color: var(--color-text-secondary);
   line-height: 1.7;
 }

@@ -36,5 +36,7 @@
     </rh-card>
   </view>
 
-  <button class="logout-btn" bindtap="onLogout">退出登录</button>
+  <view class="logout-wrap">
+    <rh-button variant="ghost" size="lg" block text="退出登录" bind:tap="onLogout" />
+  </view>
 </view>

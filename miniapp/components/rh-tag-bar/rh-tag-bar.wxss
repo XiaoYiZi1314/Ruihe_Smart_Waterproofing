@@ -15,7 +15,7 @@
   padding: 12rpx 26rpx;
   border-radius: 32rpx;
   background: var(--color-surface);
-  color: #4B5563;
+  color: var(--color-text-secondary);
   box-shadow: var(--shadow);
 }
 

@@ -1,15 +1,9 @@
 const api = require('../../utils/api');
+const statusUtil = require('../../utils/status');
 
 Page({
   data: {
-    tabs: [
-      { key: null, label: '全部' },
-      { key: 'pending', label: '待确认' },
-      { key: 'confirmed', label: '已确认' },
-      { key: 'in_progress', label: '进行中' },
-      { key: 'completed', label: '已完成' },
-      { key: 'cancelled', label: '已取消' }
-    ],
+    tabs: [],
     currentTab: null,
     orders: [],
     page: 1,
@@ -17,6 +11,21 @@ Page({
     total: 0,
     hasMore: true,
     loading: false
+  },
+
+  onLoad() {
+    // 从 status.js 构建标签
+    const STATUS_MAP = statusUtil.STATUS_MAP || {};
+    const tabs = [{ key: null, label: '全部' }];
+    
+    // 添加主要状态标签
+    ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'].forEach(key => {
+      if (STATUS_MAP[key]) {
+        tabs.push({ key, label: STATUS_MAP[key].text });
+      }
+    });
+
+    this.setData({ tabs });
   },
 
   onShow() {

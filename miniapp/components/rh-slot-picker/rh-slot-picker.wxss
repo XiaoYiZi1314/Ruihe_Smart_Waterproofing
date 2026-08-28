@@ -10,7 +10,7 @@
   padding: 14rpx 24rpx;
   border-radius: var(--radius-md);
   background: var(--color-slot-bg);
-  color: #4B5563;
+  color: var(--color-text-secondary);
 }
 
 .rh-slot.is-on {

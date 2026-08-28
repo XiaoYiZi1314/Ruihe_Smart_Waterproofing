@@ -1,17 +1,14 @@
-:host {
-  display: block;
-}
-
-:host + :host .rh-menu {
-  border-top: 1rpx solid var(--color-divider);
-}
-
 .rh-menu {
   display: flex;
   align-items: center;
   gap: 22rpx;
   padding: 28rpx;
   background: #ffffff;
+  border-top: 1rpx solid var(--color-divider);
+}
+
+.rh-menu:first-child {
+  border-top: none;
 }
 
 .rh-menu--active {

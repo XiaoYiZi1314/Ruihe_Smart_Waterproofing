@@ -1,9 +1,5 @@
-:host {
-  display: block;
-  margin: 0 24rpx 24rpx;
-}
-
 .rh-svc {
+  margin: 0 24rpx 24rpx;
   display: flex;
   gap: 24rpx;
   background: var(--color-surface);

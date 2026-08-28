@@ -166,6 +166,7 @@ async function migrate() {
 
         FOREIGN KEY (user_id) REFERENCES users(id),
         FOREIGN KEY (service_id) REFERENCES services(id),
+        FOREIGN KEY (worker_id) REFERENCES users(id),
         INDEX idx_order_no (order_no),
         INDEX idx_user (user_id),
         INDEX idx_worker (worker_id),

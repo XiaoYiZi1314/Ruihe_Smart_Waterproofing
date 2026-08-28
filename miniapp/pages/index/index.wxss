@@ -24,7 +24,7 @@
   bottom: 0;
   padding: 32rpx 32rpx 40rpx;
   color: #ffffff;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(11, 18, 32, 0.35) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.5) 100%);
 }
 
 .home-slide__title {

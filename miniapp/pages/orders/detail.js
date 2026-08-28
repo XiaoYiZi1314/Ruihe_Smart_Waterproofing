@@ -39,10 +39,22 @@ Page({
       const res = await api.getOrderById(id);
       if (res.success) {
         const order = res.data;
+        const statusMeta = statusUtil.getStatusMeta(order.status);
+        
+        // 格式化价格
+        const expectedPriceText = order.expected_price 
+          ? theme.formatPrice(order.expected_price, null, '元').main 
+          : '';
+        const finalPriceText = order.final_price 
+          ? theme.formatPrice(order.final_price, null, '元').main 
+          : '';
+        
         this.setData({
           order,
           loading: false,
-          statusMeta: statusUtil.getStatusMeta(order.status),
+          statusMeta,
+          expectedPriceText,
+          finalPriceText,
           maskedWorkerPhone: theme.maskPhone(order.worker_phone),
           createdAt: formatTime(order.created_at),
           confirmedAt: formatTime(order.confirmed_at),

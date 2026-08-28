@@ -1,10 +1,32 @@
 <view class="page-wrap page-wrap--footer">
   <view wx:if="{{!loading && service}}">
-    <view class="detail-banner" style="background: {{bannerGradient}};">
-      <image wx:if="{{service.cover_image}}" class="detail-banner__img" src="{{service.cover_image}}" mode="aspectFill" />
-      <view class="detail-banner__mask">
-        <view class="detail-banner__title">{{service.name}}</view>
+    <!-- 图片轮播 -->
+    <view class="detail-banner">
+      <swiper 
+        wx:if="{{bannerImages.length > 0}}"
+        class="banner-swiper" 
+        indicator-dots 
+        indicator-color="rgba(255,255,255,0.5)"
+        indicator-active-color="#ffffff"
+        autoplay
+        interval="5000"
+        circular
+        bindchange="onBannerChange"
+      >
+        <swiper-item wx:for="{{bannerImages}}" wx:key="*this">
+          <image 
+            class="banner-image" 
+            src="{{item}}" 
+            mode="aspectFill"
+            bindtap="onPreviewImage"
+            data-url="{{item}}"
+          />
+        </swiper-item>
+      </swiper>
+      <view wx:else class="banner-placeholder" style="background: {{bannerGradient}};">
+        <rh-icon name="shield" tone="white" size="120" />
       </view>
+      <view class="banner-indicator">{{currentBannerIndex + 1}} / {{bannerImages.length}}</view>
     </view>
 
     <view class="detail-price">
@@ -13,20 +35,25 @@
     </view>
 
     <view class="detail-sec">
-      <view class="detail-h">服务亮点</view>
+      <rh-section-title title="服务亮点" />
       <view class="detail-tags">
         <text wx:for="{{highlights}}" wx:key="*this">{{item}}</text>
       </view>
     </view>
 
     <view class="detail-sec">
-      <view class="detail-h">服务介绍</view>
-      <view class="detail-p">{{service.description || '专业防水施工，免费上门勘测，签约质保。'}}</view>
+      <rh-section-title title="服务介绍" />
+      <rich-text class="detail-richtext" nodes="{{service.description || '专业防水施工，免费上门勘测，签约质保。'}}" />
     </view>
 
     <view class="detail-sec">
-      <view class="detail-h">服务流程</view>
+      <rh-section-title title="服务流程" />
       <view class="detail-p">① 在线预约 → ② 上门勘测 → ③ 方案确认 → ④ 施工作业 → ⑤ 验收质保</view>
+    </view>
+
+    <view class="detail-sec">
+      <rh-section-title title="用户评价" />
+      <rh-empty text="暂无评价" />
     </view>
   </view>
 

@@ -15,7 +15,8 @@ class WorkOrder {
    */
   static async create(userId, data) {
     const {
-      service_id, address_id, expected_price, remark, images
+      service_id, address_id, expected_price, remark, images,
+      contact_name, contact_phone
     } = data;
 
     // 获取地址信息
@@ -29,6 +30,10 @@ class WorkOrder {
     }
 
     const address = addressRows[0];
+
+    // 使用前端传入的联系人信息，如果没有则使用地址中的
+    const finalContactName = contact_name || address.contact_name;
+    const finalContactPhone = contact_phone || address.contact_phone;
 
     // 构建完整地址
     const fullAddress = `${address.province || ''}${address.city || ''}${address.district || ''}${address.detail_address}`;
@@ -47,8 +52,8 @@ class WorkOrder {
          (order_no, user_id, service_id, address_id, contact_name, contact_phone,
           full_address, expected_price, remark, status)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-        [orderNo, userId, service_id, address_id, address.contact_name,
-         address.contact_phone, fullAddress, expected_price, remark]
+        [orderNo, userId, service_id, address_id, finalContactName,
+         finalContactPhone, fullAddress, expected_price, remark]
       );
 
       const orderId = result.insertId;
@@ -114,7 +119,7 @@ class WorkOrder {
     // 分页
     const offset = (page - 1) * limit;
     query += ' LIMIT ? OFFSET ?';
-    params.push(limit, offset);
+    params.push(Number(limit), Number(offset));
 
     const [rows] = await db.query(query, params);
 

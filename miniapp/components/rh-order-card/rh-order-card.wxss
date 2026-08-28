@@ -1,9 +1,5 @@
-:host {
-  display: block;
-  margin: 0 24rpx 24rpx;
-}
-
 .rh-order {
+  margin: 0 24rpx 24rpx;
   background: var(--color-surface);
   border-radius: var(--radius-xl);
   padding: 28rpx;

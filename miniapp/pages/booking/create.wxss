@@ -35,7 +35,7 @@
   right: 0;
   width: 36rpx;
   height: 36rpx;
-  background: rgba(11, 18, 32, 0.55);
+  background: rgba(0, 0, 0, 0.6);
   color: #fff;
   text-align: center;
   line-height: 32rpx;

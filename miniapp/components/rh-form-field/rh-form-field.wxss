@@ -1,7 +1,3 @@
-:host {
-  display: block;
-}
-
 .rh-field {
   padding: 26rpx 32rpx;
   border-bottom: 1rpx solid var(--color-divider);
