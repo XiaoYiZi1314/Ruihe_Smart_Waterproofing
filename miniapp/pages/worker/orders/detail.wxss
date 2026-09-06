@@ -1,0 +1,406 @@
+.page {
+  padding: 24rpx 24rpx 160rpx;
+}
+
+.loading {
+  text-align: center;
+  padding: 200rpx 0;
+  color: #9CA3AF;
+  font-size: 28rpx;
+}
+
+/* 状态头卡 */
+.status-card {
+  background: linear-gradient(135deg, #2B7BE4 0%, #1A5CFF 100%);
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  color: #ffffff;
+}
+
+.status-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-card .order-no {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 24rpx;
+  font-family: monospace;
+}
+
+.status-card .status-tag {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.status-card__price {
+  margin-top: 24rpx;
+}
+
+.price-label {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.status-card .price-value {
+  font-size: 48rpx;
+  font-weight: bold;
+}
+
+/* 卡片 */
+.card {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.card__title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #1F2937;
+  margin-bottom: 20rpx;
+}
+
+/* 信息行 */
+.info-row {
+  display: flex;
+  margin-bottom: 16rpx;
+}
+
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.info-label {
+  width: 140rpx;
+  font-size: 26rpx;
+  color: #9CA3AF;
+  flex-shrink: 0;
+}
+
+.info-value {
+  flex: 1;
+  font-size: 26rpx;
+  color: #1F2937;
+}
+
+.info-value--address,
+.info-value--desc {
+  word-break: break-all;
+}
+
+.info-value--desc {
+  color: #6B7280;
+}
+
+.info-value-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.btn-call-sm {
+  background: #ECFDF5;
+  color: #059669;
+  border: 1rpx solid #A7F3D0;
+  border-radius: 24rpx;
+  font-size: 22rpx;
+  padding: 0 20rpx;
+  line-height: 44rpx;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.btn-copy {
+  font-size: 22rpx;
+  color: #2B7BE4;
+  flex-shrink: 0;
+  margin-left: 16rpx;
+}
+
+/* 图片宫格 */
+.image-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.image-item {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 12rpx;
+  background: #F3F4F6;
+}
+
+/* 费用明细 */
+.fee-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12rpx 0;
+}
+
+.fee-label {
+  font-size: 26rpx;
+  color: #6B7280;
+}
+
+.fee-value {
+  font-size: 26rpx;
+  color: #1F2937;
+}
+
+.fee-row--total {
+  border-top: 1rpx solid #F3F4F6;
+  margin-top: 8rpx;
+  padding-top: 20rpx;
+}
+
+.fee-label--total {
+  font-weight: bold;
+  color: #1F2937;
+}
+
+.fee-value--total {
+  font-weight: bold;
+  color: #EF4444;
+  font-size: 32rpx;
+}
+
+/* 时间线 */
+.timeline {
+  padding-left: 8rpx;
+}
+
+.timeline-item {
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+  padding-bottom: 32rpx;
+  padding-left: 32rpx;
+}
+
+.timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 9rpx;
+  top: 24rpx;
+  bottom: 0;
+  width: 2rpx;
+  background: #E5E7EB;
+}
+
+.timeline-item:last-child::before {
+  display: none;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: 0;
+  top: 8rpx;
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+}
+
+.timeline-dot--done {
+  background: #2B7BE4;
+}
+
+.timeline-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-label {
+  font-size: 26rpx;
+  color: #1F2937;
+  margin-bottom: 4rpx;
+}
+
+.timeline-time {
+  font-size: 22rpx;
+  color: #9CA3AF;
+}
+
+/* 底部操作栏 */
+.action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #ffffff;
+  padding: 20rpx 24rpx calc(20rpx + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 20rpx;
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
+}
+
+.btn-primary {
+  flex: 1;
+  height: 88rpx;
+  background: linear-gradient(135deg, #2B7BE4 0%, #1A5CFF 100%);
+  color: #ffffff;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-primary[disabled] {
+  opacity: 0.7;
+  color: #ffffff;
+}
+
+.btn-reject {
+  flex: 1;
+  height: 88rpx;
+  background: #ffffff;
+  color: #EF4444;
+  border: 2rpx solid #EF4444;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 弹窗 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  width: 620rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 40rpx 32rpx;
+}
+
+.modal__title {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #1F2937;
+  text-align: center;
+  margin-bottom: 16rpx;
+}
+
+.modal__tip {
+  font-size: 24rpx;
+  color: #9CA3AF;
+  text-align: center;
+  margin-bottom: 32rpx;
+}
+
+.modal__textarea {
+  width: 100%;
+  height: 200rpx;
+  background: #F9FAFB;
+  border: 2rpx solid #E5E7EB;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  font-size: 26rpx;
+  box-sizing: border-box;
+}
+
+.modal__actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 32rpx;
+}
+
+.btn-cancel {
+  flex: 1;
+  height: 80rpx;
+  background: #F3F4F6;
+  color: #6B7280;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-modal {
+  height: 80rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+}
+
+/* 填价表单 */
+.fee-form {
+  margin-top: 8rpx;
+}
+
+.fee-form-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.fee-form-label {
+  width: 200rpx;
+  font-size: 26rpx;
+  color: #6B7280;
+}
+
+.fee-form-input {
+  flex: 1;
+  height: 80rpx;
+  background: #F9FAFB;
+  border: 2rpx solid #E5E7EB;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+}
+
+.fee-form-total {
+  text-align: right;
+  padding: 16rpx 0;
+}
+
+.fee-form-total text {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #EF4444;
+}
+
+/* 空状态 */
+.empty {
+  text-align: center;
+  padding: 200rpx 48rpx;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  display: block;
+  margin-bottom: 24rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #9CA3AF;
+}

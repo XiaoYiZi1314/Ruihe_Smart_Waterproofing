@@ -6,6 +6,10 @@
       "page": "pages/dev/design-system"
     },
     {
+      "action": "disallow",
+      "page": "pages/worker/*"
+    },
+    {
       "action": "allow",
       "page": "*"
     }

@@ -15,7 +15,8 @@ const STATUS_MAP = {
     tagClass: 'confirmed',
     desc: '工单已确认，师傅将按预约时间上门',
     actions: [
-      { key: 'callMaster', text: '联系师傅', variant: 'line' }
+      { key: 'callMaster', text: '联系师傅', variant: 'line' },
+      { key: 'urge', text: '催单', variant: 'line' }
     ]
   },
   in_progress: {
@@ -25,7 +26,7 @@ const STATUS_MAP = {
     desc: '师傅正在现场施工，请您耐心等待',
     actions: [
       { key: 'callMaster', text: '联系师傅', variant: 'line' },
-      { key: 'progress', text: '查看进度', variant: 'brand' }
+      { key: 'urge', text: '催单', variant: 'line' }
     ]
   },
   waiting_acceptance: {
@@ -34,7 +35,20 @@ const STATUS_MAP = {
     tagClass: 'doing',
     desc: '施工已完成，请确认最终价格',
     actions: [
-      { key: 'progress', text: '查看详情', variant: 'brand' }
+      { key: 'callMaster', text: '联系师傅', variant: 'line' },
+      { key: 'confirm', text: '确认验收', variant: 'brand' },
+      { key: 'dispute', text: '价格异议', variant: 'line' }
+    ]
+  },
+  pending_review: {
+    key: 'doing',
+    text: '待验收',
+    tagClass: 'doing',
+    desc: '施工已完成，请确认最终价格并验收',
+    actions: [
+      { key: 'callMaster', text: '联系师傅', variant: 'line' },
+      { key: 'confirm', text: '确认验收', variant: 'brand' },
+      { key: 'dispute', text: '价格异议', variant: 'line' }
     ]
   },
   negotiating: {
@@ -44,6 +58,15 @@ const STATUS_MAP = {
     desc: '价格异议已提交，管理员正在处理',
     actions: [
       { key: 'progress', text: '查看详情', variant: 'brand' }
+    ]
+  },
+  price_negotiating: {
+    key: 'pending',
+    text: '价格协商中',
+    tagClass: 'pending',
+    desc: '价格异议已提交，管理员正在处理，请耐心等待',
+    actions: [
+      { key: 'callMaster', text: '联系师傅', variant: 'line' }
     ]
   },
   completed: {

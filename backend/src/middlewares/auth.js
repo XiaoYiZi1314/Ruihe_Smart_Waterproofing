@@ -21,8 +21,11 @@ async function authMiddleware(req, res, next) {
     // 验证token
     const decoded = verifyToken(token);
 
+    // 兼容 {id} 与 {userId} 两种 payload 结构
+    const userId = decoded.userId || decoded.id;
+
     // 查询用户信息
-    const user = await User.findById(decoded.userId);
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -48,4 +51,32 @@ async function authMiddleware(req, res, next) {
   }
 }
 
-module.exports = authMiddleware;
+/**
+ * 角色验证中间件
+ * 验证用户是否具有指定角色
+ * @param {Array<string>} roles - 允许的角色列表
+ */
+function requireRole(roles) {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: '未认证'
+      });
+    }
+
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: '权限不足'
+      });
+    }
+
+    next();
+  };
+}
+
+module.exports = {
+  authenticateToken: authMiddleware,
+  requireRole
+};

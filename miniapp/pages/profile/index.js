@@ -18,6 +18,14 @@ Page({
 
   onShow() {
     this.loadUserInfo();
+
+    // 师傅角色跳转到师傅工作台（防止误入客户端页面）
+    const userInfo = wx.getStorageSync('userInfo') || {};
+    if (userInfo.role === 'worker') {
+      wx.reLaunch({ url: '/pages/worker/orders/list' });
+      return;
+    }
+
     this.loadPendingOrders();
   },
 

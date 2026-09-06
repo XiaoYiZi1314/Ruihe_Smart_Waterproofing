@@ -6,20 +6,35 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
-    "migrate": "node scripts/migrate.js"
+    "migrate": "node scripts/migrate.js",
+    "migrate:phase3": "node scripts/migrate-phase3.js",
+    "seed": "node scripts/seed.js",
+    "init-admin": "node scripts/init-admin.js",
+    "test:phase3": "node scripts/test-phase3-api.js",
+    "test:phase5": "node scripts/test-phase5-e2e.js"
   },
-  "keywords": ["waterproof", "miniapp", "backend"],
+  "keywords": [
+    "waterproof",
+    "miniapp",
+    "backend"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.2",
-    "mysql2": "^3.6.0",
-    "dotenv": "^16.3.1",
-    "jsonwebtoken": "^9.0.2",
     "axios": "^1.5.0",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "exceljs": "^4.4.0",
+    "express": "^4.18.2",
     "helmet": "^7.0.0",
-    "morgan": "^1.10.0"
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.2",
+    "mysql2": "^3.6.0",
+    "node-cron": "^3.0.3",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

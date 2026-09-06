@@ -1,5 +1,6 @@
 const api = require('../../utils/api');
 const theme = require('../../utils/theme');
+const { upload } = require('../../utils/request');
 
 function buildDateOptions() {
   const labels = ['今天', '明天'];
@@ -184,11 +185,24 @@ Page({
   async onSubmit() {
     if (!this.validateForm()) return;
 
-    wx.showLoading({ title: '提交中...' });
+    wx.showLoading({ title: '提交中...', mask: true });
 
     try {
       const slotText = `预约时间：${this.data.dateValue} ${this.data.timeValue}`;
       const remarkParts = [slotText, this.data.form.remark].filter(Boolean);
+
+      // 先上传本地图片，再把服务器 URL 提交给后端
+      let uploadedUrls = [];
+      const localImages = this.data.form.images || [];
+      if (localImages.length > 0) {
+        wx.showLoading({ title: `上传图片 0/${localImages.length}`, mask: true });
+        for (let i = 0; i < localImages.length; i++) {
+          wx.showLoading({ title: `上传图片 ${i + 1}/${localImages.length}`, mask: true });
+          const url = await upload(localImages[i]);
+          uploadedUrls.push(url);
+        }
+        wx.showLoading({ title: '提交中...', mask: true });
+      }
 
       const formData = {
         service_id: this.data.serviceId,
@@ -196,7 +210,7 @@ Page({
         contact_name: this.data.contactName,
         contact_phone: this.data.contactPhone,
         remark: remarkParts.join('\n'),
-        images: this.data.form.images
+        images: uploadedUrls
       };
 
       if (this.data.form.expected_price) {

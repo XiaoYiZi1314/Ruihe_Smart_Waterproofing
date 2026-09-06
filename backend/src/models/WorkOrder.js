@@ -182,6 +182,13 @@ class WorkOrder {
 
     order.images = images;
 
+    // 获取评价（如果有）
+    const [reviews] = await db.query(
+      'SELECT id, service_attitude_score, quality_score, price_score, comment, created_at FROM reviews WHERE order_id = ?',
+      [id]
+    );
+    order.review = reviews.length > 0 ? reviews[0] : null;
+
     return order;
   }
 
@@ -240,6 +247,112 @@ class WorkOrder {
        SET status = 'cancelled', cancelled_at = NOW()
        WHERE id = ? AND user_id = ? AND status = 'pending'`,
       [id, userId]
+    );
+    return result.affectedRows > 0;
+  }
+
+  /**
+   * 催单
+   */
+  static async urge(id) {
+    const [result] = await db.query(
+      `UPDATE work_orders
+       SET urge_count = urge_count + 1
+       WHERE id = ? AND status IN ('pending', 'confirmed')`,
+      [id]
+    );
+    return result.affectedRows > 0;
+  }
+
+  /**
+   * 确认完成
+   */
+  static async confirm(id) {
+    const [result] = await db.query(
+      `UPDATE work_orders
+       SET status = 'completed', finished_at = NOW()
+       WHERE id = ? AND status = 'pending_review'`,
+      [id]
+    );
+    return result.affectedRows > 0;
+  }
+
+  /**
+   * 价格异议
+   */
+  static async disputePrice(id, reason) {
+    const [result] = await db.query(
+      `UPDATE work_orders
+       SET status = 'price_negotiating', 
+           price_dispute_reason = ?,
+           updated_at = NOW()
+       WHERE id = ? AND status = 'pending_review'`,
+      [reason, id]
+    );
+    return result.affectedRows > 0;
+  }
+
+  /**
+   * 提交评价
+   */
+  static async submitReview(orderId, userId, reviewData) {
+    // 检查工单状态
+    const [orders] = await db.query(
+      'SELECT worker_id, status FROM work_orders WHERE id = ?',
+      [orderId]
+    );
+
+    if (orders.length === 0) {
+      throw new Error('工单不存在');
+    }
+
+    const order = orders[0];
+    if (order.status !== 'completed') {
+      return false;
+    }
+
+    if (!order.worker_id) {
+      throw new Error('工单未指派师傅');
+    }
+
+    // 检查是否已评价
+    const [existing] = await db.query(
+      'SELECT id FROM reviews WHERE order_id = ?',
+      [orderId]
+    );
+
+    if (existing.length > 0) {
+      throw new Error('已经评价过此工单');
+    }
+
+    // 插入评价
+    await db.query(
+      `INSERT INTO reviews 
+       (order_id, user_id, worker_id, service_attitude_score, quality_score, 
+        price_score, comment, video_url)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        orderId,
+        userId,
+        order.worker_id,
+        reviewData.service_attitude_score,
+        reviewData.quality_score,
+        reviewData.price_score,
+        reviewData.comment || null,
+        reviewData.video_url || null
+      ]
+    );
+
+    return true;
+  }
+
+  /**
+   * 删除评价
+   */
+  static async deleteReview(orderId, userId) {
+    const [result] = await db.query(
+      'DELETE FROM reviews WHERE order_id = ? AND user_id = ?',
+      [orderId, userId]
     );
     return result.affectedRows > 0;
   }

@@ -10,6 +10,9 @@
     "pages/address/list",
     "pages/address/edit",
     "pages/orders/detail",
+    "pages/worker/orders/list",
+    "pages/worker/orders/detail",
+    "pages/worker/profile/index",
     "pages/dev/design-system"
   ],
   "window": {

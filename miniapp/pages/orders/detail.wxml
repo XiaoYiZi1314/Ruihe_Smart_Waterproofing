@@ -15,6 +15,17 @@
       </rh-card>
     </view>
 
+    <!-- 费用明细 -->
+    <view class="detail-block" wx:if="{{order.final_price}}">
+      <rh-card>
+        <rh-section-title title="费用明细" />
+        <rh-info-row wx:if="{{doorFeeText}}" label="上门费" value="{{doorFeeText}}" />
+        <rh-info-row wx:if="{{materialFeeText}}" label="材料费" value="{{materialFeeText}}" />
+        <rh-info-row wx:if="{{laborFeeText}}" label="工时费" value="{{laborFeeText}}" />
+        <rh-info-row label="合计" value="{{finalPriceText}}" emphasize />
+      </rh-card>
+    </view>
+
     <view class="detail-block">
       <rh-card>
         <rh-section-title title="联系信息" />
@@ -58,6 +69,28 @@
       </rh-card>
     </view>
 
+    <!-- 评价展示 -->
+    <view class="detail-block" wx:if="{{order.review}}">
+      <rh-card>
+        <rh-section-title title="我的评价" />
+        <view class="review-summary">
+          <view class="review-score-row">
+            <text class="review-score-label">服务态度</text>
+            <text class="review-stars">{{order.review.service_attitude_score >= 1 ? '★' : '☆'}}{{order.review.service_attitude_score >= 2 ? '★' : '☆'}}{{order.review.service_attitude_score >= 3 ? '★' : '☆'}}{{order.review.service_attitude_score >= 4 ? '★' : '☆'}}{{order.review.service_attitude_score >= 5 ? '★' : '☆'}}</text>
+          </view>
+          <view class="review-score-row">
+            <text class="review-score-label">施工质量</text>
+            <text class="review-stars">{{order.review.quality_score >= 1 ? '★' : '☆'}}{{order.review.quality_score >= 2 ? '★' : '☆'}}{{order.review.quality_score >= 3 ? '★' : '☆'}}{{order.review.quality_score >= 4 ? '★' : '☆'}}{{order.review.quality_score >= 5 ? '★' : '☆'}}</text>
+          </view>
+          <view class="review-score-row">
+            <text class="review-score-label">价格满意度</text>
+            <text class="review-stars">{{order.review.price_score >= 1 ? '★' : '☆'}}{{order.review.price_score >= 2 ? '★' : '☆'}}{{order.review.price_score >= 3 ? '★' : '☆'}}{{order.review.price_score >= 4 ? '★' : '☆'}}{{order.review.price_score >= 5 ? '★' : '☆'}}</text>
+          </view>
+          <view class="review-comment">{{order.review.comment}}</view>
+        </view>
+      </rh-card>
+    </view>
+
     <view class="detail-block">
       <rh-card>
         <rh-section-title title="时间记录" />
@@ -65,6 +98,7 @@
         <rh-info-row wx:if="{{confirmedAt}}" label="确认时间" value="{{confirmedAt}}" />
         <rh-info-row wx:if="{{startedAt}}" label="开始时间" value="{{startedAt}}" />
         <rh-info-row wx:if="{{completedAt}}" label="完成时间" value="{{completedAt}}" />
+        <rh-info-row wx:if="{{finishedAt}}" label="订单完成" value="{{finishedAt}}" />
         <rh-info-row wx:if="{{cancelledAt}}" label="取消时间" value="{{cancelledAt}}" />
       </rh-card>
     </view>
@@ -72,18 +106,157 @@
 
   <rh-empty wx:if="{{loading}}" text="加载中..." />
 
+  <!-- 底部操作栏：根据状态渲染 -->
   <rh-sticky-bar wx:if="{{!loading && order}}">
-    <rh-button variant="line" size="lg" text="联系客服" bind:tap="onCallService" />
+    <!-- 取消工单 -->
     <rh-button
-      wx:if="{{statusMeta.actions && statusMeta.actions.length > 0}}"
-      wx:for="{{statusMeta.actions}}"
-      wx:key="key"
-      wx:if="{{item.key === 'cancel'}}"
+      wx:if="{{order.status === 'pending'}}"
       variant="danger"
       size="lg"
-      block
-      text="{{item.text}}"
+      text="取消预约"
       bind:tap="onCancelOrder"
     />
+
+    <!-- 催单 -->
+    <rh-button
+      wx:if="{{order.status === 'pending' || order.status === 'confirmed' || order.status === 'in_progress'}}"
+      variant="line"
+      size="lg"
+      text="{{order.urge_count ? '催单(' + order.urge_count + ')' : '催单'}}"
+      bind:tap="onUrgeOrder"
+    />
+
+    <!-- 联系师傅 -->
+    <rh-button
+      wx:if="{{order.worker_phone && order.status !== 'pending' && order.status !== 'cancelled'}}"
+      variant="line"
+      size="lg"
+      text="联系师傅"
+      bind:tap="onCallMaster"
+    />
+
+    <!-- 确认验收 / 价格异议 -->
+    <rh-button
+      wx:if="{{order.status === 'pending_review' || order.status === 'waiting_acceptance'}}"
+      variant="brand"
+      size="lg"
+      text="确认验收"
+      bind:tap="onConfirmOrder"
+    />
+    <rh-button
+      wx:if="{{order.status === 'pending_review' || order.status === 'waiting_acceptance'}}"
+      variant="line"
+      size="lg"
+      text="价格异议"
+      bind:tap="openDisputeModal"
+    />
+
+    <!-- 评价 -->
+    <rh-button
+      wx:if="{{order.status === 'completed' && !order.review}}"
+      variant="brand"
+      size="lg"
+      text="评价服务"
+      bind:tap="openReviewModal"
+    />
+
+    <!-- 重新预约 -->
+    <rh-button
+      wx:if="{{order.status === 'cancelled' || (order.status === 'completed' && order.review)}}"
+      variant="brand"
+      size="lg"
+      text="重新预约"
+      bind:tap="onRebook"
+    />
+
+    <!-- 无具体操作时兜底：联系客服 -->
+    <rh-button
+      wx:if="{{order.status === 'price_negotiating' || order.status === 'negotiating'}}"
+      variant="line"
+      size="lg"
+      text="联系客服"
+      bind:tap="onCallService"
+    />
   </rh-sticky-bar>
+
+  <!-- 价格异议弹窗 -->
+  <view class="modal-mask" wx:if="{{showDisputeModal}}" bindtap="closeDisputeModal">
+    <view class="modal" catchtap="">
+      <view class="modal__title">价格异议</view>
+      <view class="modal__tip">请描述您对价格的具体异议，管理员将尽快与您协商处理</view>
+      <textarea
+        class="modal__textarea"
+        placeholder="例如：材料费偏高，与预期不符..."
+        value="{{disputeReason}}"
+        maxlength="200"
+        bindinput="onDisputeReasonInput"
+      ></textarea>
+      <view class="modal__actions">
+        <rh-button variant="ghost" size="md" text="取消" bind:tap="closeDisputeModal" />
+        <rh-button variant="brand" size="md" text="提交异议" loading="{{submitting}}" bind:tap="submitDispute" />
+      </view>
+    </view>
+  </view>
+
+  <!-- 评价弹窗 -->
+  <view class="modal-mask" wx:if="{{showReviewModal}}" bindtap="closeReviewModal">
+    <view class="modal modal--review" catchtap="">
+      <view class="modal__title">评价服务</view>
+
+      <view class="rate-row">
+        <text class="rate-label">服务态度</text>
+        <view class="rate-stars">
+          <text
+            wx:for="{{starRange}}"
+            wx:key="*this"
+            class="rate-star {{reviewScores.attitude >= item ? 'rate-star--on' : ''}}"
+            data-type="attitude"
+            data-score="{{item}}"
+            bindtap="onScoreTap"
+          >★</text>
+        </view>
+      </view>
+
+      <view class="rate-row">
+        <text class="rate-label">施工质量</text>
+        <view class="rate-stars">
+          <text
+            wx:for="{{starRange}}"
+            wx:key="*this"
+            class="rate-star {{reviewScores.quality >= item ? 'rate-star--on' : ''}}"
+            data-type="quality"
+            data-score="{{item}}"
+            bindtap="onScoreTap"
+          >★</text>
+        </view>
+      </view>
+
+      <view class="rate-row">
+        <text class="rate-label">价格满意度</text>
+        <view class="rate-stars">
+          <text
+            wx:for="{{starRange}}"
+            wx:key="*this"
+            class="rate-star {{reviewScores.price >= item ? 'rate-star--on' : ''}}"
+            data-type="price"
+            data-score="{{item}}"
+            bindtap="onScoreTap"
+          >★</text>
+        </view>
+      </view>
+
+      <textarea
+        class="modal__textarea"
+        placeholder="说说您对本次服务的评价..."
+        value="{{reviewComment}}"
+        maxlength="200"
+        bindinput="onReviewCommentInput"
+      ></textarea>
+
+      <view class="modal__actions">
+        <rh-button variant="ghost" size="md" text="取消" bind:tap="closeReviewModal" />
+        <rh-button variant="brand" size="md" text="提交评价" loading="{{submitting}}" bind:tap="submitReview" />
+      </view>
+    </view>
+  </view>
 </view>

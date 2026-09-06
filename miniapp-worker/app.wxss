@@ -1,0 +1,129 @@
+/* 全局样式 */
+page {
+  background-color: #F4F6FA;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+}
+
+/* 通用容器 */
+.container {
+  padding: 24rpx;
+}
+
+/* 卡片样式 */
+.card {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+/* 按钮样式 */
+.btn-primary {
+  background: linear-gradient(135deg, #2B7BE4 0%, #1A5CFF 100%);
+  color: #ffffff;
+  border-radius: 36rpx;
+  padding: 24rpx 48rpx;
+  font-size: 32rpx;
+  border: none;
+}
+
+.btn-line {
+  background: #ffffff;
+  color: #2B7BE4;
+  border: 2rpx solid #2B7BE4;
+  border-radius: 36rpx;
+  padding: 24rpx 48rpx;
+  font-size: 32rpx;
+}
+
+.btn-danger {
+  background: #EF4444;
+  color: #ffffff;
+  border-radius: 36rpx;
+  padding: 24rpx 48rpx;
+  font-size: 32rpx;
+  border: none;
+}
+
+/* 状态标签 */
+.status-tag {
+  display: inline-block;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.status-pending {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.status-confirmed {
+  background: #DBEAFE;
+  color: #1D4ED8;
+}
+
+.status-in-progress {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.status-completed {
+  background: #E0E7FF;
+  color: #4F46E5;
+}
+
+.status-cancelled {
+  background: #F3F4F6;
+  color: #6B7280;
+}
+
+/* 文本样式 */
+.text-primary {
+  color: #1F2937;
+  font-size: 32rpx;
+}
+
+.text-secondary {
+  color: #6B7280;
+  font-size: 28rpx;
+}
+
+.text-sm {
+  font-size: 24rpx;
+}
+
+/* Flex 布局 */
+.flex {
+  display: flex;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 空状态 */
+.empty {
+  text-align: center;
+  padding: 120rpx 48rpx;
+  color: #9CA3AF;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 24rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+}

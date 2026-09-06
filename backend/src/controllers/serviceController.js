@@ -1,3 +1,4 @@
+const db = require('../config/database');
 const Service = require('../models/Service');
 
 /**
@@ -52,6 +53,53 @@ exports.getServiceById = async (req, res) => {
 
     // 增加浏览次数
     await Service.incrementViewCount(id);
+
+    // 查询该服务的评价（通过工单关联，仅已完成的工单）
+    const [reviews] = await db.query(
+      `SELECT 
+         r.id,
+         r.service_attitude_score,
+         r.quality_score,
+         r.price_score,
+         r.comment,
+         r.created_at,
+         u.nickname as user_name,
+         u.avatar_url as user_avatar
+       FROM reviews r
+       INNER JOIN work_orders wo ON r.order_id = wo.id
+       INNER JOIN users u ON r.user_id = u.id
+       WHERE wo.service_id = ?
+       ORDER BY r.created_at DESC
+       LIMIT 20`,
+      [id]
+    );
+
+    // 计算平均分
+    let reviewStats = null;
+    if (reviews.length > 0) {
+      const avg = (key) =>
+        (reviews.reduce((sum, r) => sum + (r[key] || 0), 0) / reviews.length).toFixed(1);
+      reviewStats = {
+        total: reviews.length,
+        avg_attitude: avg('service_attitude_score'),
+        avg_quality: avg('quality_score'),
+        avg_price: avg('price_score'),
+        avg_overall: (
+          reviews.reduce(
+            (sum, r) =>
+              sum +
+              ((r.service_attitude_score || 0) +
+                (r.quality_score || 0) +
+                (r.price_score || 0)) /
+                3,
+            0
+          ) / reviews.length
+        ).toFixed(1)
+      };
+    }
+
+    service.reviews = reviews;
+    service.review_stats = reviewStats;
 
     res.json({
       success: true,

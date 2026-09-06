@@ -147,6 +147,41 @@ const api = {
     return request.put(`/api/orders/${id}/cancel`);
   },
 
+  /**
+   * 催单
+   */
+  urgeOrder(id) {
+    return request.put(`/api/orders/${id}/urge`);
+  },
+
+  /**
+   * 确认完成（验收）
+   */
+  confirmOrder(id) {
+    return request.put(`/api/orders/${id}/confirm`);
+  },
+
+  /**
+   * 提交价格异议
+   */
+  disputePrice(id, reason) {
+    return request.put(`/api/orders/${id}/dispute-price`, { reason });
+  },
+
+  /**
+   * 提交评价
+   */
+  submitReview(id, review) {
+    return request.post(`/api/orders/${id}/review`, review);
+  },
+
+  /**
+   * 删除评价
+   */
+  deleteReview(id) {
+    return request.delete(`/api/orders/${id}/review`);
+  },
+
   // ========== 站点配置接口 ==========
 
   /**

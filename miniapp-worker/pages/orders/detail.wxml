@@ -1,0 +1,244 @@
+<view class="page">
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <block wx:elif="{{order}}">
+    <!-- 状态头卡 -->
+    <view class="status-card">
+      <view class="status-card__top">
+        <text class="status-tag {{order.statusClass}}">{{order.statusText}}</text>
+        <text class="order-no">{{order.order_no}}</text>
+      </view>
+      <view class="status-card__price" wx:if="{{order.final_price}}">
+        <text class="price-label">工单金额</text>
+        <text class="price-value">¥{{order.final_price}}</text>
+      </view>
+    </view>
+
+    <!-- 客户信息 -->
+    <view class="card">
+      <view class="card__title">客户信息</view>
+      <view class="info-row">
+        <text class="info-label">客户</text>
+        <text class="info-value">{{order.contact_name || order.customer_name}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">电话</text>
+        <view class="info-value-wrap">
+          <text class="info-value">{{order.maskedPhone}}</text>
+          <button class="btn-call-sm" size="mini" bindtap="callCustomer">拨打</button>
+        </view>
+      </view>
+      <view class="info-row">
+        <text class="info-label">地址</text>
+        <view class="info-value-wrap" bindtap="copyAddress">
+          <text class="info-value info-value--address">{{order.full_address}}</text>
+          <text class="btn-copy">复制</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 服务信息 -->
+    <view class="card">
+      <view class="card__title">服务信息</view>
+      <view class="info-row">
+        <text class="info-label">服务项目</text>
+        <text class="info-value">{{order.service_name}}</text>
+      </view>
+      <view class="info-row" wx:if="{{order.hope_date}}">
+        <text class="info-label">期望上门</text>
+        <text class="info-value">{{order.hope_date}}</text>
+      </view>
+      <view class="info-row" wx:if="{{order.hope_time}}">
+        <text class="info-label">期望时段</text>
+        <text class="info-value">{{order.hope_time}}</text>
+      </view>
+      <view class="info-row" wx:if="{{order.estimatedTimeText}}">
+        <text class="info-label">预计上门</text>
+        <text class="info-value">{{order.estimatedTimeText}}</text>
+      </view>
+      <view class="info-row" wx:if="{{order.area}}">
+        <text class="info-label">施工面积</text>
+        <text class="info-value">{{order.area}}㎡</text>
+      </view>
+      <view class="info-row" wx:if="{{order.description}}">
+        <text class="info-label">问题描述</text>
+        <text class="info-value info-value--desc">{{order.description}}</text>
+      </view>
+    </view>
+
+    <!-- 现场照片 -->
+    <view class="card" wx:if="{{order.images && order.images.length > 0}}">
+      <view class="card__title">现场照片</view>
+      <view class="image-grid">
+        <image
+          wx:for="{{order.images}}"
+          wx:key="id"
+          class="image-item"
+          src="{{item.image_url}}"
+          mode="aspectFill"
+          data-url="{{item.image_url}}"
+          bindtap="previewImage"
+        ></image>
+      </view>
+    </view>
+
+    <!-- 费用明细（已报价后显示） -->
+    <view class="card" wx:if="{{order.final_price}}">
+      <view class="card__title">费用明细</view>
+      <view class="fee-row">
+        <text class="fee-label">上门费</text>
+        <text class="fee-value">¥{{order.door_fee}}</text>
+      </view>
+      <view class="fee-row">
+        <text class="fee-label">材料费</text>
+        <text class="fee-value">¥{{order.material_fee}}</text>
+      </view>
+      <view class="fee-row">
+        <text class="fee-label">工时费</text>
+        <text class="fee-value">¥{{order.labor_fee}}</text>
+      </view>
+      <view class="fee-row fee-row--total">
+        <text class="fee-label fee-label--total">合计</text>
+        <text class="fee-value fee-value--total">¥{{order.final_price}}</text>
+      </view>
+    </view>
+
+    <!-- 时间线 -->
+    <view class="card">
+      <view class="card__title">工单时间线</view>
+      <view class="timeline">
+        <view class="timeline-item">
+          <view class="timeline-dot timeline-dot--done"></view>
+          <view class="timeline-content">
+            <text class="timeline-label">下单时间</text>
+            <text class="timeline-time">{{order.createdTimeText}}</text>
+          </view>
+        </view>
+        <view class="timeline-item" wx:if="{{order.estimatedTimeText}}">
+          <view class="timeline-dot timeline-dot--done"></view>
+          <view class="timeline-content">
+            <text class="timeline-label">指派时间</text>
+            <text class="timeline-time">{{order.estimatedTimeText}}</text>
+          </view>
+        </view>
+        <view class="timeline-item" wx:if="{{order.confirmed_at}}">
+          <view class="timeline-dot timeline-dot--done"></view>
+          <view class="timeline-content">
+            <text class="timeline-label">接单时间</text>
+            <text class="timeline-time">{{order.confirmed_at}}</text>
+          </view>
+        </view>
+        <view class="timeline-item" wx:if="{{order.started_at}}">
+          <view class="timeline-dot timeline-dot--done"></view>
+          <view class="timeline-content">
+            <text class="timeline-label">开始施工</text>
+            <text class="timeline-time">{{order.started_at}}</text>
+          </view>
+        </view>
+        <view class="timeline-item" wx:if="{{order.completedTimeText}}">
+          <view class="timeline-dot timeline-dot--done"></view>
+          <view class="timeline-content">
+            <text class="timeline-label">完工时间</text>
+            <text class="timeline-time">{{order.completedTimeText}}</text>
+          </view>
+        </view>
+        <view class="timeline-item" wx:if="{{order.finishedTimeText}}">
+          <view class="timeline-dot timeline-dot--done"></view>
+          <view class="timeline-content">
+            <text class="timeline-label">订单完成</text>
+            <text class="timeline-time">{{order.finishedTimeText}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:else>
+    <text class="empty-icon">📭</text>
+    <text class="empty-text">工单不存在</text>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="action-bar" wx:if="{{order && (order.canAccept || order.canStart || order.canComplete)}}">
+    <button
+      wx:if="{{order.canReject}}"
+      class="btn-reject"
+      bindtap="openRejectModal"
+      disabled="{{submitting}}"
+    >拒绝</button>
+    <button
+      wx:if="{{order.canAccept}}"
+      class="btn-primary"
+      bindtap="handleAccept"
+      loading="{{submitting}}"
+      disabled="{{submitting}}"
+    >接受工单</button>
+    <button
+      wx:if="{{order.canStart}}"
+      class="btn-primary"
+      bindtap="handleStart"
+      loading="{{submitting}}"
+      disabled="{{submitting}}"
+    >开始施工</button>
+    <button
+      wx:if="{{order.canComplete}}"
+      class="btn-primary"
+      bindtap="openCompleteModal"
+      disabled="{{submitting}}"
+    >完工填价</button>
+  </view>
+
+  <!-- 拒单弹窗 -->
+  <view class="modal-mask" wx:if="{{showRejectModal}}" bindtap="closeRejectModal">
+    <view class="modal" catchtap="">
+      <view class="modal__title">拒单理由</view>
+      <view class="modal__tip">请填写具体原因，便于管理员重新指派（至少5个字）</view>
+      <textarea
+        class="modal__textarea"
+        placeholder="例如：距离太远，当日行程已满..."
+        value="{{rejectReason}}"
+        maxlength="200"
+        bindinput="onRejectReasonInput"
+      ></textarea>
+      <view class="modal__actions">
+        <button class="btn-cancel" bindtap="closeRejectModal">取消</button>
+        <button class="btn-primary btn-modal" bindtap="handleReject" loading="{{submitting}}" disabled="{{submitting}}">确认拒单</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 完工填价弹窗 -->
+  <view class="modal-mask" wx:if="{{showCompleteModal}}" bindtap="closeCompleteModal">
+    <view class="modal" catchtap="">
+      <view class="modal__title">完工填价</view>
+      <view class="modal__tip">请填写本次服务的实际费用，客户确认后完成工单</view>
+
+      <view class="fee-form">
+        <view class="fee-form-item">
+          <text class="fee-form-label">上门费（元）</text>
+          <input class="fee-form-input" type="digit" placeholder="0.00" value="{{doorFee}}" bindinput="onDoorFeeInput" />
+        </view>
+        <view class="fee-form-item">
+          <text class="fee-form-label">材料费（元）</text>
+          <input class="fee-form-input" type="digit" placeholder="0.00" value="{{materialFee}}" bindinput="onMaterialFeeInput" />
+        </view>
+        <view class="fee-form-item">
+          <text class="fee-form-label">工时费（元）</text>
+          <input class="fee-form-input" type="digit" placeholder="0.00" value="{{laborFee}}" bindinput="onLaborFeeInput" />
+        </view>
+        <view class="fee-form-total">
+          <text>合计：¥{{totalFee}}</text>
+        </view>
+      </view>
+
+      <view class="modal__actions">
+        <button class="btn-cancel" bindtap="closeCompleteModal">取消</button>
+        <button class="btn-primary btn-modal" bindtap="handleComplete" loading="{{submitting}}" disabled="{{submitting}}">确认完工</button>
+      </view>
+    </view>
+  </view>
+</view>

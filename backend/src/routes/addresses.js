@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const addressController = require('../controllers/addressController');
-const authMiddleware = require('../middlewares/auth');
+const { authenticateToken } = require('../middlewares/auth');
 
 // 所有地址接口都需要认证
-router.use(authMiddleware);
+router.use(authenticateToken);
 
 /**
  * @route   GET /api/addresses

@@ -1,0 +1,2506 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<base href="file:///D:/Project/Ruihe_Smart_Waterproofing/docs/" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Markdown Preview</title>
+<style>
+:root {
+  color-scheme: dark;
+  --preview-font-size: 15px;
+  --bg: #1a1b21;
+  --card: #1f2027;
+  --panel-2: #25262f;
+  --border: #5f87ff;
+  --border-muted: #505050;
+  --border-subtle: #28292f;
+  --panel-border: #2c2d31;
+  --text: #d4d4d4;
+  --muted: #808080;
+  --accent: #81a2be;
+  --warn: #ffff00;
+  --error: #cc6666;
+  --ok: #b5bd68;
+  --code-bg: #25262f;
+  --link: #81a2be;
+  --md-heading: #f0c674;
+  --md-link: #81a2be;
+  --md-link-url: #666666;
+  --md-code: #8abeb7;
+  --md-codeblock: #b5bd68;
+  --md-codeblock-border: #31323a;
+  --md-quote: #808080;
+  --md-quote-border: #808080;
+  --md-hr: #808080;
+  --md-list-bullet: #8abeb7;
+  --syntax-keyword: #569cd6;
+  --syntax-function: #dcdcaa;
+  --syntax-variable: #9cdcfe;
+  --syntax-string: #ce9178;
+  --syntax-number: #b5cea8;
+  --syntax-type: #4ec9b0;
+  --syntax-comment: #6a9955;
+  --syntax-operator: #d4d4d4;
+  --syntax-punctuation: #d4d4d4;
+  --syntax-error: #cc6666;
+  --annotation-bg: rgba(129, 162, 190, 0.25);
+  --annotation-border: rgba(129, 162, 190, 0.65);
+  --annotation-text: #d4d4d4;
+  --blockquote-bg: rgba(128, 128, 128, 0.16);
+  --inline-code-bg: rgba(128, 128, 128, 0.18);
+  --table-alt-bg: rgba(128, 128, 128, 0.14);
+  --md-table-border: #28292f;
+  --diff-add-bg: rgba(181, 189, 104, 0.14);
+  --diff-add-text: #b5bd68;
+  --diff-del-bg: rgba(204, 102, 102, 0.14);
+  --diff-del-text: #cc6666;
+  --diff-meta-text: #808080;
+  --diff-header-bg: rgba(129, 162, 190, 0.10);
+  --diff-header-text: #81a2be;
+  --diff-hunk-bg: rgba(129, 162, 190, 0.16);
+  --diff-hunk-text: #81a2be;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+body {
+  min-height: 100vh;
+  padding: 28px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+#preview-root {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  background: var(--card);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 24px 28px;
+  overflow-wrap: anywhere;
+  line-height: 1.58;
+  font-size: var(--preview-font-size);
+}
+#preview-root h1, #preview-root h2, #preview-root h3, #preview-root h4, #preview-root h5, #preview-root h6 {
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--md-heading);
+}
+#preview-root h1 { font-size: 1.6em; border-bottom: 0; padding-bottom: 0; }
+#preview-root h2 { font-size: 1.25em; border-bottom: 0; padding-bottom: 0; }
+#preview-root p, #preview-root ul, #preview-root ol, #preview-root blockquote, #preview-root table {
+  margin-top: 0;
+  margin-bottom: 1em;
+}
+#preview-root li::marker { color: var(--md-list-bullet); }
+#preview-root a { color: var(--md-link); text-decoration: none; }
+#preview-root a:hover { text-decoration: underline; }
+#preview-root a.uri, #preview-root .uri { color: var(--md-link-url); }
+#preview-root blockquote {
+  margin-left: 0;
+  padding: 0.2em 1em;
+  border-left: 0.25em solid var(--md-quote-border);
+  border-radius: 0 8px 8px 0;
+  background: var(--blockquote-bg);
+  color: var(--md-quote);
+}
+#preview-root pre {
+  background: var(--panel-2);
+  border: 1px solid var(--md-codeblock-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  overflow: auto;
+}
+#preview-root code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.9em;
+  color: var(--md-code);
+}
+#preview-root pre code {
+  color: var(--text);
+}
+#preview-root :not(pre) > code {
+  background: var(--inline-code-bg);
+  border: 1px solid var(--md-codeblock-border);
+  border-radius: 6px;
+  padding: 0.12em 0.35em;
+}
+#preview-root .annotation-marker {
+  display: inline;
+  border-radius: 4px;
+  border: 1px solid var(--annotation-border);
+  background: var(--annotation-bg);
+  color: var(--annotation-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  padding: 0 0.28em;
+}
+#preview-root .annotation-marker mjx-container {
+  margin: 0;
+}
+#preview-root pre.sourceCode.diff code > .diff-line {
+  display: block;
+  margin: 0 -4px;
+  padding: 0 4px;
+  border-radius: 4px;
+}
+#preview-root pre.sourceCode.diff code > .diff-add-line {
+  background: var(--diff-add-bg);
+  color: var(--diff-add-text);
+}
+#preview-root pre.sourceCode.diff code > .diff-del-line {
+  background: var(--diff-del-bg);
+  color: var(--diff-del-text);
+}
+#preview-root pre.sourceCode.diff code > .diff-meta-line {
+  color: var(--diff-meta-text);
+}
+#preview-root pre.sourceCode.diff code > .diff-header-line {
+  background: var(--diff-header-bg);
+  color: var(--diff-header-text);
+  font-weight: 600;
+}
+#preview-root pre.sourceCode.diff code > .diff-hunk-line {
+  background: var(--diff-hunk-bg);
+  color: var(--diff-hunk-text);
+}
+#preview-root pre.sourceCode.diff code > .diff-line .kw,
+#preview-root pre.sourceCode.diff code > .diff-line .dt,
+#preview-root pre.sourceCode.diff code > .diff-line .st,
+#preview-root pre.sourceCode.diff code > .diff-line .va {
+  color: inherit;
+  font-weight: inherit;
+}
+#preview-root code span.kw,
+#preview-root code span.cf,
+#preview-root code span.im {
+  color: var(--syntax-keyword);
+  font-weight: 600;
+}
+#preview-root code span.dt {
+  color: var(--syntax-type);
+  font-weight: 600;
+}
+#preview-root code span.fu,
+#preview-root code span.bu {
+  color: var(--syntax-function);
+}
+#preview-root code span.va,
+#preview-root code span.ot {
+  color: var(--syntax-variable);
+}
+#preview-root code span.st,
+#preview-root code span.ss,
+#preview-root code span.sc,
+#preview-root code span.ch {
+  color: var(--syntax-string);
+}
+#preview-root code span.dv,
+#preview-root code span.bn,
+#preview-root code span.fl {
+  color: var(--syntax-number);
+}
+#preview-root code span.co {
+  color: var(--syntax-comment);
+  font-style: italic;
+}
+#preview-root code span.op {
+  color: var(--syntax-operator);
+}
+#preview-root code span.pp,
+#preview-root code span.pu {
+  color: var(--syntax-punctuation);
+}
+#preview-root code span.er,
+#preview-root code span.al {
+  color: var(--syntax-error);
+  font-weight: 600;
+}
+#preview-root table {
+  border-collapse: collapse;
+  display: block;
+  max-width: 100%;
+  overflow: auto;
+}
+#preview-root th, #preview-root td {
+  border: 1px solid var(--md-table-border);
+  padding: 6px 12px;
+}
+#preview-root thead th {
+  background: var(--panel-2);
+}
+#preview-root tbody tr:nth-child(even) {
+  background: var(--table-alt-bg);
+}
+#preview-root hr {
+  border: 0;
+  border-top: 1px solid var(--md-hr);
+  margin: 1.25em 0;
+}
+#preview-root img { max-width: 100%; }
+#preview-root math[display="block"] {
+  display: block;
+  margin: 1em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+#preview-root mjx-container[display="true"] {
+  display: block;
+  margin: 1em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+#preview-root .mermaid-container {
+  text-align: center;
+  margin: 1em 0;
+  overflow-x: auto;
+}
+#preview-root .mermaid-container svg {
+  max-width: 100%;
+  height: auto;
+}
+</style>
+</head>
+<body>
+  <article id="preview-root"><h1 id="瑞和智慧防水系统-验收手册">瑞和智慧防水系统 · 验收手册</h1>
+<blockquote>
+<p>版本：v1.0（2026-08-31） 适用范围：客户端小程序、师傅工作台、管理后台、后端服务全功能验收 验收方式：人工操作验证，共 <strong>8 大模块 / 82 项检查点</strong>，预计 60-90 分钟</p>
+</blockquote>
+<hr />
+<h2 id="目录">目录</h2>
+<ul>
+<li><a href="#零验收准备">零、验收准备</a></li>
+<li><a href="#一客户端小程序--注册登录与浏览">一、客户端小程序 — 注册登录与浏览</a></li>
+<li><a href="#二客户端小程序--地址管理">二、客户端小程序 — 地址管理</a></li>
+<li><a href="#三客户端小程序--预约与工单全流程">三、客户端小程序 — 预约与工单全流程</a></li>
+<li><a href="#四管理后台--登录与数据看板">四、管理后台 — 登录与数据看板</a></li>
+<li><a href="#五管理后台--工单指派与处理">五、管理后台 — 工单指派与处理</a></li>
+<li><a href="#六管理后台--内容与师傅管理">六、管理后台 — 内容与师傅管理</a></li>
+<li><a href="#七师傅工作台--接单施工全流程">七、师傅工作台 — 接单施工全流程</a></li>
+<li><a href="#八完整工单流转核心验收">八、完整工单流转（核心验收）</a></li>
+<li><a href="#九异常分支与权限验证">九、异常分支与权限验证</a></li>
+<li><a href="#十验收结论表">十、验收结论表</a></li>
+</ul>
+<hr />
+<h2 id="零验收准备">零、验收准备</h2>
+<h3 id="环境与账号">0.1 环境与账号</h3>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>后端 API</td>
+<td><a href="https://ruihezhihui.cn（健康检查" class="uri">https://ruihezhihui.cn（健康检查</a> <code>/health</code>）</td>
+</tr>
+<tr>
+<td>管理后台</td>
+<td><a href="https://ruihezhihui.cn/admin/" class="uri">https://ruihezhihui.cn/admin/</a></td>
+</tr>
+<tr>
+<td>管理员账号</td>
+<td><code>admin</code> / <code>Wp@2026#Ruihe123</code></td>
+</tr>
+<tr>
+<td>小程序 AppID</td>
+<td>wx56041a4f7ca9df14</td>
+</tr>
+</tbody>
+</table>
+<h3 id="验收工具">0.2 验收工具</h3>
+<ol type="1">
+<li><strong>微信开发者工具</strong>：导入项目目录 <code>miniapp/</code>（⚠️ 不是 miniapp-worker）</li>
+<li><strong>手机微信</strong>（可选）：扫码预览，体验更真实</li>
+<li><strong>浏览器</strong>：Chrome / Edge，访问管理后台</li>
+<li><strong>微信开发者工具设置</strong>：已配置 urlCheck: false（项目自带），若手改过请确认「不校验合法域名」已勾选</li>
+</ol>
+<h3 id="预备动作一次性约-5-分钟">0.3 预备动作（一次性，约 5 分钟）</h3>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 40%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>操作</th>
+<th>预期</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P1</td>
+<td>浏览器打开 <code>https://ruihezhihui.cn/health</code></td>
+<td>返回 <code>{"success":true,...}</code></td>
+</tr>
+<tr>
+<td>P2</td>
+<td>浏览器打开 <code>https://ruihezhihui.cn/admin/</code></td>
+<td>显示管理后台登录页</td>
+</tr>
+<tr>
+<td>P3</td>
+<td>管理后台登录（admin / <a href="mailto:Wp@2026" class="email">Wp@2026</a>#Ruihe123）</td>
+<td>进入数据看板，右上角有绿点（实时通知已连接）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="一客户端小程序-注册登录与浏览">一、客户端小程序 — 注册登录与浏览</h2>
+<blockquote>
+<p>操作位置：微信开发者工具 → miniapp 项目 → 编译</p>
+</blockquote>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 24%" />
+<col style="width: 18%" />
+<col style="width: 30%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>检查项</th>
+<th>操作</th>
+<th>预期结果</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.1</td>
+<td>登录页展示</td>
+<td>编译后自动进入登录页</td>
+<td>显示「瑞和智慧」Logo、微信快捷登录按钮、「我是师傅，使用工号登录」入口</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>1.2</td>
+<td>模式切换</td>
+<td>点击「我是师傅，使用工号登录」</td>
+<td>切换为手机号+密码表单，下方出现「我是客户，使用微信登录」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>1.3</td>
+<td>师傅登录拦截</td>
+<td>师傅表单不填直接点登录</td>
+<td>Toast 提示「请输入手机号和密码」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>1.4</td>
+<td>师傅登录错误</td>
+<td>输入错误密码登录</td>
+<td>Toast 提示「账号或密码错误」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>1.5</td>
+<td>切回客户模式</td>
+<td>点击「我是客户，使用微信登录」</td>
+<td>恢复微信快捷登录界面</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>1.6</td>
+<td>微信登录</td>
+<td>点击「微信快捷登录」→ 授权</td>
+<td>登录成功，自动跳转首页</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>1.7</td>
+<td>首页轮播</td>
+<td>查看首页顶部</td>
+<td>显示轮播图（4 张），可左右滑动，点击可跳转</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>1.8</td>
+<td>服务分类</td>
+<td>查看首页分类标签</td>
+<td>显示「全部」+ 6 个分类（屋面/卫生间/地下室/外墙/阳台/水池防水）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>1.9</td>
+<td>分类筛选</td>
+<td>点击任一分类标签</td>
+<td>服务列表只显示该分类项目</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>1.10</td>
+<td>热门服务</td>
+<td>查看首页服务区</td>
+<td>热门服务展示正常（封面图/价格）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>1.11</td>
+<td>联系方式</td>
+<td>查看首页底部联系区块</td>
+<td>显示电话/地址，点击电话可唤起拨号</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>1.12</td>
+<td>服务列表页</td>
+<td>切到「服务」Tab</td>
+<td>列表页展示，支持搜索框、分类筛选</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>1.13</td>
+<td>服务搜索</td>
+<td>搜索「卫生间」</td>
+<td>列表过滤出卫生间相关服务</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>1.14</td>
+<td>服务详情</td>
+<td>点击任一服务</td>
+<td>详情页展示图片轮播、价格区间、描述、评价区（有评价时显示统计卡）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>1.15</td>
+<td>立即预约入口</td>
+<td>服务详情页底部</td>
+<td>「立即预约」按钮可点击跳转预约表单</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>1.16</td>
+<td>关于我们</td>
+<td>「我的」→ 关于我们</td>
+<td>弹窗显示公司介绍</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>1.17</td>
+<td>退出登录</td>
+<td>「我的」→ 退出登录 → 确认</td>
+<td>回到登录页；再进小程序需重新登录</td>
+<td>☐</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="二客户端小程序-地址管理">二、客户端小程序 — 地址管理</h2>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 24%" />
+<col style="width: 18%" />
+<col style="width: 30%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>检查项</th>
+<th>操作</th>
+<th>预期结果</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2.1</td>
+<td>进入地址管理</td>
+<td>「我的」→ 地址管理</td>
+<td>显示地址列表（空则显示空态）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>2.2</td>
+<td>新增地址</td>
+<td>点击新增 → 填写联系人/手机号/省市区/详细地址 → 保存</td>
+<td>列表出现新地址</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>2.3</td>
+<td>表单校验</td>
+<td>手机号填 5 位后保存</td>
+<td>提示手机号格式错误，不允许保存</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>2.4</td>
+<td>编辑地址</td>
+<td>点击任一地址 → 修改 → 保存</td>
+<td>修改后信息更新</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>2.5</td>
+<td>设为默认</td>
+<td>地址卡片设为默认</td>
+<td>默认标记切换；新增工单时自动选中该地址</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>2.6</td>
+<td>删除地址</td>
+<td>删除非默认地址 → 确认</td>
+<td>地址从列表消失</td>
+<td>☐</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="三客户端小程序-预约与工单全流程">三、客户端小程序 — 预约与工单全流程</h2>
+<blockquote>
+<p>本模块先完成「客户提交」，后续状态变化在第七、八模块联动验证</p>
+</blockquote>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 24%" />
+<col style="width: 18%" />
+<col style="width: 30%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>检查项</th>
+<th>操作</th>
+<th>预期结果</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3.1</td>
+<td>预约表单展示</td>
+<td>服务详情 → 立即预约</td>
+<td>表单显示：服务项目、预约日期（未来 5 天）、时间段（上午/下午/晚上）、地址、联系人、电话、期望价格、现场图片、备注</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>3.2</td>
+<td>地址选择</td>
+<td>点击「选择地址」</td>
+<td>跳转地址列表，选择后回填；无地址时可引导新增</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>3.3</td>
+<td>表单校验</td>
+<td>不选地址/不填联系人直接提交</td>
+<td>Toast 提示必填项缺失</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>3.4</td>
+<td>图片上传</td>
+<td>上传 2 张本地图片 → 提交</td>
+<td>图片逐张上传（显示进度「上传图片 1/2」），提交成功</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>3.5</td>
+<td>图片上限</td>
+<td>连续添加图片</td>
+<td>最多 5 张，第 6 张时「+」按钮消失</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>3.6</td>
+<td>提交成功</td>
+<td>完整填写后提交预约</td>
+<td>弹窗显示「预约成功 + 工单号」+ 提示客服 30 分钟内联系；可点「查看工单」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>3.7</td>
+<td>工单列表</td>
+<td>切到「工单」Tab</td>
+<td>新工单出现，状态「待确认」，标签可筛选（全部/待确认/已确认/进行中/已完成/已取消）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>3.8</td>
+<td>工单详情</td>
+<td>点击工单卡</td>
+<td>详情显示服务信息、地址、时间线、现场照片（可预览大图）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>3.9</td>
+<td>待确认操作</td>
+<td>待确认工单详情/卡片</td>
+<td>可见「取消预约」「催单」按钮</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>3.10</td>
+<td>催单</td>
+<td>点击催单</td>
+<td>Toast「已催单，我们会尽快处理」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>3.11</td>
+<td>取消工单</td>
+<td>点击取消预约 → 确认</td>
+<td>工单状态变为「已取消」</td>
+<td>☐</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="四管理后台-登录与数据看板">四、管理后台 — 登录与数据看板</h2>
+<blockquote>
+<p>操作位置：浏览器 <a href="https://ruihezhihui.cn/admin/" class="uri">https://ruihezhihui.cn/admin/</a></p>
+</blockquote>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 24%" />
+<col style="width: 18%" />
+<col style="width: 30%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>检查项</th>
+<th>操作</th>
+<th>预期结果</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4.1</td>
+<td>登录页</td>
+<td>打开 /admin/</td>
+<td>显示瑞和防水管理后台登录页</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>4.2</td>
+<td>错误密码</td>
+<td>输错密码登录</td>
+<td>提示「账号或密码错误」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>4.3</td>
+<td>登录成功</td>
+<td>admin / <a href="mailto:Wp@2026" class="email">Wp@2026</a>#Ruihe123</td>
+<td>进入数据看板</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>4.4</td>
+<td>看板统计卡</td>
+<td>查看顶部卡片</td>
+<td>显示工单总数/待确认/进行中/已完成/本月收入等统计</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>4.5</td>
+<td>趋势图</td>
+<td>查看图表区</td>
+<td>ECharts 折线/柱状图正常渲染（7 天/30 天工单趋势）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>4.6</td>
+<td>师傅排行榜</td>
+<td>查看排行榜区</td>
+<td>显示师傅本月完成量排名（有数据时）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>4.7</td>
+<td>实时通知指示</td>
+<td>查看右上角</td>
+<td>绿点 = WebSocket 已连接；铃铛图标正常</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>4.8</td>
+<td>未登录拦截</td>
+<td>退出后直接访问 /admin/dashboard</td>
+<td>跳回登录页</td>
+<td>☐</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="五管理后台-工单指派与处理">五、管理后台 — 工单指派与处理</h2>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 24%" />
+<col style="width: 18%" />
+<col style="width: 30%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>检查项</th>
+<th>操作</th>
+<th>预期结果</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5.1</td>
+<td>工单列表</td>
+<td>菜单 → 工单管理</td>
+<td>列表显示所有工单，支持状态/日期/关键词筛选</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>5.2</td>
+<td>筛选功能</td>
+<td>状态选「待确认」</td>
+<td>列表只显示待确认工单</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>5.3</td>
+<td>工单详情</td>
+<td>点击任一工单「详情」</td>
+<td>显示完整工单信息、客户信息、现场图片、时间线</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>5.4</td>
+<td>指派入口</td>
+<td>待确认工单 → 指派</td>
+<td>弹窗选择师傅 + 必填预计上门时间</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>5.5</td>
+<td>指派校验</td>
+<td>不选时间直接确认</td>
+<td>提示需要填写预计上门时间</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>5.6</td>
+<td>指派成功</td>
+<td>选师傅 + 时间 → 确认</td>
+<td>工单状态变为「已确认」，显示指派师傅</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>5.7</td>
+<td>休息师傅拦截</td>
+<td>师傅设为休息后指派给他</td>
+<td>提示「该师傅当前处于休息状态，无法接单」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>5.8</td>
+<td>管理员取消</td>
+<td>选中进行中工单 → 取消</td>
+<td>任何状态均可取消（填原因），状态变「已取消」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>5.9</td>
+<td>拒单理由查看</td>
+<td>师傅拒单后（见 7.x）查看工单详情</td>
+<td>显示拒单理由与拒单时间</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>5.10</td>
+<td>调价功能</td>
+<td>价格协商中的工单 → 调价</td>
+<td>可修改三项费用，保存后工单回到「待验收」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>5.11</td>
+<td>导出 Excel</td>
+<td>设置筛选条件 → 导出</td>
+<td>下载 .xlsx 文件，内容与筛选结果一致</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>5.12</td>
+<td>操作日志</td>
+<td>菜单 → 操作日志</td>
+<td>所有操作按类型/操作人/时间记录，detail 字段内容可读</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>5.13</td>
+<td>日志筛选</td>
+<td>按操作类型筛选</td>
+<td>结果正确</td>
+<td>☐</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="六管理后台-内容与师傅管理">六、管理后台 — 内容与师傅管理</h2>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 24%" />
+<col style="width: 18%" />
+<col style="width: 30%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>检查项</th>
+<th>操作</th>
+<th>预期结果</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>6.1</td>
+<td>分类列表</td>
+<td>菜单 → 项目管理 → 服务分类</td>
+<td>显示 6 个分类及服务数量</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>6.2</td>
+<td>新增/编辑/删除分类</td>
+<td>各操作一次</td>
+<td>分类 CRUD 正常；有关联服务时删除被拒绝</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>6.3</td>
+<td>服务管理</td>
+<td>菜单 → 服务项目</td>
+<td>列表 + 分类/状态筛选正常</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>6.4</td>
+<td>新增服务</td>
+<td>新增（名称/分类/价格区间/描述/图片）</td>
+<td>创建成功并出现在列表</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>6.5</td>
+<td>上下架</td>
+<td>下架一个服务</td>
+<td>客户端服务列表不再显示该服务（需小程序端刷新）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>6.6</td>
+<td>设置热门</td>
+<td>标记某服务为热门</td>
+<td>客户端首页热门区显示该服务</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>6.7</td>
+<td>轮播图管理</td>
+<td>站点配置 → 轮播图</td>
+<td>上传图片创建轮播，客户端首页出现（链接可设服务跳转）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>6.8</td>
+<td>联系方式配置</td>
+<td>站点配置 → 修改电话 → 保存</td>
+<td>客户端首页联系方式同步更新</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>6.9</td>
+<td>关于我们/加盟信息</td>
+<td>修改保存</td>
+<td>客户端对应内容更新</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>6.10</td>
+<td>新增师傅</td>
+<td>师傅管理 → 新增（姓名+手机号）</td>
+<td>创建成功，<strong>弹窗显示初始密码</strong>（记录下来，第七模块要用）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>6.11</td>
+<td>重复手机号</td>
+<td>用同一手机号再建一个师傅</td>
+<td>提示「该手机号已被注册」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>6.12</td>
+<td>编辑师傅</td>
+<td>修改姓名/手机号</td>
+<td>保存成功</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>6.13</td>
+<td>师傅状态</td>
+<td>切换某师傅为休息</td>
+<td>列表状态更新；指派时被拦截（对应 5.7）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>6.14</td>
+<td>删除师傅</td>
+<td>删除测试师傅</td>
+<td>删除成功，列表消失</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>6.15</td>
+<td>拒单率显示</td>
+<td>师傅列表</td>
+<td>显示指派次数、拒单次数、拒单率</td>
+<td>☐</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="七师傅工作台-接单施工全流程">七、师傅工作台 — 接单施工全流程</h2>
+<blockquote>
+<p>前置：第六模块 6.10 已创建师傅并记录初始密码。 操作位置：微信开发者工具 <strong>重新编译</strong>（或新建窗口）→ 登录页</p>
+</blockquote>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 24%" />
+<col style="width: 18%" />
+<col style="width: 30%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>检查项</th>
+<th>操作</th>
+<th>预期结果</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>7.1</td>
+<td>师傅登录</td>
+<td>登录页 → 师傅入口 → 手机号 + 初始密码</td>
+<td>登录成功，直接进入「师傅工作台」工单列表（<strong>无底部 TabBar</strong>）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>7.2</td>
+<td>工作台布局</td>
+<td>查看页面</td>
+<td>顶部「师傅工作台 + 我的业绩」入口；下方状态标签：待接单/施工中/待验收/已完成</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>7.3</td>
+<td>业绩页</td>
+<td>点击「我的业绩」</td>
+<td>显示工作状态卡（上班中/休息中 + 切换按钮）+ 业绩统计（本月完成/累计完成/累计指派/拒单率）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>7.4</td>
+<td>切换休息</td>
+<td>点「切换休息」→ 确认</td>
+<td>状态变「休息中」；此时管理后台无法指派给他（回验 5.7）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>7.5</td>
+<td>切回上班</td>
+<td>点「切换上班」</td>
+<td>恢复「上班中」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>7.6</td>
+<td>工单列表展示</td>
+<td>管理员指派一单后刷新</td>
+<td>待接单 Tab 出现新工单（单号/服务/客户/地址/价格）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>7.7</td>
+<td>联系客户</td>
+<td>工单卡点「📞 联系客户」</td>
+<td>唤起拨号界面，号码正确</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>7.8</td>
+<td>工单详情</td>
+<td>点「查看详情」</td>
+<td>显示客户信息（电话可拨）、地址（可复制）、服务信息、现场照片、费用明细、时间线</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>7.9</td>
+<td>接单</td>
+<td>详情页 → 接受工单</td>
+<td>提示「已接单」，底部按钮变为「开始施工」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>7.10</td>
+<td>拒单（分支）</td>
+<td>另指派一单 → 点「拒绝」</td>
+<td>弹窗要求填拒单理由；<strong>不足 5 字不能提交</strong></td>
+<td>☐</td>
+</tr>
+<tr>
+<td>7.11</td>
+<td>拒单成功</td>
+<td>填理由（≥5字）确认</td>
+<td>提示「已拒单」返回列表；管理后台该工单回「待确认」且可见拒单理由（回验 5.9）；师傅拒单率 +1</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>7.12</td>
+<td>开始施工</td>
+<td>已接单工单 → 开始施工 → 确认</td>
+<td>提示「已开始施工」，状态变「施工中」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>7.13</td>
+<td>完工填价</td>
+<td>施工中工单 → 完工填价</td>
+<td>弹窗填上门费/材料费/工时费，实时显示合计</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>7.14</td>
+<td>填价校验</td>
+<td>留空任一项提交</td>
+<td>提示「请填写完整价格信息」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>7.15</td>
+<td>完工成功</td>
+<td>填 50/300/200 确认</td>
+<td>提示「已完工，等待客户验收」，合计 ¥550 显示在详情</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>7.16</td>
+<td>师傅退出登录</td>
+<td>业绩页 → 退出登录</td>
+<td>回到登录页；用客户微信重新登录应回到客户端首页（双角色互不干扰）</td>
+<td>☐</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="八完整工单流转核心验收">八、完整工单流转（核心验收）</h2>
+<blockquote>
+<p>本模块验证一个工单从生到死的完整闭环，<strong>建议全程开着管理后台观察实时通知</strong>。 前置：一个师傅账号（上班状态）+ 客户微信已登录</p>
+</blockquote>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 19%" />
+<col style="width: 19%" />
+<col style="width: 32%" />
+<col style="width: 19%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>步骤</th>
+<th>操作</th>
+<th>预期结果</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8.1</td>
+<td>客户建单</td>
+<td>客户端预约「卫生间防水」，填完整表单 + 2 张图</td>
+<td>建单成功；<strong>管理后台铃铛实时弹出「新工单」通知（绿色）</strong>，角标 +1</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>8.2</td>
+<td>管理员指派</td>
+<td>后台指派给师傅，预计时间明天上午</td>
+<td>工单「待确认→已确认」；师傅工作台待接单出现该单</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>8.3</td>
+<td>师傅接单</td>
+<td>师傅详情页 → 接受工单</td>
+<td>接单成功；工单时间线出现接单时间</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>8.4</td>
+<td>师傅开工</td>
+<td>开始施工</td>
+<td>状态「施工中」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>8.5</td>
+<td>客户查看进行中</td>
+<td>客户端工单详情刷新</td>
+<td>状态「进行中」，可见师傅电话（脱敏显示，可拨打）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>8.6</td>
+<td>客户施工中取消（反向）</td>
+<td>客户端尝试取消施工中工单</td>
+<td><strong>被拒绝</strong>：提示只能取消待确认状态的工单</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>8.7</td>
+<td>师傅完工</td>
+<td>完工填价 50/300/200</td>
+<td>客户端工单状态变「待验收」，显示三项费用明细 + 合计 ¥550</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>8.8</td>
+<td>客户价格异议</td>
+<td>客户端 → 价格异议 → 填「材料费偏高」提交</td>
+<td>状态变「价格协商中」；<strong>管理后台实时弹出价格异议通知（黄色）</strong></td>
+<td>☐</td>
+</tr>
+<tr>
+<td>8.9</td>
+<td>管理员调价</td>
+<td>后台调价 0/250/180</td>
+<td>工单回「待验收」，客户端价格更新为 ¥430</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>8.10</td>
+<td>客户验收</td>
+<td>客户端 → 确认验收</td>
+<td>状态变「已完成」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>8.11</td>
+<td>客户评价</td>
+<td>已完成工单 → 评价服务（三星项打分 + 文字）</td>
+<td>评价提交成功；详情页显示星级与评语</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>8.12</td>
+<td>评价公开展示</td>
+<td>客户端 → 该服务详情页</td>
+<td>评价统计卡（综合分/三项分/总数）+ 评价列表（昵称脱敏）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>8.13</td>
+<td>重复评价拦截</td>
+<td>再次对该工单提交评价</td>
+<td>提示已评价过</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>8.14</td>
+<td>全流程日志</td>
+<td>管理后台 → 操作日志</td>
+<td>依次可见：create_order → assign → accept → start → complete → dispute_price → adjust_price → confirm → review 九条记录</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>8.15</td>
+<td>数据看板联动</td>
+<td>管理后台看板刷新</td>
+<td>工单总数/完成数 +1，趋势图当日 +1，师傅完成量 +1</td>
+<td>☐</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="九异常分支与权限验证">九、异常分支与权限验证</h2>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 24%" />
+<col style="width: 18%" />
+<col style="width: 30%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>检查项</th>
+<th>操作</th>
+<th>预期结果</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>9.1</td>
+<td>无登录访问 API</td>
+<td>浏览器直接访问 <code>https://ruihezhihui.cn/api/orders</code></td>
+<td>返回 401「未提供认证token」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>9.2</td>
+<td>假 token</td>
+<td>带 <code>Authorization: Bearer xxx</code> 访问</td>
+<td>返回 401「Token无效或已过期」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>9.3</td>
+<td>客户冒充管理员</td>
+<td>（了解即可）客户 token 调管理接口</td>
+<td>后端 requireRole 拦截，返回 403</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>9.4</td>
+<td>师傅访问管理接口</td>
+<td>（了解即可）师傅 token 调 /api/admin/*</td>
+<td>返回 403「权限不足」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>9.5</td>
+<td>客户误入工作台</td>
+<td>客户登录后手动访问 <code>pages/worker/orders/list</code>（开发者工具路径栏）</td>
+<td>被踢回登录页（角色防护）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>9.6</td>
+<td>评价未完成工单</td>
+<td>对进行中工单调评价接口</td>
+<td>返回 400 只能对已完成工单评价</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>9.7</td>
+<td>图片格式限制</td>
+<td>上传接口传 .txt 文件</td>
+<td>返回「只支持 jpg/png/gif/webp 格式图片」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>9.8</td>
+<td>超大图片</td>
+<td>上传 &gt;5MB 图片</td>
+<td>被拒绝（5MB 限制）</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>9.9</td>
+<td>服务详情 404</td>
+<td>访问 <code>/api/services/99999</code></td>
+<td>返回 404「服务不存在」</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>9.10</td>
+<td>token 过期回登</td>
+<td>小程序存储中手动删 token 后操作</td>
+<td>自动跳回登录页</td>
+<td>☐</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="十验收结论表">十、验收结论表</h2>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>检查点数</th>
+<th>通过数</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>零 · 验收准备</td>
+<td>3</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>一 · 客户端登录与浏览</td>
+<td>17</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>二 · 地址管理</td>
+<td>6</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>三 · 预约与工单提交</td>
+<td>11</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>四 · 管理后台看板</td>
+<td>8</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>五 · 工单指派与处理</td>
+<td>13</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>六 · 内容与师傅管理</td>
+<td>15</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>七 · 师傅工作台</td>
+<td>16</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>八 · 完整流转</td>
+<td>15</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>九 · 异常与权限</td>
+<td>10</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>合计</strong></td>
+<td><strong>114</strong></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>验收结论</strong>：☐ 通过　☐ 有条件通过（问题：＿＿＿＿）　☐ 不通过</p>
+<p>验收人：＿＿＿＿＿＿　日期：＿＿＿＿＿＿</p>
+<hr />
+<h2 id="附已知限制与说明验收时不算缺陷">附：已知限制与说明（验收时不算缺陷）</h2>
+<ol type="1">
+<li><strong>微信订阅消息</strong>：模板 ID 未配置（需在微信公众平台申请），通知会记录到数据库但微信服务通知不发送。管理后台的实时 WebSocket 通知<strong>不受影响</strong>，是本次验收的通知验证途径。</li>
+<li><strong>自动任务</strong>：异常工单检测（指派后 24h 未响应）、自动完成（待验收超 3 天）为每小时定时执行，人工验收不等待，代码已在生产运行。</li>
+<li><strong><code>miniapp-worker/</code> 目录</strong>：历史备份，验收请使用 <code>miniapp/</code>。</li>
+<li><strong>评价视频</strong>：评价表单仅支持文字+星级，视频评价字段后端已预留但前端未开放（按需求裁剪）。</li>
+<li><strong>图片存储</strong>：本地 <code>/uploads</code>（服务器磁盘），云存储 COS/OSS 未接入，接口层已抽象。</li>
+<li><strong>开发版设计系统页</strong>：<code>pages/dev/design-system</code> 仅开发/体验版可见，正式版自动隐藏。</li>
+<li><strong>微信登录 in 开发者工具</strong>：工具中 wx.getUserProfile 可能返回模拟数据，属正常现象；真机预览体验更准确。</li>
+</ol>
+<h2 id="附验收中遇到问题的反馈方式">附：验收中遇到问题的反馈方式</h2>
+<ul>
+<li>后端异常：管理后台「操作日志」+ 服务器 <code>pm2 logs waterproof-api</code></li>
+<li>接口验证：<code>curl https://ruihezhihui.cn/health</code></li>
+<li>数据核对：管理后台各列表页</li>
+</ul>
+</article>
+  <script>
+(() => {
+  function normalizePreviewAnnotationLabel(text) {
+    return String(text || "")
+      .replace(/\r\n/g, "\n")
+      .replace(/\s*\n\s*/g, " ")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  }
+
+  function advancePastBacktickSpan(source, startIndex) {
+    let fenceLength = 1;
+    while (source[startIndex + fenceLength] === "`") fenceLength += 1;
+
+    let index = startIndex + fenceLength;
+    while (index < source.length) {
+      const ch = source[index];
+      if (ch === "\\") {
+        index = Math.min(source.length, index + 2);
+        continue;
+      }
+      if (ch === "`") {
+        let runLength = 1;
+        while (source[index + runLength] === "`") runLength += 1;
+        if (runLength === fenceLength) {
+          return index + runLength;
+        }
+        index += runLength;
+        continue;
+      }
+      if (ch === "\n") {
+        return index + 1;
+      }
+      index += 1;
+    }
+
+    return source.length;
+  }
+
+  function readInlineAnnotationMarkerAt(source, startIndex) {
+    const text = String(source || "");
+    if (startIndex < 0 || startIndex + 4 > text.length) return null;
+    if (text[startIndex] !== "[" || text.slice(startIndex, startIndex + 4).toLowerCase() !== "[an:") {
+      return null;
+    }
+
+    let index = startIndex + 4;
+    while (index < text.length && /\s/.test(text[index])) index += 1;
+    const bodyStart = index;
+    let squareDepth = 0;
+
+    while (index < text.length) {
+      const ch = text[index];
+      if (ch === "\\") {
+        index = Math.min(text.length, index + 2);
+        continue;
+      }
+      if (ch === "`") {
+        index = advancePastBacktickSpan(text, index);
+        continue;
+      }
+      if (ch === "[") {
+        squareDepth += 1;
+        index += 1;
+        continue;
+      }
+      if (ch === "]") {
+        if (squareDepth === 0) {
+          const end = index + 1;
+          return {
+            start: startIndex,
+            end: end,
+            raw: text.slice(startIndex, end),
+            body: text.slice(bodyStart, index),
+          };
+        }
+        squareDepth -= 1;
+        index += 1;
+        continue;
+      }
+      index += 1;
+    }
+
+    return null;
+  }
+
+  function collectInlineAnnotationMarkers(text) {
+    const source = String(text || "");
+    const markers = [];
+    let index = 0;
+
+    while (index < source.length) {
+      const ch = source[index];
+      if (ch === "\\") {
+        index = Math.min(source.length, index + 2);
+        continue;
+      }
+      if (ch === "`") {
+        index = advancePastBacktickSpan(source, index);
+        continue;
+      }
+      if (ch === "[" && source.slice(index, index + 4).toLowerCase() === "[an:") {
+        const marker = readInlineAnnotationMarkerAt(source, index);
+        if (marker) {
+          markers.push(marker);
+          index = marker.end;
+          continue;
+        }
+      }
+      index += 1;
+    }
+
+    return markers;
+  }
+
+  function replaceInlineAnnotationMarkers(text, annotationReplacer, textReplacer) {
+    const source = String(text || "");
+    const markers = collectInlineAnnotationMarkers(source);
+    const replaceAnnotation = typeof annotationReplacer === "function"
+      ? annotationReplacer
+      : function(marker) { return marker.raw; };
+    const replaceText = typeof textReplacer === "function"
+      ? textReplacer
+      : function(segment) { return segment; };
+
+    if (markers.length === 0) {
+      return replaceText(source);
+    }
+
+    let out = "";
+    let lastIndex = 0;
+    markers.forEach(function(marker) {
+      if (marker.start > lastIndex) {
+        out += String(replaceText(source.slice(lastIndex, marker.start)) ?? "");
+      }
+      out += String(replaceAnnotation(marker) ?? "");
+      lastIndex = marker.end;
+    });
+    if (lastIndex < source.length) {
+      out += String(replaceText(source.slice(lastIndex)) ?? "");
+    }
+    return out;
+  }
+
+  function escapeHtml(text) {
+    return String(text || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function isWordChar(ch) {
+    return typeof ch === "string" && /[A-Za-z0-9]/.test(ch);
+  }
+
+  function readInlineMarkdownLinkAt(source, startIndex) {
+    const text = String(source || "");
+    if (text[startIndex] !== "[") return null;
+
+    let index = startIndex + 1;
+    let squareDepth = 0;
+    while (index < text.length) {
+      const ch = text[index];
+      if (ch === "\\") {
+        index = Math.min(text.length, index + 2);
+        continue;
+      }
+      if (ch === "`") {
+        index = advancePastBacktickSpan(text, index);
+        continue;
+      }
+      if (ch === "[") {
+        squareDepth += 1;
+        index += 1;
+        continue;
+      }
+      if (ch === "]") {
+        if (squareDepth === 0) break;
+        squareDepth -= 1;
+        index += 1;
+        continue;
+      }
+      if (ch === "\n") return null;
+      index += 1;
+    }
+
+    if (index >= text.length || text[index] !== "]" || text[index + 1] !== "(") return null;
+
+    index += 2;
+    let parenDepth = 0;
+    while (index < text.length) {
+      const ch = text[index];
+      if (ch === "\\") {
+        index = Math.min(text.length, index + 2);
+        continue;
+      }
+      if (ch === "`") {
+        index = advancePastBacktickSpan(text, index);
+        continue;
+      }
+      if (ch === "(") {
+        parenDepth += 1;
+        index += 1;
+        continue;
+      }
+      if (ch === ")") {
+        if (parenDepth === 0) {
+          return {
+            type: "literal",
+            raw: text.slice(startIndex, index + 1),
+            end: index + 1,
+          };
+        }
+        parenDepth -= 1;
+        index += 1;
+        continue;
+      }
+      if (ch === "\n") return null;
+      index += 1;
+    }
+
+    return null;
+  }
+
+  function readDelimitedPreviewTokenAt(source, startIndex, open, close, allowNewlines) {
+    const text = String(source || "");
+    if (text.slice(startIndex, startIndex + open.length) !== open) return null;
+
+    let index = startIndex + open.length;
+    while (index < text.length) {
+      const ch = text[index];
+      if (!allowNewlines && ch === "\n") return null;
+      if (ch === "\\") {
+        index = Math.min(text.length, index + 2);
+        continue;
+      }
+      if (text.slice(index, index + close.length) === close) {
+        return {
+          type: "math",
+          raw: text.slice(startIndex, index + close.length),
+          end: index + close.length,
+        };
+      }
+      index += 1;
+    }
+
+    return null;
+  }
+
+  function readInlineMathTokenAt(source, startIndex) {
+    const text = String(source || "");
+    if (text[startIndex] === "\\" && text[startIndex + 1] === "(") {
+      return readDelimitedPreviewTokenAt(text, startIndex, "\\(", "\\)", true);
+    }
+    if (text[startIndex] === "\\" && text[startIndex + 1] === "[") {
+      return readDelimitedPreviewTokenAt(text, startIndex, "\\[", "\\]", true);
+    }
+    if (text[startIndex] === "$" && text[startIndex + 1] === "$") {
+      return readDelimitedPreviewTokenAt(text, startIndex, "$$", "$$", true);
+    }
+    if (text[startIndex] === "$" && text[startIndex + 1] !== "$" && text[startIndex + 1] && !/\s/.test(text[startIndex + 1])) {
+      const token = readDelimitedPreviewTokenAt(text, startIndex, "$", "$", false);
+      if (token && token.raw.length > 2) return token;
+    }
+    return null;
+  }
+
+  function readBareUrlTokenAt(source, startIndex) {
+    const text = String(source || "").slice(startIndex);
+    const match = text.match(/^https?:\/\/[^\s<]+/i);
+    if (!match) return null;
+    return {
+      type: "literal",
+      raw: match[0],
+      end: startIndex + match[0].length,
+    };
+  }
+
+  function readAnnotationPreviewProtectedTokenAt(source, startIndex) {
+    const text = String(source || "");
+    if (startIndex < 0 || startIndex >= text.length) return null;
+
+    if (text[startIndex] === "`") {
+      const end = advancePastBacktickSpan(text, startIndex);
+      return {
+        type: "code",
+        raw: text.slice(startIndex, end),
+        end: end,
+      };
+    }
+
+    const linkToken = text[startIndex] === "["
+      ? readInlineMarkdownLinkAt(text, startIndex)
+      : null;
+    if (linkToken) return linkToken;
+
+    const mathToken = (text[startIndex] === "$" || text[startIndex] === "\\")
+      ? readInlineMathTokenAt(text, startIndex)
+      : null;
+    if (mathToken) return mathToken;
+
+    const urlToken = text[startIndex].toLowerCase() === "h"
+      ? readBareUrlTokenAt(text, startIndex)
+      : null;
+    if (urlToken) return urlToken;
+
+    return null;
+  }
+
+  function canOpenEmphasisDelimiter(source, startIndex, delimiter) {
+    const text = String(source || "");
+    if (text.slice(startIndex, startIndex + delimiter.length) !== delimiter) return false;
+    const prev = startIndex > 0 ? text[startIndex - 1] : "";
+    const next = text[startIndex + delimiter.length] || "";
+    if (!next || /\s/.test(next)) return false;
+    return !isWordChar(prev);
+  }
+
+  function canCloseEmphasisDelimiter(source, startIndex, delimiter) {
+    const text = String(source || "");
+    if (text.slice(startIndex, startIndex + delimiter.length) !== delimiter) return false;
+    const prev = startIndex > 0 ? text[startIndex - 1] : "";
+    const next = text[startIndex + delimiter.length] || "";
+    if (!prev || /\s/.test(prev)) return false;
+    return !isWordChar(next);
+  }
+
+  function readAnnotationEmphasisSpanAt(source, startIndex, delimiter, tagName) {
+    const text = String(source || "");
+    if (!canOpenEmphasisDelimiter(text, startIndex, delimiter)) return null;
+
+    let index = startIndex + delimiter.length;
+    while (index < text.length) {
+      if (text[index] === "\\") {
+        index = Math.min(text.length, index + 2);
+        continue;
+      }
+
+      const protectedToken = readAnnotationPreviewProtectedTokenAt(text, index);
+      if (protectedToken) {
+        index = protectedToken.end;
+        continue;
+      }
+
+      if (canCloseEmphasisDelimiter(text, index, delimiter)) {
+        const inner = text.slice(startIndex + delimiter.length, index);
+        return {
+          end: index + delimiter.length,
+          html: "<" + tagName + ">" + renderAnnotationPlainTextHtml(inner) + "</" + tagName + ">",
+        };
+      }
+
+      index += 1;
+    }
+
+    return null;
+  }
+
+  function renderAnnotationCodeSpanHtml(rawToken) {
+    const raw = String(rawToken || "");
+    if (!raw || raw[0] !== "`") return escapeHtml(raw);
+
+    let fenceLength = 1;
+    while (raw[fenceLength] === "`") fenceLength += 1;
+    const fence = "`".repeat(fenceLength);
+    if (raw.length < fenceLength * 2 || raw.slice(raw.length - fenceLength) !== fence) {
+      return escapeHtml(raw);
+    }
+
+    return "<code>" + escapeHtml(raw.slice(fenceLength, raw.length - fenceLength)) + "</code>";
+  }
+
+  function renderAnnotationPlainTextHtml(text) {
+    const source = String(text || "");
+    let out = "";
+    let index = 0;
+
+    while (index < source.length) {
+      const strongMatch = readAnnotationEmphasisSpanAt(source, index, "**", "strong")
+        || readAnnotationEmphasisSpanAt(source, index, "__", "strong");
+      if (strongMatch) {
+        out += strongMatch.html;
+        index = strongMatch.end;
+        continue;
+      }
+
+      const emphasisMatch = readAnnotationEmphasisSpanAt(source, index, "*", "em")
+        || readAnnotationEmphasisSpanAt(source, index, "_", "em");
+      if (emphasisMatch) {
+        out += emphasisMatch.html;
+        index = emphasisMatch.end;
+        continue;
+      }
+
+      out += escapeHtml(source[index]);
+      index += 1;
+    }
+
+    return out;
+  }
+
+  function renderPreviewAnnotationHtml(text) {
+    const source = normalizePreviewAnnotationLabel(text);
+    let out = "";
+    let plainStart = 0;
+    let index = 0;
+
+    while (index < source.length) {
+      const token = readAnnotationPreviewProtectedTokenAt(source, index);
+      if (!token) {
+        index += 1;
+        continue;
+      }
+
+      if (index > plainStart) {
+        out += renderAnnotationPlainTextHtml(source.slice(plainStart, index));
+      }
+
+      if (token.type === "code") {
+        out += renderAnnotationCodeSpanHtml(token.raw);
+      } else {
+        out += escapeHtml(token.raw);
+      }
+
+      index = token.end;
+      plainStart = index;
+    }
+
+    if (plainStart < source.length) {
+      out += renderAnnotationPlainTextHtml(source.slice(plainStart));
+    }
+
+    return out;
+  }
+
+  function transformMarkdownOutsideFences(text, plainTransformer) {
+    const source = String(text || "").replace(/\r\n/g, "\n");
+    if (!source) return source;
+
+    const transformPlain = typeof plainTransformer === "function"
+      ? plainTransformer
+      : function(segment) { return segment; };
+    const lines = source.split("\n");
+    const out = [];
+    let plainBuffer = [];
+    let inFence = false;
+    let fenceChar = null;
+    let fenceLength = 0;
+
+    function flushPlain() {
+      if (plainBuffer.length === 0) return;
+      const transformed = transformPlain(plainBuffer.join("\n"));
+      out.push(typeof transformed === "string" ? transformed : String(transformed ?? ""));
+      plainBuffer = [];
+    }
+
+    lines.forEach(function(line) {
+      const trimmed = line.trimStart();
+      const fenceMatch = trimmed.match(/^(`{3,}|~{3,})/);
+      if (fenceMatch) {
+        const marker = fenceMatch[1] || "";
+        const markerChar = marker.charAt(0);
+        const markerLength = marker.length;
+
+        if (!inFence) {
+          flushPlain();
+          inFence = true;
+          fenceChar = markerChar;
+          fenceLength = markerLength;
+          out.push(line);
+          return;
+        }
+
+        if (fenceChar === markerChar && markerLength >= fenceLength) {
+          inFence = false;
+          fenceChar = null;
+          fenceLength = 0;
+        }
+
+        out.push(line);
+        return;
+      }
+
+      if (inFence) {
+        out.push(line);
+      } else {
+        plainBuffer.push(line);
+      }
+    });
+
+    flushPlain();
+    return out.join("\n");
+  }
+
+  function hasAnnotationMarkers(text) {
+    let found = false;
+    transformMarkdownOutsideFences(text, function(segment) {
+      if (!found && collectInlineAnnotationMarkers(segment).length > 0) {
+        found = true;
+      }
+      return segment;
+    });
+    return found;
+  }
+
+  function stripAnnotationMarkers(text) {
+    return transformMarkdownOutsideFences(text, function(segment) {
+      return replaceInlineAnnotationMarkers(segment, function() { return ""; });
+    });
+  }
+
+  function prepareMarkdownForPandocPreview(markdown, placeholderPrefix) {
+    const placeholders = [];
+    const prefix = typeof placeholderPrefix === "string" && placeholderPrefix
+      ? placeholderPrefix
+      : "PIMDANNOT";
+    const prepared = transformMarkdownOutsideFences(markdown, function(segment) {
+      return replaceInlineAnnotationMarkers(segment, function(marker) {
+        const label = normalizePreviewAnnotationLabel(marker.body);
+        if (!label) return "";
+        const token = prefix + placeholders.length + "TOKEN";
+        placeholders.push({ token: token, text: label, title: "[an: " + label + "]" });
+        return token;
+      });
+    });
+    return { markdown: prepared, placeholders: placeholders };
+  }
+
+  const helpers = Object.freeze({
+    collectInlineAnnotationMarkers: collectInlineAnnotationMarkers,
+    hasAnnotationMarkers: hasAnnotationMarkers,
+    normalizePreviewAnnotationLabel: normalizePreviewAnnotationLabel,
+    prepareMarkdownForPandocPreview: prepareMarkdownForPandocPreview,
+    readInlineAnnotationMarkerAt: readInlineAnnotationMarkerAt,
+    renderPreviewAnnotationHtml: renderPreviewAnnotationHtml,
+    replaceInlineAnnotationMarkers: replaceInlineAnnotationMarkers,
+    stripAnnotationMarkers: stripAnnotationMarkers,
+    transformMarkdownOutsideFences: transformMarkdownOutsideFences,
+  });
+
+  globalThis.PiMarkdownPreviewAnnotationHelpers = helpers;
+})();
+
+  </script>
+  <script type="module">
+  (async () => {
+    const annotationHelpers = window.PiMarkdownPreviewAnnotationHelpers || null;
+    const previewAnnotationPlaceholders = [];
+    const DIFF_META_LINE_REGEX = /^(diff --git |index |new file mode |deleted file mode |similarity index |rename from |rename to |Binary files )/;
+
+    const escapeRegExp = (text) => {
+      const backslash = String.fromCharCode(92);
+      const specials = '.+*?^' + '$' + '{}|[]' + backslash;
+      return Array.from(String(text || '')).map((ch) => specials.includes(ch) ? backslash + ch : ch).join('');
+    };
+
+    const setAnnotationMarkerContent = (marker, text) => {
+      if (!(marker instanceof HTMLElement)) return;
+      const rendered = annotationHelpers && typeof annotationHelpers.renderPreviewAnnotationHtml === 'function'
+        ? annotationHelpers.renderPreviewAnnotationHtml(text)
+        : String(text || '');
+      marker.innerHTML = rendered;
+    };
+
+    const replaceAnnotationTextNode = (textNode) => {
+      if (!annotationHelpers || typeof annotationHelpers.collectInlineAnnotationMarkers !== 'function') return;
+      const text = typeof textNode.nodeValue === 'string' ? textNode.nodeValue : '';
+      if (!text || text.toLowerCase().indexOf('[an:') === -1) return;
+
+      const markers = annotationHelpers.collectInlineAnnotationMarkers(text);
+      if (!Array.isArray(markers) || markers.length === 0) return;
+
+      const fragment = document.createDocumentFragment();
+      let lastIndex = 0;
+      markers.forEach((markerInfo) => {
+        const token = markerInfo && typeof markerInfo.raw === 'string' ? markerInfo.raw : '';
+        const start = markerInfo && typeof markerInfo.start === 'number' ? markerInfo.start : lastIndex;
+        const end = markerInfo && typeof markerInfo.end === 'number' ? markerInfo.end : start;
+        if (start > lastIndex) {
+          fragment.appendChild(document.createTextNode(text.slice(lastIndex, start)));
+        }
+
+        const markerText = annotationHelpers && typeof annotationHelpers.normalizePreviewAnnotationLabel === 'function'
+          ? annotationHelpers.normalizePreviewAnnotationLabel(markerInfo.body)
+          : String(markerInfo && markerInfo.body || '').trim();
+        if (markerText) {
+          const markerEl = document.createElement('span');
+          markerEl.className = 'annotation-marker';
+          markerEl.title = token || markerText;
+          setAnnotationMarkerContent(markerEl, markerText);
+          fragment.appendChild(markerEl);
+        }
+
+        lastIndex = end;
+      });
+
+      if (lastIndex < text.length) {
+        fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+      }
+
+      if (textNode.parentNode) {
+        textNode.parentNode.replaceChild(fragment, textNode);
+      }
+    };
+
+    const applyPreviewAnnotationPlaceholders = (root) => {
+      if (!root || !Array.isArray(previewAnnotationPlaceholders) || previewAnnotationPlaceholders.length === 0) return;
+      const placeholderMap = new Map();
+      const placeholderTokens = [];
+      previewAnnotationPlaceholders.forEach((entry) => {
+        const token = entry && typeof entry.token === 'string' ? entry.token : '';
+        if (!token) return;
+        placeholderMap.set(token, entry);
+        placeholderTokens.push(token);
+      });
+      if (placeholderTokens.length === 0) return;
+
+      const placeholderPattern = new RegExp(placeholderTokens.map(escapeRegExp).join('|'), 'g');
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      const textNodes = [];
+      let node = walker.nextNode();
+      while (node) {
+        const textNode = node;
+        const value = typeof textNode.nodeValue === 'string' ? textNode.nodeValue : '';
+        if (value && value.indexOf('PIMDPREVIEWANNOT') !== -1) {
+          const parent = textNode.parentElement;
+          const tag = parent && parent.tagName ? parent.tagName.toUpperCase() : '';
+          if (tag !== 'CODE' && tag !== 'PRE' && tag !== 'SCRIPT' && tag !== 'STYLE' && tag !== 'TEXTAREA') {
+            textNodes.push(textNode);
+          }
+        }
+        node = walker.nextNode();
+      }
+
+      textNodes.forEach((textNode) => {
+        const text = typeof textNode.nodeValue === 'string' ? textNode.nodeValue : '';
+        if (!text) return;
+        placeholderPattern.lastIndex = 0;
+        if (!placeholderPattern.test(text)) return;
+        placeholderPattern.lastIndex = 0;
+
+        const fragment = document.createDocumentFragment();
+        let lastIndex = 0;
+        let match;
+        while ((match = placeholderPattern.exec(text)) !== null) {
+          const token = match[0] || '';
+          const entry = placeholderMap.get(token);
+          const start = typeof match.index === 'number' ? match.index : 0;
+          if (start > lastIndex) {
+            fragment.appendChild(document.createTextNode(text.slice(lastIndex, start)));
+          }
+          if (entry) {
+            const markerEl = document.createElement('span');
+            markerEl.className = 'annotation-marker';
+            const markerText = typeof entry.text === 'string' ? entry.text : token;
+            markerEl.title = typeof entry.title === 'string' ? entry.title : markerText;
+            setAnnotationMarkerContent(markerEl, markerText);
+            fragment.appendChild(markerEl);
+          } else {
+            fragment.appendChild(document.createTextNode(token));
+          }
+          lastIndex = start + token.length;
+          if (token.length === 0) {
+            placeholderPattern.lastIndex += 1;
+          }
+        }
+
+        if (lastIndex < text.length) {
+          fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+        }
+
+        if (textNode.parentNode) {
+          textNode.parentNode.replaceChild(fragment, textNode);
+        }
+      });
+    };
+
+    const decorateDiffCodeBlocks = (root) => {
+      if (!root) return;
+      const diffBlocks = Array.from(root.querySelectorAll('pre.sourceCode.diff code'));
+
+      diffBlocks.forEach((codeBlock) => {
+        const lineElements = Array.from(codeBlock.children).filter((child) => child instanceof HTMLElement);
+        lineElements.forEach((lineEl) => {
+          const text = typeof lineEl.textContent === 'string' ? lineEl.textContent : '';
+          if (!text) return;
+
+          if (/^\+(?!\+\+)/.test(text)) {
+            lineEl.classList.add('diff-line', 'diff-add-line');
+          } else if (/^-(?!--)/.test(text)) {
+            lineEl.classList.add('diff-line', 'diff-del-line');
+          } else if (/^@@/.test(text)) {
+            lineEl.classList.add('diff-line', 'diff-hunk-line');
+          } else if (/^(?:\+\+\+ |--- )/.test(text)) {
+            lineEl.classList.add('diff-line', 'diff-header-line');
+          } else if (DIFF_META_LINE_REGEX.test(text)) {
+            lineEl.classList.add('diff-line', 'diff-meta-line');
+          }
+
+          const walker = document.createTreeWalker(lineEl, NodeFilter.SHOW_TEXT);
+          const matches = [];
+          let node = walker.nextNode();
+          while (node) {
+            const textNode = node;
+            const value = typeof textNode.nodeValue === 'string' ? textNode.nodeValue : '';
+            const parent = textNode.parentElement;
+            if (value && value.toLowerCase().indexOf('[an:') !== -1 && parent && !parent.closest('a, .annotation-marker')) {
+              matches.push(textNode);
+            }
+            node = walker.nextNode();
+          }
+
+          matches.forEach(replaceAnnotationTextNode);
+        });
+      });
+    };
+
+    const MATHJAX_CDN_URL = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js';
+
+    const waitForFonts = async () => {
+      if ('fonts' in document) {
+        try {
+          await document.fonts.ready;
+        } catch {}
+      }
+    };
+
+    const waitForPaint = async () => {
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    };
+
+    const extractMathFallbackTex = (text, displayMode) => {
+      const source = typeof text === 'string' ? text.trim() : '';
+      if (!source) return '';
+
+      if (displayMode) {
+        if (source.startsWith('$$') && source.endsWith('$$') && source.length >= 4) {
+          return source.slice(2, -2).trim();
+        }
+        if (source.startsWith('\\[') && source.endsWith('\\]') && source.length >= 4) {
+          return source.slice(2, -2).trim();
+        }
+        return source;
+      }
+
+      if (source.startsWith('\\(') && source.endsWith('\\)') && source.length >= 4) {
+        return source.slice(2, -2).trim();
+      }
+      if (source.startsWith('$') && source.endsWith('$') && source.length >= 2) {
+        return source.slice(1, -1).trim();
+      }
+      return source;
+    };
+
+    const collectMathFallbackTargets = (root) => {
+      if (!root) return [];
+      const nodes = Array.from(root.querySelectorAll('.math.display, .math.inline'));
+      const targets = [];
+      const seenTargets = new Set();
+
+      nodes.forEach((node) => {
+        const displayMode = node.classList.contains('display');
+        const rawText = typeof node.textContent === 'string' ? node.textContent : '';
+        const tex = extractMathFallbackTex(rawText, displayMode);
+        if (!tex) return;
+
+        let renderTarget = node;
+        if (displayMode) {
+          const parent = node.parentElement;
+          const parentText = parent && typeof parent.textContent === 'string' ? parent.textContent.trim() : '';
+          if (parent && parent.tagName === 'P' && parentText === rawText.trim()) {
+            renderTarget = parent;
+          }
+        }
+
+        if (seenTargets.has(renderTarget)) return;
+        seenTargets.add(renderTarget);
+        targets.push({ renderTarget, displayMode, tex });
+      });
+
+      return targets;
+    };
+
+    let mathJaxPromise = null;
+    const ensureMathJax = () => {
+      if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+        return Promise.resolve(window.MathJax);
+      }
+      if (mathJaxPromise) return mathJaxPromise;
+
+      mathJaxPromise = new Promise((resolve, reject) => {
+        window.MathJax = {
+          loader: { load: ['[tex]/ams', '[tex]/noerrors', '[tex]/noundefined'] },
+          tex: {
+            inlineMath: [['\\(', '\\)'], ['$', '$']],
+            displayMath: [['\\[', '\\]'], ['$$', '$$']],
+            packages: { '[+]': ['ams', 'noerrors', 'noundefined'] },
+          },
+          options: {
+            skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+          },
+          startup: { typeset: false },
+        };
+
+        const script = document.createElement('script');
+        script.src = MATHJAX_CDN_URL;
+        script.async = true;
+        script.onload = () => {
+          const api = window.MathJax;
+          if (api && api.startup && api.startup.promise && typeof api.startup.promise.then === 'function') {
+            api.startup.promise.then(() => resolve(api)).catch(reject);
+            return;
+          }
+          if (api && typeof api.typesetPromise === 'function') {
+            resolve(api);
+            return;
+          }
+          reject(new Error('MathJax did not initialize.'));
+        };
+        script.onerror = () => reject(new Error('Failed to load MathJax.'));
+        document.head.appendChild(script);
+      }).catch((error) => {
+        mathJaxPromise = null;
+        throw error;
+      });
+
+      return mathJaxPromise;
+    };
+
+    const markerNeedsMath = (text) => {
+      const source = typeof text === 'string' ? text : '';
+      if (!source) return false;
+      const backslash = String.fromCharCode(92);
+      if (source.includes(backslash + '(') || source.includes(backslash + '[') || source.includes('$$')) return true;
+      for (let index = 0; index < source.length - 1; index += 1) {
+        const char = source[index];
+        const next = source[index + 1] || '';
+        if (char === '$' && next.trim() !== '') return true;
+        if (char === backslash && /[A-Za-z]/.test(next)) return true;
+      }
+      return false;
+    };
+
+    const renderAnnotationMarkerMath = async (root) => {
+      if (!root) return;
+      const markers = Array.from(root.querySelectorAll('.annotation-marker')).filter((marker) => {
+        if (!(marker instanceof HTMLElement)) return false;
+        if (marker.querySelector('math, mjx-container')) return false;
+        const text = typeof marker.textContent === 'string' ? marker.textContent : '';
+        return markerNeedsMath(text);
+      });
+      if (markers.length === 0) return;
+
+      let mathJax;
+      try {
+        mathJax = await ensureMathJax();
+      } catch (e) {
+        console.error('MathJax load failed:', e);
+        return;
+      }
+
+      try {
+        await mathJax.typesetPromise(markers);
+      } catch (e) {
+        console.error('Annotation math render failed:', e);
+      }
+    };
+
+    const renderMathFallback = async (root) => {
+      const fallbackTargets = collectMathFallbackTargets(root);
+      if (fallbackTargets.length === 0) return;
+
+      let mathJax;
+      try {
+        mathJax = await ensureMathJax();
+      } catch (e) {
+        console.error('MathJax load failed:', e);
+        return;
+      }
+
+      fallbackTargets.forEach(({ renderTarget, displayMode, tex }) => {
+        renderTarget.textContent = displayMode ? '\\[\n' + tex + '\n\\]' : '\\(' + tex + '\\)';
+      });
+
+      try {
+        await mathJax.typesetPromise(fallbackTargets.map(({ renderTarget }) => renderTarget));
+      } catch (e) {
+        console.error('MathJax render failed:', e);
+      }
+    };
+
+
+    const setMermaidRenderResult = (status, error) => {
+      window.__mermaidRenderResult = error ? { status, error } : { status };
+    };
+    const renderMermaidFailure = (wrappers, message) => {
+      wrappers.forEach((wrapper) => {
+        const failure = document.createElement('pre');
+        failure.className = 'mermaid-error';
+        failure.setAttribute('role', 'alert');
+        failure.style.cssText = 'margin:0;padding:12px 14px;border:1px solid var(--error,#cf222e);border-radius:8px;background:var(--panel-2,#f8fafc);color:var(--error,#cf222e);text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;';
+        failure.textContent = 'Mermaid render failed: ' + message;
+        wrapper.replaceChildren(failure);
+      });
+    };
+    const renderMermaid = async () => {
+      const mermaidBlocks = document.querySelectorAll('pre.mermaid');
+      if (mermaidBlocks.length === 0) {
+        setMermaidRenderResult('skipped');
+        return;
+      }
+
+      setMermaidRenderResult('pending');
+      const wrappers = Array.from(mermaidBlocks).map((pre) => {
+        const code = pre.querySelector('code');
+        const src = code ? code.textContent : pre.textContent;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'mermaid-container';
+        const div = document.createElement('div');
+        div.className = 'mermaid';
+        div.textContent = src;
+        wrapper.appendChild(div);
+        pre.replaceWith(wrapper);
+        return wrapper;
+      });
+
+      try {
+        const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/mermaid@11.16.0/dist/mermaid.esm.min.mjs');
+        const packs = [{"name":"lucide","url":"https://unpkg.com/@iconify-json/lucide@1/icons.json"},{"name":"logos","url":"https://unpkg.com/@iconify-json/logos@1/icons.json"}];
+        const pending = new Map();
+        let iconPackError = null;
+        const load = (pack) => {
+          if (!pending.has(pack.name)) {
+            pending.set(pack.name, fetch(pack.url).then((response) => {
+              if (!response.ok) throw new Error('Failed to load Mermaid icon pack ' + pack.name + ': HTTP ' + response.status);
+              return response.json();
+            }).catch((error) => {
+              iconPackError ??= error instanceof Error ? error : new Error(String(error));
+              throw error;
+            }));
+          }
+          return pending.get(pack.name);
+        };
+        mermaid.registerIconPacks(packs.map((pack) => ({ name: pack.name, loader: () => load(pack) })));
+        mermaid.initialize({"startOnLoad":false,"theme":"base","themeVariables":{"background":"#1a1b21","primaryColor":"#25262f","primaryTextColor":"#d4d4d4","primaryBorderColor":"#808080","secondaryColor":"#1f2027","secondaryTextColor":"#d4d4d4","secondaryBorderColor":"#808080","tertiaryColor":"#1f2027","tertiaryTextColor":"#d4d4d4","tertiaryBorderColor":"#808080","lineColor":"#808080","textColor":"#d4d4d4","edgeLabelBackground":"#25262f","nodeBorder":"#808080","clusterBkg":"#1f2027","clusterBorder":"#808080","titleColor":"#f0c674"}});
+        await mermaid.run();
+        if (iconPackError) throw iconPackError;
+        const parseRgb = (value) => {
+          const match = value.match(/^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/);
+          return match ? [Number(match[1]), Number(match[2]), Number(match[3])] : null;
+        };
+        const isOpaqueColor = (value) => {
+          if (!parseRgb(value)) return false;
+          const alphaMatch = value.match(/^rgba\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*,\s*([\d.]+)\s*\)$/);
+          return !alphaMatch || Number(alphaMatch[1]) >= 1;
+        };
+        const findOpaqueFill = (root) => {
+          if (!(root instanceof Element)) return null;
+          const shape = Array.from(root.querySelectorAll('rect, polygon, path, circle, ellipse')).find((candidate) => {
+            const fill = getComputedStyle(candidate).fill;
+            return isOpaqueColor(fill);
+          });
+          return shape ? getComputedStyle(shape).fill : null;
+        };
+        const findOpaqueBackground = (element, fallback) => {
+          let current = element instanceof Element ? element : null;
+          while (current) {
+            const background = getComputedStyle(current).backgroundColor;
+            if (current instanceof HTMLElement && isOpaqueColor(background)) return background;
+            current = current.parentElement;
+          }
+          return fallback;
+        };
+        const relativeLuminance = (color) => {
+          const linear = color.map((channel) => {
+            const value = channel / 255;
+            return value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
+          });
+          return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+        };
+        const contrastRatio = (foreground, background) => {
+          const lighter = Math.max(relativeLuminance(foreground), relativeLuminance(background));
+          const darker = Math.min(relativeLuminance(foreground), relativeLuminance(background));
+          return (lighter + 0.05) / (darker + 0.05);
+        };
+        const toRgb = (color) => 'rgb(' + color.map((channel) => Math.round(channel)).join(', ') + ')';
+        const ensureReadableColor = (foregroundCss, backgroundCss) => {
+          const foreground = parseRgb(foregroundCss);
+          const background = parseRgb(backgroundCss);
+          if (!foreground || !background || contrastRatio(foreground, background) >= 4.5) return foregroundCss;
+          const readableCandidates = [[0, 0, 0], [255, 255, 255]].flatMap((target) => {
+            for (let step = 1; step <= 20; step += 1) {
+              const amount = step / 20;
+              const color = foreground.map((channel, index) => channel + (target[index] - channel) * amount);
+              if (contrastRatio(color, background) >= 4.5) return [{ amount, color }];
+            }
+            return [];
+          });
+          readableCandidates.sort((left, right) => left.amount - right.amount);
+          if (readableCandidates.length > 0) return toRgb(readableCandidates[0].color);
+          const black = [0, 0, 0];
+          const white = [255, 255, 255];
+          return toRgb(contrastRatio(black, background) >= contrastRatio(white, background) ? black : white);
+        };
+        const pageBackground = getComputedStyle(document.body).backgroundColor;
+        document.querySelectorAll('.mermaid-container .icon-shape').forEach((node) => {
+          const icon = node.querySelector('svg');
+          if (!icon) return;
+          const semanticColor = getComputedStyle(icon).color;
+          const iconSurface = findOpaqueFill(node.firstElementChild)
+            || findOpaqueBackground(icon, pageBackground);
+          const iconColor = ensureReadableColor(semanticColor, iconSurface);
+          icon.style.setProperty('color', iconColor, 'important');
+          node.querySelectorAll('.labelBkg, .nodeLabel').forEach((label) => {
+            if (!(label instanceof HTMLElement)) return;
+            const labelSurface = findOpaqueBackground(label, pageBackground);
+            const labelColor = ensureReadableColor(semanticColor, labelSurface);
+            label.style.setProperty('color', labelColor, 'important');
+          });
+        });
+        document.querySelectorAll('.mermaid-container .node:not(.icon-shape)').forEach((node) => {
+          const shape = Array.from(node.querySelectorAll('rect, polygon, path, circle, ellipse')).find((candidate) => {
+            const fill = getComputedStyle(candidate).fill;
+            return fill && fill !== 'none' && fill !== 'rgba(0, 0, 0, 0)';
+          });
+          if (!shape) return;
+          const shapeFill = getComputedStyle(shape).fill;
+          node.querySelectorAll('.nodeLabel').forEach((label) => {
+            if (!(label instanceof HTMLElement)) return;
+            const labelColor = ensureReadableColor(getComputedStyle(label).color, shapeFill);
+            label.style.setProperty('color', labelColor, 'important');
+          });
+        });
+        setMermaidRenderResult('success');
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        setMermaidRenderResult('failed', message);
+        renderMermaidFailure(wrappers, message);
+        console.error('Mermaid render failed:', error);
+      }
+    };
+  
+
+    const root = document.getElementById('preview-root');
+    try {
+      await renderMermaid();
+      applyPreviewAnnotationPlaceholders(root);
+      decorateDiffCodeBlocks(root);
+      await renderAnnotationMarkerMath(root);
+      await renderMathFallback(root);
+      await waitForFonts();
+      await waitForPaint();
+    } finally {
+      window.__mermaidDone = true;
+    }
+  })();
+  </script>
+</body>
+</html>

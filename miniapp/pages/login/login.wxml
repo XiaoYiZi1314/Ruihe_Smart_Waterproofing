@@ -7,7 +7,8 @@
     <text class="login-slogan">专业防水堵漏 · 预约服务系统</text>
   </view>
 
-  <view class="login-panel">
+  <!-- 客户登录 -->
+  <view class="login-panel" wx:if="{{mode === 'customer'}}">
     <rh-button
       variant="brand"
       size="lg"
@@ -16,11 +17,53 @@
       disabled="{{loading}}"
       bind:tap="onGetUserProfile"
     />
+    <view class="login-switch" bindtap="switchMode">
+      <text>我是师傅，使用工号登录</text>
+    </view>
     <view class="login-tips">
       <text>登录即表示同意</text>
       <text class="text-brand">《用户协议》</text>
       <text>和</text>
       <text class="text-brand">《隐私政策》</text>
+    </view>
+  </view>
+
+  <!-- 师傅登录 -->
+  <view class="login-panel" wx:else>
+    <view class="worker-form">
+      <view class="worker-form__field">
+        <input
+          class="rh-input"
+          maxlength="20"
+          placeholder="请输入手机号或工号"
+          value="{{workerPhone}}"
+          bindinput="onWorkerPhoneInput"
+        />
+      </view>
+      <view class="worker-form__field">
+        <input
+          class="rh-input"
+          password
+          placeholder="请输入密码"
+          value="{{workerPassword}}"
+          bindinput="onWorkerPasswordInput"
+        />
+      </view>
+      <rh-button
+        variant="brand"
+        size="lg"
+        block
+        text="{{workerLoading ? '登录中...' : '进入师傅工作台'}}"
+        disabled="{{workerLoading}}"
+        bind:tap="onWorkerLogin"
+      />
+    </view>
+    <view class="login-switch" bindtap="switchMode">
+      <text>我是客户，使用微信登录</text>
+    </view>
+    <view class="login-tips">
+      <text>师傅账号由管理员开通，</text>
+      <text>如需开通请联系管理员</text>
     </view>
   </view>
 </view>

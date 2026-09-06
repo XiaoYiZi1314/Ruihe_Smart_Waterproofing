@@ -30,6 +30,13 @@ App({
       success: (res) => {
         if (res.statusCode === 200 && res.data.success) {
           this.globalData.userInfo = res.data.data;
+          // 师傅角色启动时直接进入师傅工作台
+          const curPages = getCurrentPages();
+          const curPath = curPages.length ? curPages[curPages.length - 1].route : '';
+          const inWorkerPages = curPath.indexOf('pages/worker/') === 0 || curPath === 'pages/login/login';
+          if (res.data.data.role === 'worker' && !inWorkerPages) {
+            wx.reLaunch({ url: '/pages/worker/orders/list' });
+          }
         } else {
           // token无效，清除本地存储
           wx.removeStorageSync('token');

@@ -53,7 +53,46 @@
 
     <view class="detail-sec">
       <rh-section-title title="用户评价" />
-      <rh-empty text="暂无评价" />
+
+      <!-- 评价统计 -->
+      <view class="review-stats" wx:if="{{reviewStats}}">
+        <view class="review-stats__overall">
+          <text class="review-stats__score">{{reviewStats.avg_overall}}</text>
+          <text class="review-stats__label">综合评分</text>
+        </view>
+        <view class="review-stats__detail">
+          <view class="review-stats__row">
+            <text class="review-stats__name">服务态度</text>
+            <text class="review-stats__value">{{reviewStats.avg_attitude}}</text>
+          </view>
+          <view class="review-stats__row">
+            <text class="review-stats__name">施工质量</text>
+            <text class="review-stats__value">{{reviewStats.avg_quality}}</text>
+          </view>
+          <view class="review-stats__row">
+            <text class="review-stats__name">收费合理</text>
+            <text class="review-stats__value">{{reviewStats.avg_price}}</text>
+          </view>
+          <view class="review-stats__count">共 {{reviewStats.total}} 条评价</view>
+        </view>
+      </view>
+
+      <!-- 评价列表 -->
+      <view class="review-item" wx:for="{{reviews}}" wx:key="id">
+        <view class="review-item__header">
+          <text class="review-item__name">{{item.maskedName}}</text>
+          <text class="review-item__stars">{{item.avgScore}} 分</text>
+        </view>
+        <view class="review-item__score-row">
+          <text>态度 {{item.service_attitude_score}}</text>
+          <text>质量 {{item.quality_score}}</text>
+          <text>价格 {{item.price_score}}</text>
+        </view>
+        <view class="review-item__comment">{{item.comment}}</view>
+        <view class="review-item__time">{{item.dateText}}</view>
+      </view>
+
+      <rh-empty wx:if="{{!reviews || reviews.length === 0}}" text="暂无评价，预约后来评价一下吧" />
     </view>
   </view>
 

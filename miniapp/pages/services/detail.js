@@ -1,6 +1,27 @@
 const api = require('../../utils/api');
 const theme = require('../../utils/theme');
 
+/**
+ * 用户昵称脱敏：张三 → 张**
+ */
+function maskName(name) {
+  if (!name) return '匿名用户';
+  if (name.length <= 1) return name + '**';
+  if (name.length === 2) return name[0] + '*';
+  return name[0] + '**' + name[name.length - 1];
+}
+
+/**
+ * 日期格式化：2026-08-28
+ */
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return dateStr;
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 Page({
   data: {
     service: null,
@@ -10,7 +31,10 @@ Page({
     bannerGradient: '',
     priceMain: '',
     priceSuffix: '',
-    highlights: ['质保5年', '免费勘测', '签约施工']
+    highlights: ['质保5年', '免费勘测', '签约施工'],
+    reviews: [],
+    reviewStats: null,
+    reviewStars: [1, 2, 3, 4, 5]
   },
 
   onLoad(options) {
@@ -50,7 +74,17 @@ Page({
           priceSuffix: price.suffix ? `${price.suffix} · 参考价格` : '参考价格',
           highlights: service.tags && service.tags.length
             ? service.tags
-            : ['质保5年', '免费勘测', '签约施工']
+            : ['质保5年', '免费勘测', '签约施工'],
+          reviews: (service.reviews || []).map((r) => ({
+            ...r,
+            maskedName: maskName(r.user_name),
+            dateText: formatDate(r.created_at),
+            avgScore: (
+              ((r.service_attitude_score || 0) + (r.quality_score || 0) + (r.price_score || 0)) /
+              3
+            ).toFixed(1)
+          })),
+          reviewStats: service.review_stats
         });
       }
     } catch (error) {

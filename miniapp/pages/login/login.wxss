@@ -50,3 +50,29 @@
   color: var(--color-text-muted);
   line-height: 1.6;
 }
+/* 模式切换 */
+.login-switch {
+  text-align: center;
+  margin-top: 28rpx;
+  padding: 12rpx 0;
+}
+
+.login-switch text {
+  font-size: 26rpx;
+  color: var(--color-brand);
+}
+
+/* 师傅表单 */
+.worker-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  margin-bottom: 12rpx;
+}
+
+.worker-form__field {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  padding: 8rpx 24rpx;
+}
