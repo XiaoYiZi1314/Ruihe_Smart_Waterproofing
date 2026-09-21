@@ -90,7 +90,17 @@
   z-index: 100;
 }
 
+.modal-backdrop {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
 .modal {
+  position: relative;
+  z-index: 1;
   width: 620rpx;
   background: var(--color-surface);
   border-radius: var(--radius-xl);
@@ -156,6 +166,11 @@
 }
 
 .rate-star {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64rpx;
+  min-height: 72rpx;
   font-size: 44rpx;
   color: #D1D5DB;
 }

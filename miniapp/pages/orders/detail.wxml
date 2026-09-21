@@ -184,8 +184,9 @@
   </rh-sticky-bar>
 
   <!-- 价格异议弹窗 -->
-  <view class="modal-mask" wx:if="{{showDisputeModal}}" bindtap="closeDisputeModal">
-    <view class="modal" catchtap="">
+  <view class="modal-mask" wx:if="{{showDisputeModal}}">
+    <view class="modal-backdrop" bindtap="closeDisputeModal"></view>
+    <view class="modal">
       <view class="modal__title">价格异议</view>
       <view class="modal__tip">请描述您对价格的具体异议，管理员将尽快与您协商处理</view>
       <textarea
@@ -203,8 +204,9 @@
   </view>
 
   <!-- 评价弹窗 -->
-  <view class="modal-mask" wx:if="{{showReviewModal}}" bindtap="closeReviewModal">
-    <view class="modal modal--review" catchtap="">
+  <view class="modal-mask" wx:if="{{showReviewModal}}">
+    <view class="modal-backdrop" bindtap="closeReviewModal"></view>
+    <view class="modal modal--review">
       <view class="modal__title">评价服务</view>
       <rh-button variant="line" text="选择视频" bind:tap="chooseReviewVideo" />
       <video wx:if="{{reviewVideo}}" src="{{reviewVideo}}" style="width:100%;height:280rpx" />
@@ -213,42 +215,42 @@
       <view class="rate-row">
         <text class="rate-label">服务态度</text>
         <view class="rate-stars">
-          <text
+          <view
             wx:for="{{starRange}}"
             wx:key="*this"
             class="rate-star {{reviewScores.attitude >= item ? 'rate-star--on' : ''}}"
             data-type="attitude"
             data-score="{{item}}"
             bindtap="onScoreTap"
-          >★</text>
+          >★</view>
         </view>
       </view>
 
       <view class="rate-row">
         <text class="rate-label">施工质量</text>
         <view class="rate-stars">
-          <text
+          <view
             wx:for="{{starRange}}"
             wx:key="*this"
             class="rate-star {{reviewScores.quality >= item ? 'rate-star--on' : ''}}"
             data-type="quality"
             data-score="{{item}}"
             bindtap="onScoreTap"
-          >★</text>
+          >★</view>
         </view>
       </view>
 
       <view class="rate-row">
         <text class="rate-label">价格满意度</text>
         <view class="rate-stars">
-          <text
+          <view
             wx:for="{{starRange}}"
             wx:key="*this"
             class="rate-star {{reviewScores.price >= item ? 'rate-star--on' : ''}}"
             data-type="price"
             data-score="{{item}}"
             bindtap="onScoreTap"
-          >★</text>
+          >★</view>
         </view>
       </view>
 

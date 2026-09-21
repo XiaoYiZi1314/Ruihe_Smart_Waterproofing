@@ -246,8 +246,11 @@ Page({
 
   onScoreTap(e) {
     const { type, score } = e.currentTarget.dataset;
+    const value = Number(score);
+    if (!['attitude', 'quality', 'price'].includes(type) ||
+        !Number.isInteger(value) || value < 1 || value > 5) return;
     const scores = { ...this.data.reviewScores };
-    scores[type] = parseInt(score);
+    scores[type] = value;
     this.setData({ reviewScores: scores });
   },
 
