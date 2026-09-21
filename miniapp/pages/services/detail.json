@@ -1,3 +1,10 @@
 {
-  "navigationBarTitleText": "服务详情"
+  "navigationBarTitleText": "服务详情",
+  "usingComponents": {
+    "rh-button": "/components/rh-button/rh-button",
+    "rh-empty": "/components/rh-empty/rh-empty",
+    "rh-icon": "/components/rh-icon/rh-icon",
+    "rh-section-title": "/components/rh-section-title/rh-section-title",
+    "rh-sticky-bar": "/components/rh-sticky-bar/rh-sticky-bar"
+  }
 }

@@ -54,7 +54,7 @@
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="statusTagType(row.status)" size="small">
-              {{ STATUS_TEXT[row.status] || row.status }}
+              {{ orderStatusText(row) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -154,7 +154,7 @@
           <el-descriptions-item label="工单号">{{ currentOrder.order_no }}</el-descriptions-item>
           <el-descriptions-item label="状态">
             <el-tag :type="statusTagType(currentOrder.status)" size="small">
-              {{ STATUS_TEXT[currentOrder.status] }}
+              {{ orderStatusText(currentOrder) }}
             </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="催单次数">{{ currentOrder.urge_count || 0 }} 次</el-descriptions-item>
@@ -222,14 +222,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount } from 'vue';
+import { ref, reactive, watch, onMounted, onBeforeUnmount } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import api from '../api';
 
 const timeFields = { assigned_at: '指派时间', confirmed_at: '接单时间', started_at: '开始施工', completed_at: '完工时间', finished_at: '验收完成', cancelled_at: '取消时间' };
 const STATUS_TEXT = {
   pending: '待指派',
-  confirmed: '待接单',
+  confirmed: '待接单 / 待开工',
   in_progress: '施工中',
   pending_review: '待验收',
   price_negotiating: '价格协商',
@@ -273,6 +273,17 @@ const adjustForm = reactive({
 // 详情
 const detailVisible = ref(false);
 
+function orderStatusText(order) {
+  if (order.status === 'confirmed') return order.confirmed_at ? '已接单，待开工' : '待接单';
+  return STATUS_TEXT[order.status] || order.status;
+}
+
+let disposed = false;
+let listRequest = 0;
+let detailRequest = 0;
+let selectedDetailId = null;
+let refreshTimer;
+
 function statusTagType(status) {
   const map = {
     pending: 'warning',
@@ -290,8 +301,9 @@ function canCancel(order) {
   return !['completed', 'cancelled'].includes(order.status);
 }
 
-async function loadOrders() {
-  loading.value = true;
+async function loadOrders(options = {}) {
+  const requestId = ++listRequest;
+  if (!options.silent) loading.value = true;
   try {
     const params = {
       page: pagination.page,
@@ -305,12 +317,13 @@ async function loadOrders() {
     }
 
     const res = await api.get('/admin/orders', { params });
+    if (disposed || requestId !== listRequest) return;
     orders.value = res.data.orders || [];
     pagination.total = res.data.pagination.total || 0;
   } catch (err) {
     // 拦截器已处理
   } finally {
-    loading.value = false;
+    if (!disposed && requestId === listRequest) loading.value = false;
   }
 }
 
@@ -351,15 +364,31 @@ async function exportOrders() {
   }
 }
 
-async function showDetail(row) {
+async function loadOrderDetail(id) {
+  const requestId = ++detailRequest;
   try {
-    const res = await api.get(`/admin/orders/${row.id}`);
+    const res = await api.get(`/admin/orders/${id}`);
+    if (disposed || requestId !== detailRequest || !detailVisible.value ||
+        selectedDetailId !== id) return;
     currentOrder.value = res.data;
-    detailVisible.value = true;
   } catch (err) {
     // 拦截器已处理
   }
 }
+
+function showDetail(row) {
+  selectedDetailId = row.id;
+  currentOrder.value = { ...row };
+  detailVisible.value = true;
+  return loadOrderDetail(row.id);
+}
+
+watch(detailVisible, visible => {
+  if (!visible) {
+    selectedDetailId = null;
+    detailRequest += 1;
+  }
+});
 
 async function openAssignDialog(row) {
   currentOrder.value = row;
@@ -443,11 +472,31 @@ async function handleCancelOrder() {
   }
 }
 
+function refreshCurrentOrders() {
+  if (disposed || document.visibilityState === 'hidden') return;
+  loadOrders({ silent: true });
+  if (detailVisible.value && selectedDetailId !== null) loadOrderDetail(selectedDetailId);
+}
+
 onMounted(() => {
   loadOrders();
-  window.addEventListener('ruihe:orders-changed', loadOrders);
+  window.addEventListener('ruihe:orders-changed', refreshCurrentOrders);
+  window.addEventListener('focus', refreshCurrentOrders);
+  document.addEventListener('visibilitychange', refreshCurrentOrders);
+  // Recover from missed socket messages; preserve filters, page and open detail.
+  refreshTimer = window.setInterval(() => {
+    if (!loading.value) refreshCurrentOrders();
+  }, 15000);
 });
-onBeforeUnmount(() => window.removeEventListener('ruihe:orders-changed', loadOrders));
+onBeforeUnmount(() => {
+  disposed = true;
+  listRequest += 1;
+  detailRequest += 1;
+  window.clearInterval(refreshTimer);
+  window.removeEventListener('ruihe:orders-changed', refreshCurrentOrders);
+  window.removeEventListener('focus', refreshCurrentOrders);
+  document.removeEventListener('visibilitychange', refreshCurrentOrders);
+});
 </script>
 
 <style scoped>

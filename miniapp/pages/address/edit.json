@@ -1,3 +1,8 @@
 {
-  "navigationBarTitleText": "编辑地址"
+  "navigationBarTitleText": "编辑地址",
+  "usingComponents": {
+    "rh-button": "/components/rh-button/rh-button",
+    "rh-form-field": "/components/rh-form-field/rh-form-field",
+    "rh-sticky-bar": "/components/rh-sticky-bar/rh-sticky-bar"
+  }
 }

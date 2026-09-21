@@ -1,3 +1,9 @@
 {
-  "navigationBarTitleText": "我的"
+  "navigationBarTitleText": "我的",
+  "usingComponents": {
+    "rh-button": "/components/rh-button/rh-button",
+    "rh-card": "/components/rh-card/rh-card",
+    "rh-icon": "/components/rh-icon/rh-icon",
+    "rh-menu-item": "/components/rh-menu-item/rh-menu-item"
+  }
 }

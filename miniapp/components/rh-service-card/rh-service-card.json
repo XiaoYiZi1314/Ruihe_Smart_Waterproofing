@@ -1,3 +1,7 @@
 {
-  "component": true
+  "component": true,
+  "usingComponents": {
+    "rh-button": "/components/rh-button/rh-button",
+    "rh-icon": "/components/rh-icon/rh-icon"
+  }
 }

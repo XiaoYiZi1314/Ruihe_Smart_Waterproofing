@@ -2,5 +2,12 @@
   "navigationBarTitleText": "服务项目",
   "enablePullDownRefresh": true,
   "onReachBottomDistance": 50,
-  "backgroundColor": "#F4F6FA"
+  "backgroundColor": "#F4F6FA",
+  "usingComponents": {
+    "rh-empty": "/components/rh-empty/rh-empty",
+    "rh-load-more": "/components/rh-load-more/rh-load-more",
+    "rh-search-bar": "/components/rh-search-bar/rh-search-bar",
+    "rh-service-card": "/components/rh-service-card/rh-service-card",
+    "rh-tag-bar": "/components/rh-tag-bar/rh-tag-bar"
+  }
 }

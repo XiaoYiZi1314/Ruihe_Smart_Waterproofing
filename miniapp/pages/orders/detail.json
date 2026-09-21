@@ -1,4 +1,14 @@
 {
   "navigationBarTitleText": "工单详情",
-  "enablePullDownRefresh": true
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "rh-button": "/components/rh-button/rh-button",
+    "rh-card": "/components/rh-card/rh-card",
+    "rh-empty": "/components/rh-empty/rh-empty",
+    "rh-icon": "/components/rh-icon/rh-icon",
+    "rh-info-row": "/components/rh-info-row/rh-info-row",
+    "rh-section-title": "/components/rh-section-title/rh-section-title",
+    "rh-status-tag": "/components/rh-status-tag/rh-status-tag",
+    "rh-sticky-bar": "/components/rh-sticky-bar/rh-sticky-bar"
+  }
 }

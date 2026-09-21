@@ -2,5 +2,11 @@
   "navigationBarTitleText": "我的工单",
   "enablePullDownRefresh": true,
   "onReachBottomDistance": 50,
-  "backgroundColor": "#F4F6FA"
+  "backgroundColor": "#F4F6FA",
+  "usingComponents": {
+    "rh-empty": "/components/rh-empty/rh-empty",
+    "rh-load-more": "/components/rh-load-more/rh-load-more",
+    "rh-order-card": "/components/rh-order-card/rh-order-card",
+    "rh-tag-bar": "/components/rh-tag-bar/rh-tag-bar"
+  }
 }

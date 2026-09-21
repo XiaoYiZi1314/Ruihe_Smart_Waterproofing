@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const State = require('./orderStateMachine');
+const Realtime = require('./realtime');
 
 function fail(message, status = 409) {
   const error = new Error(message);
@@ -52,7 +53,8 @@ async function transition(id, actor, action, data = {}) {
     const params = [];
     const set = (key, value) => { updates.push(`${key} = ?`); params.push(value); };
     const raw = sql => updates.push(sql);
-    set('status', action === 'cancel' ? 'cancelled' : State.getNextStatus(order.status, action));
+    const nextStatus = action === 'cancel' ? 'cancelled' : State.getNextStatus(order.status, action);
+    set('status', nextStatus);
     if (action === 'assign') {
       set('worker_id', worker.id); set('estimated_time', data.estimated_time);
       raw('assigned_at = NOW()'); raw('confirmed_at = NULL'); raw('started_at = NULL'); raw('is_exception = 0');
@@ -94,7 +96,10 @@ async function transition(id, actor, action, data = {}) {
     raw('updated_at = NOW()');
     await connection.query(`UPDATE work_orders SET ${updates.join(', ')} WHERE id = ?`, [...params, id]);
     await connection.commit();
-    return { ...order, ...(action === 'complete' || action === 'adjust_price' ? fees(data) : {}), worker_name: worker ? worker.nickname : undefined };
+    // Broadcast only committed state. A socket outage must not fail a saved operation.
+    Promise.resolve().then(() => Realtime.notifyOrderChange(order.id, nextStatus, { action }))
+      .catch(error => console.error('Order change delivery failed:', error.message));
+    return { ...order, status: nextStatus, ...(action === 'complete' || action === 'adjust_price' ? fees(data) : {}), worker_name: worker ? worker.nickname : undefined };
   } catch (error) {
     await connection.rollback();
     throw error;

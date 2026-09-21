@@ -15,7 +15,7 @@ function fixture(order, worker = { id: 8, role: 'worker', status: 'active', work
   const sql = []; const calls = [];
   const connection = { async beginTransaction() { calls.push('begin'); }, async commit() {calls.push('commit');}, async rollback(){calls.push('rollback');}, release(){calls.push('release');},
     async query(query, params) { sql.push({query,params}); if(query.startsWith('SELECT * FROM users'))return [[worker]];if(query.startsWith('SELECT * FROM work_orders'))return [[order]]; return [{affectedRows:1}]; } };
-  const workflow = load('utils/orderWorkflow.js', { '../config/database': {async getConnection(){return connection;}}, './orderStateMachine':State });
+  const workflow = load('utils/orderWorkflow.js', { '../config/database': {async getConnection(){return connection;}}, './orderStateMachine':State, './realtime':{notifyOrderChange:async()=>{}} });
   return { workflow, sql, calls };
 }
 test('cancelled order cannot be started and transaction rolls back', async()=>{

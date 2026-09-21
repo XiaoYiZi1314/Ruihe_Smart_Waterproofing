@@ -49,8 +49,11 @@
   box-shadow: var(--shadow);
 }
 
+/* virtualHost makes the button a direct flex child; a zero flex-basis must not
+   collapse its tap target in auto-height column layouts (for example login). */
 .rh-btn--sm {
   height: 52rpx;
+  min-height: 52rpx;
   padding: 0 24rpx;
   font-size: 24rpx;
   border-radius: var(--radius-md);
@@ -58,12 +61,14 @@
 
 .rh-btn--md {
   height: 72rpx;
+  min-height: 72rpx;
   padding: 0 32rpx;
   font-size: 28rpx;
 }
 
 .rh-btn--lg {
   height: 88rpx;
+  min-height: 88rpx;
   padding: 0 32rpx;
   font-size: 30rpx;
   font-weight: 600;

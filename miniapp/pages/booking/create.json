@@ -1,3 +1,10 @@
 {
-  "navigationBarTitleText": "预约服务"
+  "navigationBarTitleText": "预约服务",
+  "usingComponents": {
+    "rh-button": "/components/rh-button/rh-button",
+    "rh-form-field": "/components/rh-form-field/rh-form-field",
+    "rh-icon": "/components/rh-icon/rh-icon",
+    "rh-slot-picker": "/components/rh-slot-picker/rh-slot-picker",
+    "rh-sticky-bar": "/components/rh-sticky-bar/rh-sticky-bar"
+  }
 }

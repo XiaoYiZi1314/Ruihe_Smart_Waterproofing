@@ -67,3 +67,88 @@ test('returning to services reloads categories and services without clearing vis
   page.loadCategories=async()=>{categories++;};page.loadServices=async refresh=>{assert.equal(refresh,true);services++;};
   await page.onShow();assert.equal(categories,1);assert.equal(services,1);
 });
+
+test('cancelling customer logout keeps the existing session', () => {
+  let cleared = false;
+  let navigated = false;
+  const wx = {
+    showModal: options => options.success({ confirm: false }),
+    reLaunch: () => { navigated = true; }
+  };
+  const page = load('miniapp/pages/profile/index.js', { wx }, {
+    '../../utils/auth': { clearAuth: () => { cleared = true; } }
+  });
+  page.onLogout();
+  assert.equal(cleared, false);
+  assert.equal(navigated, false);
+});
+
+test('switching to worker login clears the customer session only after confirmation', () => {
+  const calls = [];
+  let confirmed = false;
+  const wx = {
+    showModal: options => options.success({ confirm: confirmed }),
+    reLaunch: options => calls.push(options.url)
+  };
+  const page = load('miniapp/pages/profile/index.js', { wx }, {
+    '../../utils/auth': { clearAuth: () => calls.push('clear') }
+  });
+  page.onSwitchRole();
+  assert.deepEqual(calls, []);
+  confirmed = true;
+  page.onSwitchRole();
+  assert.deepEqual(calls, ['clear', '/pages/login/login?mode=worker']);
+});
+
+test('profile actions wrap virtual-host buttons so flex-basis cannot collapse their height', () => {
+  const markup = fs.readFileSync(path.join(root, 'miniapp/pages/profile/index.wxml'), 'utf8');
+  const actions = [...markup.matchAll(
+    /<view class="profile-action">\s*<rh-button\b([^>]+)\/>\s*<\/view>/g
+  )].map(match => match[1]);
+  assert.equal(actions.length, 3);
+  assert.match(actions[0], /text="退出登录"/);
+  assert.match(actions[0], /variant="danger"/);
+  assert.match(actions[0], /bind:tap="onLogout"/);
+  assert.match(actions[1], /bind:tap="onSwitchRole"/);
+  assert.match(actions[2], /bind:tap="onMessages"/);
+});
+
+test('all button sizes keep their height as virtual-host children of a column flex container', () => {
+  const css = fs.readFileSync(path.join(root, 'miniapp/components/rh-button/rh-button.wxss'), 'utf8');
+  for (const [size, height] of [['sm', 52], ['md', 72], ['lg', 88]]) {
+    const rule = css.match(new RegExp(`\\.rh-btn--${size}\\s*\\{([^}]+)\\}`));
+    assert(rule, `Missing button size: ${size}`);
+    assert.match(rule[1], new RegExp(`min-height:\\s*${height}rpx`));
+  }
+});
+
+test('worker login button accepts valid form data and routes after saving the session', async () => {
+  for (const mustChangePassword of [false, true]) {
+    const events = [];
+    const worker = { role: 'worker', must_change_password: mustChangePassword };
+    const wx = {
+      showToast() {},
+      reLaunch: options => events.push(options.url)
+    };
+    const page = load('miniapp/pages/login/login.js', {
+      wx, getApp: () => ({ sessionReady: Promise.resolve(true) }),
+      setTimeout: callback => callback()
+    }, {
+      '../../utils/request': { post: async (url, body) => {
+        assert.equal(url, '/api/auth/worker-login');
+        assert.equal(body.phone, 'W-test');
+        assert.equal(body.password, 'test-only-not-a-real-password');
+        return { success: true, data: { token: 'test-token', user: worker } };
+      } },
+      '../../utils/session': {
+        save: () => events.push('saved'), capture: () => ({}), isCurrent: () => true
+      }
+    });
+    page.data.workerPhone = 'W-test';
+    page.data.workerPassword = 'test-only-not-a-real-password';
+    await page.onWorkerLogin();
+    assert.deepEqual(events, ['saved', mustChangePassword
+      ? '/pages/worker/profile/index' : '/pages/worker/orders/list']);
+    assert.equal(page.data.workerLoading, false);
+  }
+});

@@ -1,1 +1,11 @@
-{"navigationBarTitleText":"站内消息","enablePullDownRefresh":true}
+{
+  "navigationBarTitleText": "站内消息",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "rh-card": "/components/rh-card/rh-card",
+    "rh-empty": "/components/rh-empty/rh-empty",
+    "rh-info-row": "/components/rh-info-row/rh-info-row",
+    "rh-load-more": "/components/rh-load-more/rh-load-more",
+    "rh-section-title": "/components/rh-section-title/rh-section-title"
+  }
+}

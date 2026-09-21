@@ -130,6 +130,19 @@ Authorization: Bearer <token>
 2. 扫描二维码
 3. 在手机上查看效果
 
+## 按需注入后的编译与白屏排查
+
+- `app.json` 保持 `lazyCodeLoading: requiredComponents`，组件依赖在页面/父组件 JSON 中声明。
+- 公共与本机配置的 `setting.compileHotReLoad` 均保持 `false`；本机
+  `project.private.config.json` 会覆盖公共配置，不能只核对 `project.config.json`。
+- 修改注入模式或组件依赖后，清除**编译缓存**并完整编译，不只依赖保存后的热更新。
+  不需要清除登录信息、Storage 或全部缓存。
+- 白屏时先查看 Console 的第一条异常；若完整编译后恢复，只能说明编译/运行状态相关，
+  不能在没有复现证据的情况下认定为某个业务接口或组件实现错误。
+- 上传前运行 `node --test miniapp/scripts/test-*.js`，还必须在工具内预览并真机验证。
+  Node 测试和组件依赖扫描不能代替微信渲染器验证。
+- 图片/音频合计预算为 200,000 bytes；本地配置、封面压缩与组件声明修改不需要部署后端。
+
 ## 发布流程
 
 ### 1. 上传代码

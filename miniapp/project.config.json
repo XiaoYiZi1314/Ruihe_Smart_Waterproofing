@@ -2,11 +2,26 @@
   "description": "瑞和防水小程序",
   "packOptions": {
     "ignore": [
-      { "type": "folder", "value": "scripts" },
-      { "type": "file", "value": "README.md" },
-      { "type": "file", "value": "assets/services/README.md" },
-      { "type": "file", "value": "project.private.config.json" },
-      { "type": "file", "value": "utils/mock-services.js" }
+      {
+        "type": "folder",
+        "value": "scripts"
+      },
+      {
+        "type": "file",
+        "value": "README.md"
+      },
+      {
+        "type": "file",
+        "value": "assets/services/README.md"
+      },
+      {
+        "type": "file",
+        "value": "project.private.config.json"
+      },
+      {
+        "type": "file",
+        "value": "utils/mock-services.js"
+      }
     ],
     "include": []
   },
@@ -61,5 +76,6 @@
     "tabIndent": "insertSpaces",
     "tabSize": 2
   },
-  "simulatorPluginLibVersion": {}
+  "simulatorPluginLibVersion": {},
+  "isGameTourist": false
 }

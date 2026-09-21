@@ -1,3 +1,10 @@
 {
-  "navigationBarTitleText": "地址管理"
+  "navigationBarTitleText": "地址管理",
+  "usingComponents": {
+    "rh-button": "/components/rh-button/rh-button",
+    "rh-card": "/components/rh-card/rh-card",
+    "rh-empty": "/components/rh-empty/rh-empty",
+    "rh-status-tag": "/components/rh-status-tag/rh-status-tag",
+    "rh-sticky-bar": "/components/rh-sticky-bar/rh-sticky-bar"
+  }
 }

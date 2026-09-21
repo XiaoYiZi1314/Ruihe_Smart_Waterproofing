@@ -59,7 +59,9 @@
   margin: 36rpx auto;
   width: 560rpx;
   max-width: calc(100% - 48rpx);
-  display: flex;
-  flex-direction: column;
-  gap: 24rpx;
+}
+
+/* rh-button uses virtualHost: keep its flex: 1 1 0 out of a column flex container. */
+.profile-action + .profile-action {
+  margin-top: 24rpx;
 }

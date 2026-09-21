@@ -1,3 +1,19 @@
 {
-  "navigationBarTitleText": "设计系统预览"
+  "navigationBarTitleText": "设计系统预览",
+  "usingComponents": {
+    "rh-button": "/components/rh-button/rh-button",
+    "rh-card": "/components/rh-card/rh-card",
+    "rh-contact-line": "/components/rh-contact-line/rh-contact-line",
+    "rh-empty": "/components/rh-empty/rh-empty",
+    "rh-form-field": "/components/rh-form-field/rh-form-field",
+    "rh-load-more": "/components/rh-load-more/rh-load-more",
+    "rh-order-card": "/components/rh-order-card/rh-order-card",
+    "rh-quick-entry": "/components/rh-quick-entry/rh-quick-entry",
+    "rh-search-bar": "/components/rh-search-bar/rh-search-bar",
+    "rh-section-title": "/components/rh-section-title/rh-section-title",
+    "rh-service-card": "/components/rh-service-card/rh-service-card",
+    "rh-slot-picker": "/components/rh-slot-picker/rh-slot-picker",
+    "rh-status-tag": "/components/rh-status-tag/rh-status-tag",
+    "rh-tag-bar": "/components/rh-tag-bar/rh-tag-bar"
+  }
 }
