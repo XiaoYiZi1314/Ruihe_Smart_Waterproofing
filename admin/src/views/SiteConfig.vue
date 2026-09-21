@@ -79,6 +79,9 @@
                 placeholder="公司地址"
               />
             </el-form-item>
+            <el-form-item label="微信号">
+              <el-input v-model="contactForm.contact_wechat" placeholder="用于客户复制联系" />
+            </el-form-item>
             <el-form-item label="营业时间">
               <el-input v-model="contactForm.contact_hours" placeholder="如：周一至周日 8:00-18:00" />
             </el-form-item>
@@ -121,7 +124,10 @@
             label-width="100px"
             style="max-width: 600px"
           >
-            <el-form-item label="品牌介绍">
+            <el-form-item label="合作品牌/公司">
+              <el-input v-model="joinForm.partners" type="textarea" :rows="4" placeholder="每行一家合作品牌或公司" maxlength="2000" />
+            </el-form-item>
+            <el-form-item label="合作说明">
               <el-input
                 v-model="joinForm.brand_intro"
                 type="textarea"
@@ -236,7 +242,8 @@ const saving = ref(false);
 const contactForm = reactive({
   contact_phone: '',
   contact_address: '',
-  contact_hours: ''
+  contact_hours: '',
+  contact_wechat: ''
 });
 
 const aboutForm = reactive({
@@ -244,6 +251,7 @@ const aboutForm = reactive({
 });
 
 const joinForm = reactive({
+  partners: '',
   brand_intro: '',
   join_phone: '',
   advantages: ''
@@ -332,15 +340,18 @@ async function loadConfig() {
     const res = await api.get('/admin/config');
     const config = res.data || {};
 
-    contactForm.contact_phone = config.contact_phone || '';
-    contactForm.contact_address = config.contact_address || '';
-    contactForm.contact_hours = config.contact_hours || '';
+    const contact = config.contact_info || {};
+    contactForm.contact_phone = config.contact_phone ?? contact.mobile ?? contact.phone ?? '';
+    contactForm.contact_address = config.contact_address ?? contact.address ?? '';
+    contactForm.contact_hours = config.contact_hours ?? contact.hours ?? contact.business_hours ?? '';
+    contactForm.contact_wechat = config.contact_wechat ?? contact.wechat ?? '';
 
     aboutForm.about_us = config.about_us || '';
 
     const join = config.join_info || {};
-    joinForm.brand_intro = join.brand_intro || '';
-    joinForm.join_phone = join.join_phone || '';
+    joinForm.partners = Array.isArray(join.partners) ? join.partners.join('\n') : join.partners || '';
+    joinForm.brand_intro = join.brand_intro ?? join.description ?? join.content ?? '';
+    joinForm.join_phone = join.join_phone ?? join.phone ?? '';
     joinForm.advantages = Array.isArray(join.advantages)
       ? join.advantages.join('\n')
       : join.advantages || '';
@@ -362,6 +373,7 @@ async function saveConfig(type) {
     } else if (type === 'join') {
       payload = {
         join_info: {
+          partners: joinForm.partners,
           brand_intro: joinForm.brand_intro,
           join_phone: joinForm.join_phone,
           advantages: joinForm.advantages

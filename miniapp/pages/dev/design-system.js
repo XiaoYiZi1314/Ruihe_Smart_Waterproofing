@@ -4,15 +4,17 @@ const DEMO_SERVICE = {
   id: 1,
   name: '屋顶防水施工',
   description: 'SBS卷材+聚氨酯涂层 双重防水工艺',
-  price_min: 380,
-  price_max: 380,
-  price_unit: '起'
+  price_min: '80.00',
+  price_max: '150.00',
+  price_unit: '元/平米'
 };
 
 const DEMO_ORDER = {
   id: 1,
-  order_no: 'RH20260807001',
-  status: 'pending',
+  order_no: 'RH2026080700001',
+  status: 'confirmed',
+  worker_name: '测试师傅',
+  worker_phone: '13800138000',
   service_name: '屋顶防水施工',
   created_at: '2026-08-09 上午 08-12',
   full_address: '上海市闵行区虹桥商务区·瑞和大厦16楼'

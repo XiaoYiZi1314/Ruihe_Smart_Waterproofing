@@ -55,7 +55,7 @@ const api = {
   getServices(params = {}) {
     const query = Object.keys(params)
       .filter(key => params[key] !== undefined && params[key] !== null)
-      .map(key => `${key}=${params[key]}`)
+      .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
       .join('&');
 
     return request.get(`/api/services${query ? '?' + query : ''}`);
@@ -127,7 +127,7 @@ const api = {
   getOrders(params = {}) {
     const query = Object.keys(params)
       .filter(key => params[key] !== undefined && params[key] !== null)
-      .map(key => `${key}=${params[key]}`)
+      .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
       .join('&');
 
     return request.get(`/api/orders${query ? '?' + query : ''}`);

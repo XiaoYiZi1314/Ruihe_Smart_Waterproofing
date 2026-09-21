@@ -1,8 +1,10 @@
 const auth = require('../../utils/auth');
 const api = require('../../utils/api');
 const theme = require('../../utils/theme');
+const notifications = require('../../utils/notifications');
 
 Page({
+  onMessages() { wx.navigateTo({ url: '/pages/notifications/list' }); },
   data: {
     userInfo: null,
     displayPhone: '',
@@ -17,6 +19,7 @@ Page({
   },
 
   onShow() {
+    if (!auth.checkLogin()) return wx.reLaunch({ url: '/pages/login/login' });
     this.loadUserInfo();
 
     // 师傅角色跳转到师傅工作台（防止误入客户端页面）
@@ -38,35 +41,28 @@ Page({
         title: '我的工单',
         action: 'goOrders',
         badge: 0,
-        gradient: 'linear-gradient(135deg, #1A5CFF, #2B7BE4)'
+        gradient: 'var(--gradient-brand)'
       },
       {
         id: 'address',
         icon: 'location',
         title: '地址管理',
         url: '/pages/address/list?mode=manage',
-        gradient: 'linear-gradient(135deg, #2B7BE4, #5B9AF5)'
+        gradient: 'var(--gradient-brand-light)'
       },
       {
         id: 'service',
         icon: 'chat',
         title: '联系客服',
         action: 'callService',
-        gradient: 'linear-gradient(135deg, #5B9AF5, #7DB5FF)'
+        gradient: 'var(--gradient-brand-pale)'
       },
       {
         id: 'about',
         icon: 'info',
         title: '关于我们',
         action: 'showAbout',
-        gradient: 'linear-gradient(135deg, #1A5CFF, #5B9AF5)'
-      },
-      {
-        id: 'settings',
-        icon: 'settings',
-        title: '设置',
-        action: 'showSettings',
-        gradient: 'linear-gradient(135deg, #6B7280, #9CA3AF)'
+        gradient: 'var(--gradient-brand-wide)'
       }
     ];
 
@@ -76,7 +72,7 @@ Page({
         icon: 'shield',
         title: '设计系统预览',
         url: '/pages/dev/design-system',
-        gradient: 'linear-gradient(135deg, #1A5CFF, #5B9AF5)'
+        gradient: 'var(--gradient-brand-wide)'
       });
     }
 
@@ -123,17 +119,8 @@ Page({
     wx.switchTab({ url: '/pages/orders/list' });
   },
 
-  callService() {
-    wx.showModal({
-      title: '联系客服',
-      content: '客服电话：400-888-6688\n工作时间：周一至周日 8:00-20:00',
-      confirmText: '拨打电话',
-      success: (res) => {
-        if (res.confirm) {
-          wx.makePhoneCall({ phoneNumber: '400-888-6688' });
-        }
-      }
-    });
+  async callService() {
+    await notifications.callService();
   },
 
   async showAbout() {
@@ -141,19 +128,26 @@ Page({
       const res = await api.getConfig();
       const content = res.success && res.data.about_us
         ? res.data.about_us
-        : '瑞和智慧防水工程有限公司，专注建筑防水堵漏领域20年。';
+        : '暂无公司介绍';
       wx.showModal({ title: '关于我们', content, showCancel: false });
     } catch (error) {
       wx.showModal({
         title: '关于我们',
-        content: '瑞和智慧防水工程有限公司，专注建筑防水堵漏领域20年。',
+        content: '加载失败，请稍后重试。',
         showCancel: false
       });
     }
   },
 
-  showSettings() {
-    wx.showToast({ title: '设置功能开发中', icon: 'none' });
+  onSwitchRole() {
+    wx.showModal({
+      title: '切换身份', content: '退出当前账号，使用管理员分配的师傅账号登录？',
+      success: res => {
+        if (!res.confirm) return;
+        auth.clearAuth();
+        wx.reLaunch({ url: '/pages/login/login?mode=worker' });
+      }
+    });
   },
 
   onLogout() {

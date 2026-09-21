@@ -29,6 +29,12 @@
     </view>
     <view class="ds-gap"></view>
     <rh-button size="lg" block text="提交预约" />
+    <view class="ds-gap"></view>
+    <view class="ds-row">
+      <rh-button size="lg" variant="danger" text="取消预约" />
+      <rh-button size="lg" variant="line" text="催单(3)" />
+      <rh-button size="lg" variant="line" text="联系师傅" />
+    </view>
   </view>
 
   <view class="ds-sec">
@@ -63,6 +69,12 @@
     <view class="ds-gap"></view>
     <rh-form-field label="联系人姓名" required>
       <input class="rh-input" placeholder="请输入联系人姓名" value="张先生" />
+    </rh-form-field>
+    <rh-form-field label="联系电话" required>
+      <input class="rh-input" type="number" value="13800138000" />
+    </rh-form-field>
+    <rh-form-field label="期望价格">
+      <input class="rh-input" type="digit" value="150.00" />
     </rh-form-field>
   </view>
 

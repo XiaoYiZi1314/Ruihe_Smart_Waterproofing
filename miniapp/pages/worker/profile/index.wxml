@@ -1,49 +1,19 @@
-<view class="page">
-  <!-- 工作状态卡片 -->
-  <view class="status-card {{stats.worker_status === 'working' ? 'status-card--working' : 'status-card--resting'}}" wx:if="{{stats}}">
-    <view class="status-card__info">
-      <view class="status-dot"></view>
-      <view class="status-text-wrap">
-        <text class="status-text">{{stats.worker_status === 'working' ? '上班中' : '休息中'}}</text>
-        <text class="status-sub">{{stats.worker_status === 'working' ? '可接收新工单指派' : '暂不接收新工单指派'}}</text>
-      </view>
-    </view>
-    <button class="btn-toggle" bindtap="toggleStatus" loading="{{statusChanging}}" disabled="{{statusChanging}}">
-      {{stats.worker_status === 'working' ? '切换休息' : '切换上班'}}
-    </button>
-  </view>
-
-  <!-- 数据统计 -->
-  <view class="stats-card" wx:if="{{stats}}">
-    <view class="stats-card__title">我的业绩</view>
-    <view class="stats-grid">
-      <view class="stats-item">
-        <text class="stats-value">{{stats.month_completed}}</text>
-        <text class="stats-label">本月完成</text>
-      </view>
-      <view class="stats-item">
-        <text class="stats-value">{{stats.total_completed}}</text>
-        <text class="stats-label">累计完成</text>
-      </view>
-      <view class="stats-item">
-        <text class="stats-value">{{stats.assign_count}}</text>
-        <text class="stats-label">累计指派</text>
-      </view>
-      <view class="stats-item">
-        <text class="stats-value {{stats.reject_rate > 20 ? 'stats-value--warn' : ''}}">{{stats.reject_rate}}%</text>
-        <text class="stats-label">拒单率</text>
-      </view>
-    </view>
-  </view>
-
-  <!-- 提示 -->
-  <view class="tip-card">
-    <text class="tip-title">温馨提示</text>
-    <text class="tip-text">· 拒单率超过 20% 将影响工单指派</text>
-    <text class="tip-text">· 指派后 24 小时内未响应的工单将被标记为异常</text>
-    <text class="tip-text">· 完工后请及时填写价格，等待客户验收</text>
-  </view>
-
-  <!-- 退出登录 -->
-  <button class="btn-logout" bindtap="handleLogout">退出登录</button>
+<view class="page-wrap page-pad">
+  <rh-section-title title="{{userInfo.nickname || '师傅个人中心'}}" />
+  <rh-info-row label="手机号" value="{{userInfo.phone}}" />
+  <rh-info-row label="微信" value="{{userInfo.wechat_bound ? '已绑定' : '未绑定'}}" />
+  <view class="section"><rh-section-title title="{{userInfo.must_change_password ? '首次登录修改密码' : '修改密码'}}" /></view>
+  <rh-form-field label="原密码" required><input class="rh-input" password value="{{currentPassword}}" bindinput="onCurrentPassword" /></rh-form-field>
+  <rh-form-field label="新密码" required><input class="rh-input" password placeholder="至少12位，包含字母和数字" value="{{newPassword}}" bindinput="onNewPassword" /></rh-form-field>
+  <view class="section"><rh-button text="修改密码" loading="{{submitting}}" bind:tap="changePassword" /></view>
+  <block wx:if="{{!userInfo.must_change_password}}">
+    <view class="actions"><rh-button wx:if="{{!userInfo.wechat_bound}}" variant="line" text="绑定微信" bind:tap="bindWechat" /><rh-button variant="line" text="订阅通知" bind:tap="subscribe" /><rh-button variant="line" text="站内消息" bind:tap="goMessages" /></view>
+    <view class="section"><rh-section-title title="我的业绩" /></view>
+    <rh-info-row label="工作状态" value="{{stats.worker_status === 'working' ? '上班中' : '休息中'}}" />
+    <rh-info-row label="本月完成" value="{{stats.month_completed}}" />
+    <rh-info-row label="累计完成" value="{{stats.total_completed}}" />
+    <rh-info-row label="拒单率" value="{{stats.reject_rate}}%" />
+    <view class="actions"><rh-button variant="line" text="{{stats.worker_status === 'working' ? '切换休息' : '切换上班'}}" bind:tap="toggleStatus" loading="{{submitting}}" /><rh-button text="工单工作台" bind:tap="goOrders" /></view>
+  </block>
+  <view class="section"><rh-button variant="ghost" text="退出登录" bind:tap="handleLogout" /></view>
 </view>

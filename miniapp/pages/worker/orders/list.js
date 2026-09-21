@@ -5,9 +5,11 @@ Page({
   data: {
     activeTab: 'confirmed',
     tabs: [
+      { key: '', label: '全部' },
       { key: 'confirmed', label: '待接单' },
       { key: 'in_progress', label: '施工中' },
       { key: 'pending_review', label: '待验收' },
+      { key: 'price_negotiating', label: '价格协商' },
       { key: 'completed', label: '已完成' }
     ],
     orders: [],
@@ -30,17 +32,17 @@ Page({
   },
 
   onShow() {
-    // 从详情页返回时刷新
-    if (this.data.orders.length > 0) {
-      this.loadOrders(true);
-    }
+    const user = wx.getStorageSync('userInfo') || {};
+    if (!wx.getStorageSync('token') || user.role !== 'worker') return wx.reLaunch({ url: '/pages/login/login' });
+    if (user.must_change_password) return wx.reLaunch({ url: '/pages/worker/profile/index' });
+    this.loadOrders(true);
   },
 
   /**
    * 切换 Tab
    */
   onTabChange(e) {
-    const { key } = e.currentTarget.dataset;
+    const { key } = e.detail;
     if (key === this.data.activeTab) return;
     this.setData({ activeTab: key, orders: [], page: 1, hasMore: true });
     this.loadOrders(true);
@@ -52,6 +54,7 @@ Page({
   async loadOrders(refresh = false) {
     if (this.data.loading || this.data.loadingMore) return;
 
+    if (refresh) this.setData({ page: 1 });
     this.setData(refresh ? { loading: true } : { loadingMore: true });
 
     try {

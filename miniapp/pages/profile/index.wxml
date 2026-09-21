@@ -37,6 +37,8 @@
   </view>
 
   <view class="logout-wrap">
+    <rh-button variant="line" size="lg" block text="站内消息" bind:tap="onMessages" />
+    <rh-button variant="line" size="lg" block text="切换到师傅登录" bind:tap="onSwitchRole" />
     <rh-button variant="ghost" size="lg" block text="退出登录" bind:tap="onLogout" />
   </view>
 </view>

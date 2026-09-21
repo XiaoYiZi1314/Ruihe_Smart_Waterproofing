@@ -1,32 +1,11 @@
+const { addRealCovers } = require('../../utils/resources');
 const api = require('../../utils/api');
 
 // 服务名称到真实图片的映射
-const SERVICE_COVER_MAP = {
-  '卫生间': '/assets/services/bathroom.jpg',
-  '阳台': '/assets/services/balcony.jpg',
-  '屋顶': '/assets/services/roof.jpg',
-  '地下室': '/assets/services/basement.jpg',
-  '定制': '/assets/services/custom.jpg'
-};
+
 
 // 为服务添加真实封面图片
-function addRealCovers(services) {
-  return services.map(service => {
-    // 如果后端已经提供了封面图片，优先使用
-    if (service.cover && !service.cover.includes('placeholder')) {
-      return service;
-    }
-    
-    // 根据服务名称匹配真实图片
-    for (const keyword in SERVICE_COVER_MAP) {
-      if (service.name && service.name.includes(keyword)) {
-        return { ...service, cover: SERVICE_COVER_MAP[keyword] };
-      }
-    }
-    
-    return service;
-  });
-}
+
 
 Page({
   data: {
@@ -41,24 +20,25 @@ Page({
     loading: false
   },
 
-  onLoad() {
-    this.loadCategories();
-    this.loadServices(true);
-  },
+  onLoad() {},
 
-  onShow() {
+  async onShow() {
     const keyword = getApp().globalData.serviceKeyword || '';
-    if (keyword && keyword !== this.data.keyword) {
+    if (keyword) {
       getApp().globalData.serviceKeyword = '';
-      this.setData({ keyword, page: 1, services: [] });
-      this.loadServices(true);
+      this.setData({ keyword, page: 1 });
     }
+    await this.loadCategories();
+    return this.loadServices(true);
   },
 
   async loadCategories() {
     try {
       const res = await api.getCategories();
       if (res.success) {
+        if (this.data.currentCategoryId && !res.data.some(item => item.id === this.data.currentCategoryId)) {
+          this.setData({ currentCategoryId: null });
+        }
         this.setData({
           categories: [{ key: null, label: '全部' }].concat(
             res.data.map((item) => ({ key: item.id, label: item.name }))
@@ -71,8 +51,7 @@ Page({
   },
 
   async loadServices(refresh = false) {
-    if (this.data.loading) return;
-
+    const requestId = this._requestId = (this._requestId || 0) + 1;
     this.setData({ loading: true });
 
     try {
@@ -89,6 +68,7 @@ Page({
       }
 
       const res = await api.getServices(params);
+      if (requestId !== this._requestId) return;
 
       if (res.success) {
         // 为服务数据添加真实封面图片
@@ -104,9 +84,11 @@ Page({
         });
       }
     } catch (error) {
+      if (requestId !== this._requestId) return;
       console.error('加载服务列表失败:', error);
-      wx.showToast({ title: '加载失败', icon: 'none' });
-      this.setData({ loading: false });
+      wx.showToast({ title: '加载失败，请下拉重试', icon: 'none' });
+    } finally {
+      if (requestId === this._requestId) this.setData({ loading: false });
     }
   },
 
@@ -115,7 +97,7 @@ Page({
   },
 
   onSearchConfirm() {
-    this.setData({ page: 1, services: [] });
+    this.setData({ page: 1 });
     this.loadServices(true);
   },
 
@@ -142,11 +124,13 @@ Page({
     });
   },
 
-  onPullDownRefresh() {
-    this.setData({ page: 1, services: [] });
-    this.loadServices(true).then(() => {
+  async onPullDownRefresh() {
+    try {
+      await this.loadCategories();
+      await this.loadServices(true);
+    } finally {
       wx.stopPullDownRefresh();
-    });
+    }
   },
 
   onReachBottom() {

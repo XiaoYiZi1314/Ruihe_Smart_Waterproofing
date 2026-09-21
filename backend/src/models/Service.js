@@ -110,15 +110,14 @@ class Service {
     const service = rows[0];
 
     // 解析图片JSON
-    if (service.images) {
+    if (typeof service.images === 'string') {
       try {
         service.images = JSON.parse(service.images);
       } catch (e) {
         service.images = [];
       }
-    } else {
-      service.images = [];
     }
+    if (!Array.isArray(service.images)) service.images = [];
 
     return service;
   }

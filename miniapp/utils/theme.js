@@ -21,13 +21,13 @@ function formatPrice(min, max, unit) {
   }
   if (min != null && max != null && Number(min) !== Number(max)) {
     return {
-      main: `¥${min}-${max}`,
+      main: `¥${Number(min)}-${Number(max)}`,
       suffix: unit || ''
     };
   }
   const value = min != null ? min : max;
   return {
-    main: `¥${value}`,
+    main: `¥${Number(value)}`,
     suffix: unit || '起'
   };
 }
@@ -56,7 +56,16 @@ function isDevEnv() {
   }
 }
 
+function formatTime(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  const pad = n => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 module.exports = {
+  formatTime,
   COVER_GRADIENTS,
   coverGradient,
   formatPrice,

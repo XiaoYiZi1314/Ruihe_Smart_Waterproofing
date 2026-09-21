@@ -1,4 +1,5 @@
 const request = require('./request');
+const session = require('./session');
 
 /**
  * 微信登录
@@ -19,8 +20,7 @@ function login(userInfo) {
           .then(response => {
             if (response.success) {
               // 保存token和用户信息
-              wx.setStorageSync('token', response.data.token);
-              wx.setStorageSync('userInfo', response.data.user);
+              session.save(response.data.token, response.data.user);
               resolve(response.data);
             } else {
               reject(new Error(response.message));
@@ -52,16 +52,18 @@ function checkLogin() {
 /**
  * 退出登录
  */
+function clearAuth() {
+  session.clear();
+}
+
 function logout() {
-  wx.removeStorageSync('token');
-  wx.removeStorageSync('userInfo');
-  wx.redirectTo({
-    url: '/pages/login/login'
-  });
+  clearAuth();
+  wx.reLaunch({ url: '/pages/login/login' });
 }
 
 module.exports = {
   login,
   checkLogin,
+  clearAuth,
   logout
 };

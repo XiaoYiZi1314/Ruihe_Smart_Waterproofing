@@ -31,10 +31,9 @@ async function initAdmin() {
     console.log('✅ 连接数据库成功');
 
     const username = process.env.ADMIN_USERNAME || 'admin';
-    const password = process.env.ADMIN_PASSWORD || 'admin123';
-
-    if (password === 'admin123') {
-      console.log('⚠️  使用默认密码 admin123，生产环境务必修改！');
+    const password = process.env.ADMIN_PASSWORD;
+    if (!password || password.length < 12 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+      throw new Error('ADMIN_PASSWORD must be explicitly set to a strong password (12+ characters)');
     }
 
     const passwordHash = bcrypt.hashSync(password, 10);
@@ -46,9 +45,10 @@ async function initAdmin() {
     );
 
     if (existing.length > 0) {
+      if (process.env.ADMIN_RESET_CONFIRM !== 'yes') throw new Error('Set ADMIN_RESET_CONFIRM=yes to reset an existing administrator');
       // 重置密码
       await connection.query(
-        'UPDATE users SET password = ?, nickname = COALESCE(nickname, ?), status = ? WHERE id = ?',
+        'UPDATE users SET password = ?, token_version = token_version + 1, nickname = COALESCE(nickname, ?), status = ? WHERE id = ?',
         [passwordHash, '管理员', 'active', existing[0].id]
       );
       console.log(`✅ 管理员账号已重置：${username}（ID: ${existing[0].id}）`);
@@ -65,7 +65,7 @@ async function initAdmin() {
 
     console.log('\n📋 登录信息：');
     console.log(`   账号: ${username}`);
-    console.log(`   密码: ${password}`);
+    console.log('   密码已安全设置，不输出明文');
     console.log('\n   管理后台登录接口: POST /api/auth/admin-login');
   } catch (error) {
     console.error('\n❌ 初始化管理员失败:', error.message);

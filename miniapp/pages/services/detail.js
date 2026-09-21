@@ -111,16 +111,7 @@ Page({
   },
 
   onConsult() {
-    wx.showModal({
-      title: '咨询客服',
-      content: '请拨打客服电话：400-888-6688',
-      confirmText: '拨打电话',
-      success: (res) => {
-        if (res.confirm) {
-          wx.makePhoneCall({ phoneNumber: '400-888-6688' });
-        }
-      }
-    });
+    require('../../utils/notifications').callService();
   },
 
   onBook() {

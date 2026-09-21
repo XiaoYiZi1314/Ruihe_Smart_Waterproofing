@@ -21,19 +21,19 @@ Component({
     order(order) {
       const item = order || {};
       const meta = statusUtil.getStatusMeta(item.status);
-      const time = item.appointment_time || item.expected_visit_time || item.created_at || '';
+      const time = item.estimated_time || item.appointment_time || item.expected_visit_time || item.created_at || '';
       this.setData({
         view: {
           no: item.order_no || '',
           name: item.service_name || '',
-          time,
+          time: theme.formatTime(time),
           addr: item.full_address || theme.joinAddress(item),
           master: item.worker_name
             ? `${item.worker_name}${item.worker_phone ? ' ' + theme.maskPhone(item.worker_phone) : ''}`
             : '',
           statusText: meta.text,
           tagClass: meta.tagClass,
-          actions: meta.actions
+          actions: statusUtil.getOrderActions(item)
         }
       });
     }

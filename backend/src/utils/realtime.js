@@ -4,7 +4,8 @@
  */
 
 const { Server } = require('socket.io');
-const jwt = require('jsonwebtoken');
+const { verifyToken } = require('./jwt');
+const User = require('../models/User');
 
 class RealtimeService {
   static io = null;
@@ -15,13 +16,13 @@ class RealtimeService {
   static init(httpServer) {
     this.io = new Server(httpServer, {
       cors: {
-        origin: '*', // 生产环境应限制为管理后台域名
+        origin: process.env.PUBLIC_ORIGIN || 'https://ruihezhihui.cn',
         methods: ['GET', 'POST']
       }
     });
 
     // 连接认证
-    this.io.use((socket, next) => {
+    this.io.use(async (socket, next) => {
       try {
         const token =
           socket.handshake.auth && socket.handshake.auth.token;
@@ -30,9 +31,12 @@ class RealtimeService {
           return next(new Error('未授权'));
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'ruihe_waterproof_secret');
-        socket.userId = decoded.id;
-        socket.role = decoded.role;
+        const decoded = verifyToken(token);
+        const user = await User.findById(decoded.userId || decoded.id);
+        if (!user || user.status !== 'active' || Number(user.token_version || 0) !== Number(decoded.tokenVersion || 0)) return next(new Error('认证失败'));
+        socket.userId = user.id;
+        socket.data.token = token;
+        socket.role = user.role;
         next();
       } catch (err) {
         next(new Error('认证失败'));
@@ -63,9 +67,23 @@ class RealtimeService {
    * @param {string} event - 事件类型
    * @param {object} payload - 通知数据
    */
-  static notifyAdmins(event, payload) {
+  static async emitAuthorized(room, event, payload) {
     if (!this.io) return;
-    this.io.to('admin').emit('admin:notify', {
+    try {
+      const sockets = await this.io.in(room).fetchSockets();
+      await Promise.all(sockets.map(async socket => {
+        try {
+          const decoded = verifyToken(socket.data.token);
+          const user = await User.findById(decoded.userId || decoded.id);
+          if (!user || user.status !== 'active' || Number(user.token_version || 0) !== Number(decoded.tokenVersion || 0) || (room === 'admin' && user.role !== 'admin')) return socket.disconnect(true);
+          socket.emit(event, payload);
+        } catch (error) { socket.disconnect(true); }
+      }));
+    } catch (error) { console.error('Realtime delivery failed:', error.message); }
+  }
+
+  static notifyAdmins(event, payload) {
+    return this.emitAuthorized('admin', 'admin:notify', {
       event,
       payload,
       timestamp: Date.now()
@@ -76,8 +94,7 @@ class RealtimeService {
    * 定向通知某个用户
    */
   static notifyUser(userId, event, payload) {
-    if (!this.io) return;
-    this.io.to(`user_${userId}`).emit('user:notify', {
+    return this.emitAuthorized(`user_${userId}`, 'user:notify', {
       event,
       payload,
       timestamp: Date.now()
@@ -88,8 +105,7 @@ class RealtimeService {
    * 广播工单状态变更（管理员 + 相关方）
    */
   static notifyOrderChange(orderId, status, extra = {}) {
-    if (!this.io) return;
-    this.io.to('admin').emit('order:changed', {
+    return this.emitAuthorized('admin', 'order:changed', {
       order_id: orderId,
       status,
       ...extra,

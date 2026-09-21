@@ -8,6 +8,7 @@ exports.getServices = async (req, res) => {
   try {
     const {
       category_id,
+      keyword,
       is_hot,
       page = 1,
       limit = 10
@@ -15,6 +16,7 @@ exports.getServices = async (req, res) => {
 
     const options = {
       category_id,
+      keyword,
       is_hot: is_hot !== undefined ? parseInt(is_hot) : undefined,
       page: parseInt(page),
       limit: parseInt(limit)
@@ -62,6 +64,7 @@ exports.getServiceById = async (req, res) => {
          r.quality_score,
          r.price_score,
          r.comment,
+         r.video_url,
          r.created_at,
          u.nickname as user_name,
          u.avatar_url as user_avatar
@@ -98,7 +101,7 @@ exports.getServiceById = async (req, res) => {
       };
     }
 
-    service.reviews = reviews;
+    service.reviews = reviews.map(review => ({ ...review, video_url: require('../utils/attachments').signUrl(review.video_url) }));
     service.review_stats = reviewStats;
 
     res.json({

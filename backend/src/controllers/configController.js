@@ -26,7 +26,9 @@ exports.getConfig = async (req, res) => {
 exports.getConfigByKey = async (req, res) => {
   try {
     const { key } = req.params;
-    const config = await SiteConfig.get(key);
+    if (!['contact_info', 'about_us', 'join_info'].includes(key)) return res.status(404).json({ success: false, message: '配置不存在' });
+    const configs = await SiteConfig.getPublicConfigs();
+    const config = { config_value: configs[key] };
 
     if (!config) {
       return res.status(404).json({

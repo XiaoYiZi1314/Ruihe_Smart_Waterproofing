@@ -2,7 +2,7 @@
   class="rh-btn rh-btn--{{variant}} rh-btn--{{size}} {{block ? 'rh-btn--block' : ''}} {{disabled || loading ? 'is-disabled' : ''}}"
   hover-class="rh-btn--active"
   disabled="{{disabled || loading}}"
-  bindtap="onTap"
+  catchtap="onTap"
 >
   <text wx:if="{{loading}}">{{text || '处理中...'}}</text>
   <text wx:elif="{{text}}">{{text}}</text>

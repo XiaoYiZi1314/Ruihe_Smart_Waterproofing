@@ -1,55 +1,15 @@
+const { addRealCovers } = require('../../utils/resources');
 const auth = require('../../utils/auth');
 const api = require('../../utils/api');
 const theme = require('../../utils/theme');
 
-const FALLBACK_BANNERS = [
-  {
-    id: 'fb-1',
-    title: '专业防水堵漏服务',
-    subtitle: '20年施工经验 · 免费上门勘测',
-    gradient: 'linear-gradient(135deg, #1A5CFF, #5B9AF5)'
-  },
-  {
-    id: 'fb-2',
-    title: '雨季防水专项保障',
-    subtitle: '屋顶/外墙/卫生间 全屋解决方案',
-    gradient: 'linear-gradient(135deg, #2B7BE4, #5B9AF5)'
-  },
-  {
-    id: 'fb-3',
-    title: '质保5年 安心无忧',
-    subtitle: '签约施工 · 全国联保',
-    gradient: 'linear-gradient(135deg, #1A5CFF, #2B7BE4)'
-  }
-];
+const FALLBACK_BANNERS = [];
 
 // 服务名称到真实图片的映射
-const SERVICE_COVER_MAP = {
-  '卫生间': '/assets/services/bathroom.jpg',
-  '阳台': '/assets/services/balcony.jpg',
-  '屋顶': '/assets/services/roof.jpg',
-  '地下室': '/assets/services/basement.jpg',
-  '定制': '/assets/services/custom.jpg'
-};
+
 
 // 为服务添加真实封面图片
-function addRealCovers(services) {
-  return services.map(service => {
-    // 如果后端已经提供了封面图片，优先使用
-    if (service.cover && !service.cover.includes('placeholder')) {
-      return service;
-    }
-    
-    // 根据服务名称匹配真实图片
-    for (const keyword in SERVICE_COVER_MAP) {
-      if (service.name && service.name.includes(keyword)) {
-        return { ...service, cover: SERVICE_COVER_MAP[keyword] };
-      }
-    }
-    
-    return service;
-  });
-}
+
 
 Page({
   data: {
@@ -65,22 +25,23 @@ Page({
     loading: true
   },
 
-  onLoad() {
-    if (!auth.checkLogin()) {
-      wx.redirectTo({ url: '/pages/login/login' });
-      return;
-    }
+  onLoad() {},
+
+  onShow() {
+    if (!auth.checkLogin()) return wx.reLaunch({ url: '/pages/login/login' });
+    const userInfo = wx.getStorageSync('userInfo');
+    if (userInfo?.role === 'worker') return wx.reLaunch({ url: '/pages/worker/orders/list' });
+    if (userInfo) this.setData({ userInfo });
     this.loadData();
   },
 
-  onShow() {
-    const userInfo = wx.getStorageSync('userInfo');
-    if (userInfo) {
-      this.setData({ userInfo });
-    }
+  onUnload() {
+    this._requestId = (this._requestId || 0) + 1;
+    wx.hideLoading();
   },
 
   async loadData() {
+    const requestId = this._requestId = (this._requestId || 0) + 1;
     wx.showLoading({ title: '加载中...' });
 
     try {
@@ -90,13 +51,14 @@ Page({
         api.getCategories(),
         api.getConfig()
       ]);
+      if (requestId !== this._requestId) return;
 
       let banners = FALLBACK_BANNERS;
       if (bannersRes.success && bannersRes.data && bannersRes.data.length) {
         banners = bannersRes.data.map((item, index) => ({
           ...item,
-          title: item.title || FALLBACK_BANNERS[index % FALLBACK_BANNERS.length].title,
-          subtitle: item.subtitle || item.description || FALLBACK_BANNERS[index % FALLBACK_BANNERS.length].subtitle,
+          title: item.title || '',
+          subtitle: item.subtitle || item.description || '',
           gradient: item.gradient || theme.coverGradient(item.id)
         }));
       }
@@ -110,23 +72,29 @@ Page({
       );
 
       const config = configRes.success ? configRes.data : {};
+      const currentCategoryId = categoryTags.some(item => item.key === this.data.currentCategoryId)
+        ? this.data.currentCategoryId : null;
+      const services = currentCategoryId == null ? allServices
+        : allServices.filter(item => item.category_id === currentCategoryId);
 
       this.setData({
         banners,
         allServices,
-        services: allServices,
+        services,
+        currentCategoryId,
         categoryTags,
         contact: config.contact_info || {},
-        aboutUs: config.about_us || '瑞和智慧防水工程有限公司，专注建筑防水堵漏领域20年，拥有甲级施工资质，服务覆盖全国200+城市。以“科技防水、匠心堵漏”为理念，为客户提供勘测、设计、施工、质保一站式解决方案。',
-        joinInfo: config.join_info || {},
+        aboutUs: config.about_us || '',
+        joinInfo: { ...(config.join_info || {}), partners: Array.isArray(config.join_info?.partners) ? config.join_info.partners.join('\n') : config.join_info?.partners || '' },
         loading: false
       });
     } catch (error) {
+      if (requestId !== this._requestId) return;
       console.error('加载数据失败:', error);
       wx.showToast({ title: '加载失败，请重试', icon: 'none' });
       this.setData({ loading: false });
     } finally {
-      wx.hideLoading();
+      if (requestId === this._requestId) wx.hideLoading();
     }
   },
 

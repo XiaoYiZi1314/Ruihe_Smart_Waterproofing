@@ -15,7 +15,9 @@ exports.createOrder = async (req, res) => {
       address_id,
       expected_price,
       remark,
-      images
+      images,
+      contact_name,
+      contact_phone
     } = req.body;
 
     // 表单验证
@@ -45,7 +47,7 @@ exports.createOrder = async (req, res) => {
     }
 
     // 验证期望价格
-    if (expected_price && expected_price <= 0) {
+    if (expected_price != null && (!Number.isFinite(Number(expected_price)) || Number(expected_price) < 0)) {
       return res.status(400).json({
         success: false,
         message: '期望价格必须大于0'
@@ -53,11 +55,16 @@ exports.createOrder = async (req, res) => {
     }
 
     // 验证图片数量
-    if (images && Array.isArray(images) && images.length > 5) {
+    if (images != null && (!Array.isArray(images) || images.length > 5)) {
       return res.status(400).json({
         success: false,
         message: '最多上传5张图片'
       });
+    }
+
+    if ((contact_name !== undefined && (typeof contact_name !== 'string' || !contact_name.trim())) ||
+        (contact_phone !== undefined && !/^1[3-9]\d{9}$/.test(contact_phone))) {
+      return res.status(400).json({ success: false, message: '联系人姓名或手机号无效' });
     }
 
     // 创建工单
@@ -66,14 +73,16 @@ exports.createOrder = async (req, res) => {
       address_id,
       expected_price,
       remark,
-      images
+      images,
+      contact_name,
+      contact_phone
     });
 
     // 异步：通知管理员新工单 + 记录日志
-    NotificationService.notifyAdminNewOrder(result.insertId).catch(() => {});
+    NotificationService.notifyAdminNewOrder(result.id).catch(() => {});
     logOperation({
       user_id: userId,
-      order_id: result.insertId,
+      order_id: result.id,
       action: 'create_order',
       detail: '客户提交新工单',
       ip: req.ip
@@ -86,9 +95,9 @@ exports.createOrder = async (req, res) => {
     });
   } catch (error) {
     console.error('创建工单失败:', error);
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
-      message: error.message || '创建工单失败'
+      message: error.status ? error.message : '创建工单失败'
     });
   }
 };
@@ -120,7 +129,7 @@ exports.getOrders = async (req, res) => {
     });
   } catch (error) {
     console.error('获取工单列表失败:', error);
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
       message: '获取工单列表失败'
     });
@@ -159,7 +168,7 @@ exports.getOrderById = async (req, res) => {
     });
   } catch (error) {
     console.error('获取工单详情失败:', error);
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
       message: '获取工单详情失败'
     });
@@ -208,7 +217,7 @@ exports.cancelOrder = async (req, res) => {
     });
   } catch (error) {
     console.error('取消工单失败:', error);
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
       message: '取消工单失败'
     });
@@ -247,7 +256,7 @@ exports.urgeOrder = async (req, res) => {
         [id]
       );
       const urgeCount = rows.length > 0 ? rows[0].urge_count : 1;
-      NotificationService.notifyWorkerOrderUrged(id, urgeCount).catch(() => {});
+      await NotificationService.notifyWorkerOrderUrged(id, urgeCount);
     } catch (e) {
       // 查询失败不影响主流程
     }
@@ -266,7 +275,7 @@ exports.urgeOrder = async (req, res) => {
     });
   } catch (error) {
     console.error('催单失败:', error);
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
       message: '催单失败'
     });
@@ -289,7 +298,7 @@ exports.confirmOrder = async (req, res) => {
       });
     }
 
-    const success = await WorkOrder.confirm(id);
+    const success = await WorkOrder.confirm(id, userId);
 
     if (!success) {
       return res.status(400).json({
@@ -314,7 +323,7 @@ exports.confirmOrder = async (req, res) => {
     });
   } catch (error) {
     console.error('确认完成失败:', error);
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
       message: '确认完成失败'
     });
@@ -345,7 +354,7 @@ exports.disputePrice = async (req, res) => {
       });
     }
 
-    const success = await WorkOrder.disputePrice(id, reason);
+    const success = await WorkOrder.disputePrice(id, reason, userId);
 
     if (!success) {
       return res.status(400).json({
@@ -374,7 +383,7 @@ exports.disputePrice = async (req, res) => {
     });
   } catch (error) {
     console.error('提交价格异议失败:', error);
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
       message: '提交价格异议失败'
     });
@@ -404,9 +413,7 @@ exports.submitReview = async (req, res) => {
       });
     }
 
-    if (service_attitude_score < 1 || service_attitude_score > 5 ||
-        quality_score < 1 || quality_score > 5 ||
-        price_score < 1 || price_score > 5) {
+    if (![service_attitude_score, quality_score, price_score].every(score => Number.isInteger(score) && score >= 1 && score <= 5)) {
       return res.status(400).json({
         success: false,
         message: '评分必须在1-5之间'
@@ -451,9 +458,9 @@ exports.submitReview = async (req, res) => {
     });
   } catch (error) {
     console.error('提交评价失败:', error);
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
-      message: error.message || '提交评价失败'
+      message: error.status ? error.message : '提交评价失败'
     });
   }
 };
@@ -489,7 +496,7 @@ exports.deleteReview = async (req, res) => {
     });
   } catch (error) {
     console.error('删除评价失败:', error);
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
       message: '删除评价失败'
     });

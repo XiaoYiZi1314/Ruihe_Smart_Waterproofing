@@ -1,97 +1,23 @@
-<view class="page">
-  <!-- 顶部工作台栏 -->
-  <view class="workbench-bar">
-    <view class="workbench-bar__title">师傅工作台</view>
-    <view class="workbench-bar__entry" bindtap="goProfile">
-      <text>我的业绩</text>
-      <text class="workbench-bar__arrow">›</text>
-    </view>
+<view class="page-wrap page-pad">
+  <view class="worker-toolbar">
+    <rh-section-title title="师傅工作台" />
+    <rh-button variant="line" text="个人中心" bind:tap="goProfile" />
   </view>
-
-  <!-- 状态标签栏 -->
-  <view class="tab-bar">
-    <view
-      wx:for="{{tabs}}"
-      wx:key="key"
-      class="tab-item {{activeTab === item.key ? 'tab-item--active' : ''}}"
-      data-key="{{item.key}}"
-      bindtap="onTabChange"
-    >
-      <text>{{item.label}}</text>
-    </view>
-  </view>
-
-  <!-- 工单列表 -->
-  <view class="order-list" wx:if="{{orders.length > 0}}">
-    <view
-      wx:for="{{orders}}"
-      wx:key="id"
-      class="order-card"
-      data-id="{{item.id}}"
-      bindtap="goToDetail"
-    >
-      <view class="order-card__header">
-        <text class="order-no">{{item.order_no}}</text>
-        <text class="status-tag {{item.statusClass}}">{{item.statusText}}</text>
+  <rh-tag-bar items="{{tabs}}" active-key="{{activeTab}}" bind:change="onTabChange" />
+  <view class="worker-order" wx:for="{{orders}}" wx:key="id">
+    <rh-card>
+      <rh-status-tag status="{{item.status}}" />
+      <rh-info-row label="工单号" value="{{item.order_no}}" />
+      <rh-info-row label="服务" value="{{item.service_name}}" />
+      <rh-info-row label="联系人" value="{{item.contact_name}}" />
+      <rh-info-row label="地址" value="{{item.full_address}}" />
+      <rh-info-row label="最终价格" value="{{item.priceText}}" />
+      <view class="worker-actions">
+        <rh-button variant="line" text="拨打电话" data-phone="{{item.contact_phone}}" bind:tap="callCustomer" />
+        <rh-button text="工单详情" data-id="{{item.id}}" bind:tap="goToDetail" />
       </view>
-
-      <view class="order-card__body">
-        <view class="info-row">
-          <text class="info-label">服务项目</text>
-          <text class="info-value">{{item.service_name || '防水服务'}}</text>
-        </view>
-        <view class="info-row">
-          <text class="info-label">客户</text>
-          <text class="info-value">{{item.customer_name || item.contact_name || '客户'}}</text>
-        </view>
-        <view class="info-row">
-          <text class="info-label">地址</text>
-          <text class="info-value info-value--address">{{item.full_address}}</text>
-        </view>
-        <view class="info-row" wx:if="{{item.hope_date}}">
-          <text class="info-label">期望上门</text>
-          <text class="info-value">{{item.hope_date}}</text>
-        </view>
-      </view>
-
-      <view class="order-card__footer">
-        <view class="price-wrap">
-          <text class="price-label">最终价格</text>
-          <text class="price-value {{item.final_price ? '' : 'price-value--empty'}}">{{item.priceText}}</text>
-        </view>
-        <view class="action-wrap">
-          <button
-            class="btn-call"
-            size="mini"
-            catchtap="callCustomer"
-            data-phone="{{item.contact_phone}}"
-          >📞 联系客户</button>
-          <button class="btn-detail" size="mini" catchtap="goToDetail" data-id="{{item.id}}">查看详情</button>
-        </view>
-      </view>
-
-      <view class="order-card__time">
-        <text>下单时间：{{item.createdTimeText}}</text>
-      </view>
-    </view>
-
-    <!-- 加载更多 -->
-    <view class="load-more" wx:if="{{loadingMore}}">
-      <text>加载中...</text>
-    </view>
-    <view class="load-more" wx:elif="{{!hasMore}}">
-      <text>没有更多了</text>
-    </view>
+    </rh-card>
   </view>
-
-  <!-- 加载中 -->
-  <view class="empty" wx:elif="{{loading}}">
-    <text class="empty-text">加载中...</text>
-  </view>
-
-  <!-- 空状态 -->
-  <view class="empty" wx:else>
-    <text class="empty-icon">📭</text>
-    <text class="empty-text">暂无{{activeTab === 'confirmed' ? '待接单' : activeTab === 'in_progress' ? '施工中' : activeTab === 'pending_review' ? '待验收' : '已完成'}}的工单</text>
-  </view>
+  <rh-empty wx:if="{{!loading && orders.length === 0}}" text="暂无工单" />
+  <rh-load-more loading="{{loading || loadingMore}}" finished="{{!hasMore}}" />
 </view>

@@ -24,14 +24,16 @@ class NotificationService {
    */
   static async getAccessToken() {
     try {
+      if (this.tokenCache && this.tokenCache.expires > Date.now()) return this.tokenCache.token;
       const appId = process.env.WECHAT_APPID;
       const appSecret = process.env.WECHAT_SECRET;
       
       const response = await axios.get(
-        `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appId}&secret=${appSecret}`
+        `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appId}&secret=${appSecret}`, { timeout: 10000 }
       );
       
       if (response.data.access_token) {
+        this.tokenCache = { token: response.data.access_token, expires: Date.now() + Math.max(60, (response.data.expires_in || 7200) - 300) * 1000 };
         return response.data.access_token;
       } else {
         throw new Error('获取access_token失败');
@@ -50,6 +52,7 @@ class NotificationService {
    * @param {string} page - 跳转页面
    */
   static async sendTemplateMessage(openid, templateId, data, page = '') {
+    if (!templateId || !openid || /^(worker_|admin_)/.test(openid)) return { success: false, error: '微信绑定或订阅模板未配置，消息已保留在站内' };
     try {
       const accessToken = await this.getAccessToken();
       if (!accessToken) {
@@ -61,11 +64,11 @@ class NotificationService {
       const body = {
         touser: openid,
         template_id: templateId,
-        page,
+        page: 'pages/login/login',
         data
       };
 
-      const response = await axios.post(url, body);
+      const response = await axios.post(url, body, { timeout: 10000 });
       
       if (response.data.errcode === 0) {
         console.log('模板消息发送成功:', openid);
@@ -122,7 +125,7 @@ class NotificationService {
 
       // 查询管理员
       const [admins] = await db.query(
-        "SELECT openid FROM users WHERE role = 'admin' AND status = 'active'"
+        "SELECT id, openid FROM users WHERE role = 'admin' AND status = 'active'"
       );
 
       const templateId = process.env.WECHAT_TEMPLATE_NEW_ORDER || '';
@@ -168,7 +171,7 @@ class NotificationService {
         `SELECT wo.*, 
                 s.name as service_name,
                 c.openid as customer_openid, c.id as customer_id, c.nickname as customer_name,
-                w.openid as worker_openid, w.id as worker_id, w.nickname as worker_name, w.phone as worker_phone
+                COALESCE(w.wechat_openid, w.openid) as worker_openid, w.id as worker_id, w.nickname as worker_name, w.phone as worker_phone
          FROM work_orders wo
          LEFT JOIN services s ON wo.service_id = s.id
          LEFT JOIN users c ON wo.user_id = c.id
@@ -180,10 +183,9 @@ class NotificationService {
       if (orders.length === 0) return;
       const order = orders[0];
 
-      const templateId = process.env.WECHAT_TEMPLATE_ORDER_ASSIGNED || '';
-
       // 通知师傅
       if (order.worker_openid) {
+        const templateId = process.env.WECHAT_TEMPLATE_WORKER_ASSIGNED || '';
         const workerData = {
           thing1: { value: order.order_no },
           thing2: { value: order.service_name },
@@ -212,6 +214,7 @@ class NotificationService {
 
       // 通知客户
       if (order.customer_openid) {
+        const templateId = process.env.WECHAT_TEMPLATE_CUSTOMER_ASSIGNED || '';
         const customerData = {
           thing1: { value: order.order_no },
           name2: { value: order.worker_name },
@@ -245,7 +248,7 @@ class NotificationService {
   /**
    * 场景3: 师傅拒单 → 通知管理员
    */
-  static async notifyAdminOrderRejected(orderId, reason) {
+  static async notifyAdminOrderRejected(orderId, reason, workerName) {
     try {
       // 实时通知管理员（WebSocket）
       this.realtimeNotifyAdmins(RealtimeService.EVENTS.ORDER_REJECTED, {
@@ -275,7 +278,7 @@ class NotificationService {
       for (const admin of admins) {
         const data = {
           thing1: { value: order.order_no },
-          name2: { value: order.worker_name || '未知' },
+          name2: { value: workerName || order.worker_name || '未知' },
           thing3: { value: reason.substring(0, 20) }
         };
 
@@ -291,7 +294,7 @@ class NotificationService {
           orderId,
           'admin_order_rejected',
           '师傅拒单通知',
-          `师傅${order.worker_name}拒绝了工单`,
+          `师傅${workerName || order.worker_name || '未知'}拒绝了工单`,
           templateId,
           result.success ? 'success' : 'failed',
           result.error
@@ -401,15 +404,24 @@ class NotificationService {
   static async notifyWorkerOrderUrged(orderId, urgeCount) {
     try {
       const [orders] = await db.query(
-        `SELECT wo.*, w.openid as worker_openid, w.id as worker_id
+        `SELECT wo.*, COALESCE(w.wechat_openid, w.openid) as worker_openid, w.id as worker_id
          FROM work_orders wo
          LEFT JOIN users w ON wo.worker_id = w.id
          WHERE wo.id = ?`,
         [orderId]
       );
 
-      if (orders.length === 0 || !orders[0].worker_openid) return;
+      if (orders.length === 0) return;
       const order = orders[0];
+      const content = `工单 ${order.order_no}：客户进行了第${urgeCount}次催单`;
+      const [admins] = await db.query("SELECT id FROM users WHERE role = 'admin' AND status = 'active'");
+      for (const admin of admins) {
+        await this.logNotification(admin.id, orderId, 'admin_order_urged', '客户催单提醒', content, '', 'success');
+      }
+      this.realtimeNotifyAdmins('order_urged', {
+        order_id: orderId, urge_count: urgeCount, title: '客户催单提醒', content
+      });
+      if (!order.worker_id) return;
 
       const templateId = process.env.WECHAT_TEMPLATE_ORDER_URGED || '';
 
@@ -446,7 +458,7 @@ class NotificationService {
   static async notifyWorkerOrderConfirmed(orderId) {
     try {
       const [orders] = await db.query(
-        `SELECT wo.*, w.openid as worker_openid, w.id as worker_id
+        `SELECT wo.*, COALESCE(w.wechat_openid, w.openid) as worker_openid, w.id as worker_id
          FROM work_orders wo
          LEFT JOIN users w ON wo.worker_id = w.id
          WHERE wo.id = ?`,
@@ -492,7 +504,7 @@ class NotificationService {
   static async notifyWorkerOrderCancelled(orderId, reason) {
     try {
       const [orders] = await db.query(
-        `SELECT wo.*, w.openid as worker_openid, w.id as worker_id
+        `SELECT wo.*, COALESCE(w.wechat_openid, w.openid) as worker_openid, w.id as worker_id
          FROM work_orders wo
          LEFT JOIN users w ON wo.worker_id = w.id
          WHERE wo.id = ? AND wo.worker_id IS NOT NULL`,
@@ -584,7 +596,7 @@ class NotificationService {
       const [orders] = await db.query(
         `SELECT wo.*, 
                 c.openid as customer_openid, c.id as customer_id,
-                w.openid as worker_openid, w.id as worker_id
+                COALESCE(w.wechat_openid, w.openid) as worker_openid, w.id as worker_id
          FROM work_orders wo
          LEFT JOIN users c ON wo.user_id = c.id
          LEFT JOIN users w ON wo.worker_id = w.id

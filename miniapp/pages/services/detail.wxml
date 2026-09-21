@@ -26,7 +26,8 @@
       <view wx:else class="banner-placeholder" style="background: {{bannerGradient}};">
         <rh-icon name="shield" tone="white" size="120" />
       </view>
-      <view class="banner-indicator">{{currentBannerIndex + 1}} / {{bannerImages.length}}</view>
+      <view class="banner-title">{{service.name}}</view>
+      <view wx:if="{{bannerImages.length > 0}}" class="banner-indicator">{{currentBannerIndex + 1}} / {{bannerImages.length}}</view>
     </view>
 
     <view class="detail-price">
@@ -89,6 +90,7 @@
           <text>价格 {{item.price_score}}</text>
         </view>
         <view class="review-item__comment">{{item.comment}}</view>
+        <video wx:if="{{item.video_url}}" src="{{item.video_url}}" style="width:100%;height:360rpx" />
         <view class="review-item__time">{{item.dateText}}</view>
       </view>
 

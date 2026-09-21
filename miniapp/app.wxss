@@ -53,7 +53,10 @@ page {
   width: 100%;
   border: 1rpx solid var(--color-input-border);
   border-radius: var(--radius-md);
-  padding: 20rpx 24rpx;
+  padding: 0 24rpx;
+  height: 88rpx;
+  min-height: 88rpx;
+  line-height: 48rpx;
   font-size: 26rpx;
   background: var(--color-input-bg);
   color: var(--color-text);
@@ -61,7 +64,9 @@ page {
 }
 
 .rh-input--area {
+  height: 200rpx;
   min-height: 132rpx;
+  padding: 20rpx 24rpx;
   width: 100%;
   line-height: 1.5;
 }

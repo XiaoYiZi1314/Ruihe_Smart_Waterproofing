@@ -62,6 +62,27 @@ Page({
     }
   },
 
+  onChooseLocation() {
+    wx.chooseLocation({
+      success: location => {
+        const address = (location.address || '').trim();
+        const name = (location.name || '').trim();
+        const detail = address + (name && !address.includes(name) ? ' ' + name : '');
+        if (!detail.trim()) return;
+        this.setData({
+          region: ['', '', ''],
+          'form.province': '', 'form.city': '', 'form.district': '',
+          'form.detail_address': detail.trim()
+        });
+        wx.showToast({ title: '已填入地址，请补充门牌号', icon: 'none' });
+      },
+      fail: error => {
+        if (/cancel/i.test(error.errMsg || '')) return;
+        wx.showModal({ title: '无法打开地图', content: '请检查位置授权，或直接手动填写完整地址。', showCancel: false });
+      }
+    });
+  },
+
   /**
    * 输入联系人姓名
    */
@@ -115,7 +136,7 @@ Page({
    * 表单验证
    */
   validateForm() {
-    const { contact_name, contact_phone, province, detail_address } = this.data.form;
+    const { contact_name, contact_phone, detail_address } = this.data.form;
 
     if (!contact_name || contact_name.trim() === '') {
       wx.showToast({
@@ -145,14 +166,6 @@ Page({
     if (!phoneRegex.test(contact_phone)) {
       wx.showToast({
         title: '手机号格式不正确',
-        icon: 'none'
-      });
-      return false;
-    }
-
-    if (!province) {
-      wx.showToast({
-        title: '请选择省市区',
         icon: 'none'
       });
       return false;

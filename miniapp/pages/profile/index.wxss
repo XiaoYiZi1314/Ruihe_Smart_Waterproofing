@@ -1,7 +1,7 @@
 .profile-head {
-  background: linear-gradient(135deg, #1A5CFF, #2B7BE4 60%, #5B9AF5);
+  background: var(--gradient-profile);
   padding: 48rpx 36rpx 52rpx;
-  color: #ffffff;
+  color: var(--color-surface);
   border-radius: 0 0 36rpx 36rpx;
 }
 
@@ -56,5 +56,10 @@
 }
 
 .logout-wrap {
-  margin: 36rpx 24rpx;
+  margin: 36rpx auto;
+  width: 560rpx;
+  max-width: calc(100% - 48rpx);
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
 }

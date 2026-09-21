@@ -34,6 +34,12 @@ page {
   --color-handle: #E2E6EE;
   --color-arrow: #D1D5DB;
 
+  --gradient-brand: linear-gradient(135deg, var(--color-primary), var(--color-brand));
+  --gradient-brand-light: linear-gradient(135deg, var(--color-brand), var(--color-brand-light));
+  --gradient-brand-pale: linear-gradient(135deg, var(--color-brand-light), var(--color-brand-pale));
+  --gradient-brand-wide: linear-gradient(135deg, var(--color-primary), var(--color-brand-light));
+  --gradient-profile: linear-gradient(135deg, var(--color-primary), var(--color-brand) 60%, var(--color-brand-light));
+
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
 
   --radius-sm: 12rpx;

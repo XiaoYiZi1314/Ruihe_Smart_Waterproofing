@@ -69,6 +69,12 @@
             <span v-else class="no-price">待报价</span>
           </template>
         </el-table-column>
+        <el-table-column label="客户催单" width="110" align="center">
+          <template #default="{ row }">
+            <el-tag v-if="Number(row.urge_count) > 0" type="warning" size="small">第{{ row.urge_count }}次催单</el-tag>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
         <el-table-column label="异常" width="70" align="center">
           <template #default="{ row }">
             <el-tag v-if="row.is_exception" type="danger" size="small">异常</el-tag>
@@ -151,6 +157,7 @@
               {{ STATUS_TEXT[currentOrder.status] }}
             </el-tag>
           </el-descriptions-item>
+          <el-descriptions-item label="催单次数">{{ currentOrder.urge_count || 0 }} 次</el-descriptions-item>
           <el-descriptions-item label="客户">{{ currentOrder.customer_name }}</el-descriptions-item>
           <el-descriptions-item label="联系电话">{{ currentOrder.contact_phone }}</el-descriptions-item>
           <el-descriptions-item label="服务项目">{{ currentOrder.service_name }}</el-descriptions-item>
@@ -159,7 +166,19 @@
           <el-descriptions-item label="金额">
             {{ currentOrder.final_price ? `¥${currentOrder.final_price}` : '待报价' }}
           </el-descriptions-item>
-          <el-descriptions-item label="问题描述">{{ currentOrder.description || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="问题描述"><span style="white-space: pre-wrap">{{ currentOrder.remark || '-' }}</span></el-descriptions-item>
+          <el-descriptions-item label="期望价格">{{ currentOrder.expected_price ?? '未填写' }}</el-descriptions-item>
+          <el-descriptions-item label="预计上门">{{ currentOrder.estimated_time || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="上门/材料/工时费">{{ currentOrder.door_fee ?? '-' }} / {{ currentOrder.material_fee ?? '-' }} / {{ currentOrder.labor_fee ?? '-' }}</el-descriptions-item>
+          <el-descriptions-item v-for="(label, key) in timeFields" :key="key" :label="label">{{ currentOrder[key] || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="现场图片">
+            <el-image v-for="image in currentOrder.images || []" :key="image.id" :src="image.image_url" :preview-src-list="(currentOrder.images || []).map(i => i.image_url)" preview-teleported style="width:90px;height:90px;margin:4px" fit="cover" />
+          </el-descriptions-item>
+          <el-descriptions-item v-if="currentOrder.review" label="客户评价">
+            <div>态度 {{ currentOrder.review.service_attitude_score }} / 质量 {{ currentOrder.review.quality_score }} / 收费 {{ currentOrder.review.price_score }}</div>
+            <div>{{ currentOrder.review.comment }}</div>
+            <video v-if="currentOrder.review.video_url" :src="currentOrder.review.video_url" controls style="width:100%" />
+          </el-descriptions-item>
           <el-descriptions-item label="拒单理由" v-if="currentOrder.reject_reason">
             <span class="reject-reason">{{ currentOrder.reject_reason }}</span>
           </el-descriptions-item>
@@ -203,10 +222,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, onBeforeUnmount } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import api from '../api';
 
+const timeFields = { assigned_at: '指派时间', confirmed_at: '接单时间', started_at: '开始施工', completed_at: '完工时间', finished_at: '验收完成', cancelled_at: '取消时间' };
 const STATUS_TEXT = {
   pending: '待指派',
   confirmed: '待接单',
@@ -304,6 +324,7 @@ function resetFilter() {
 
 async function exportOrders() {
   const params = {};
+  if (filter.keyword) params.keyword = filter.keyword;
   if (filter.status) params.status = filter.status;
   if (filter.dateRange && filter.dateRange.length === 2) {
     params.start_date = filter.dateRange[0];
@@ -322,7 +343,7 @@ async function exportOrders() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `工单导出_${new Date().toISOString().split('T')[0]}.xlsx`;
+    a.download = `${new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' }).replaceAll('-', '')}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
   } catch (err) {
@@ -422,7 +443,11 @@ async function handleCancelOrder() {
   }
 }
 
-onMounted(loadOrders);
+onMounted(() => {
+  loadOrders();
+  window.addEventListener('ruihe:orders-changed', loadOrders);
+});
+onBeforeUnmount(() => window.removeEventListener('ruihe:orders-changed', loadOrders));
 </script>
 
 <style scoped>

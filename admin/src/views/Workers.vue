@@ -33,7 +33,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="created_at" label="创建时间" width="170" />
-        <el-table-column label="操作" width="170" fixed="right">
+        <el-table-column label="操作" width="240" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="openEditDialog(row)">编辑</el-button>
             <el-button
@@ -44,6 +44,7 @@
             >
               {{ row.worker_status === 'working' ? '设为休息' : '设为上班' }}
             </el-button>
+            <el-button link type="warning" size="small" @click="resetPassword(row)">重置密码</el-button>
             <el-popconfirm title="确定删除该师傅吗？" @confirm="handleDelete(row)">
               <template #reference>
                 <el-button link type="danger" size="small">删除</el-button>
@@ -203,9 +204,9 @@ async function handleCreate() {
     createDialogVisible.value = false;
     if (initialPassword) {
       ElMessageBox.alert(
-        `师傅账号创建成功，初始密码：<b>${initialPassword}</b><br/>请将手机号和初始密码告知师傅，师傅端用手机号密码登录后即可接单。`,
+        `初始密码：${initialPassword}。请通过安全渠道交给师傅，首次登录需修改密码。`,
         '创建成功',
-        { dangerouslyUseHTMLString: true, confirmButtonText: '我已知晓' }
+        { confirmButtonText: '我已知晓' }
       );
     } else {
       ElMessage.success('师傅创建成功');
@@ -226,6 +227,14 @@ async function handleDelete(row) {
   } catch (err) {
     // 拦截器已处理
   }
+}
+
+async function resetPassword(row) {
+  try {
+    await ElMessageBox.confirm(`重置 ${row.nickname} 的密码并使旧登录失效？`, '重置密码');
+    const res = await api.post(`/admin/workers/${row.id}/reset-password`);
+    await ElMessageBox.alert(`临时密码：${res.data.initial_password}。首次登录需修改密码。`, '密码已重置');
+  } catch (error) { /* cancellation or interceptor handles failure */ }
 }
 
 onMounted(loadWorkers);

@@ -19,7 +19,7 @@ Page({
     const tabs = [{ key: null, label: '全部' }];
     
     // 添加主要状态标签
-    ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'].forEach(key => {
+    ['pending', 'confirmed', 'in_progress', 'pending_review', 'completed', 'cancelled'].forEach(key => {
       if (STATUS_MAP[key]) {
         tabs.push({ key, label: STATUS_MAP[key].text });
       }
@@ -42,7 +42,7 @@ Page({
   },
 
   async loadOrders(refresh = false) {
-    if (this.data.loading) return;
+    const requestId = this._requestId = (this._requestId || 0) + 1;
     this.setData({ loading: true });
 
     try {
@@ -55,6 +55,7 @@ Page({
       }
 
       const res = await api.getOrders(params);
+      if (requestId !== this._requestId) return;
       if (res.success) {
         const orders = refresh ? res.data : [...this.data.orders, ...res.data];
         this.setData({
@@ -66,9 +67,11 @@ Page({
         });
       }
     } catch (error) {
+      if (requestId !== this._requestId) return;
       console.error('加载工单列表失败:', error);
       wx.showToast({ title: '加载失败', icon: 'none' });
-      this.setData({ loading: false });
+    } finally {
+      if (requestId === this._requestId) this.setData({ loading: false });
     }
   },
 
@@ -99,12 +102,24 @@ Page({
         wx.showToast({ title: '暂无师傅电话', icon: 'none' });
         return;
       }
-      wx.makePhoneCall({ phoneNumber: phone });
+      wx.makePhoneCall({ phoneNumber: String(phone), fail: () => wx.showToast({ title: '拨号未完成，可在详情查看电话', icon: 'none' }) });
       return;
     }
 
     if (action === 'urge') {
-      wx.showToast({ title: '已催单，我们会尽快处理', icon: 'none' });
+      if (this._urging) return;
+      this._urging = true;
+      try {
+        const result = await api.urgeOrder(order.id);
+        if (result.success) {
+          wx.showToast({ title: '催单成功，已通知处理', icon: 'success' });
+          await this.loadOrders(true);
+        }
+      } catch (error) {
+        wx.showToast({ title: error.message || '催单失败', icon: 'none' });
+      } finally {
+        this._urging = false;
+      }
       return;
     }
 
@@ -130,7 +145,7 @@ Page({
   },
 
   onPullDownRefresh() {
-    this.setData({ page: 1, orders: [] });
+    this.setData({ page: 1 });
     this.loadOrders(true).then(() => {
       wx.stopPullDownRefresh();
     });

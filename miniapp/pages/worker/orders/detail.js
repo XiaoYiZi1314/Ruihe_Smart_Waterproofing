@@ -21,6 +21,8 @@ Page({
   },
 
   onLoad(options) {
+    const user = wx.getStorageSync('userInfo') || {};
+    if (!wx.getStorageSync('token') || user.role !== 'worker') return wx.reLaunch({ url: '/pages/login/login' });
     this.setData({ id: options.id });
     this.loadOrder();
   },
@@ -40,6 +42,9 @@ Page({
       order.priceText = formatPrice(order.final_price);
       order.createdTimeText = formatTime(order.created_at);
       order.estimatedTimeText = formatTime(order.estimated_time);
+      order.assignedTimeText = formatTime(order.assigned_at);
+      order.acceptedTimeText = formatTime(order.confirmed_at);
+      order.startedTimeText = formatTime(order.started_at);
       order.completedTimeText = formatTime(order.completed_at);
       order.finishedTimeText = formatTime(order.finished_at);
       order.maskedPhone = order.contact_phone;

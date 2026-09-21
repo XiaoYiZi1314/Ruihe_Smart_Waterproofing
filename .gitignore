@@ -1,6 +1,8 @@
 # 依赖
 node_modules/
-package-lock.json
+.pi/
+.scratch/
+backend/private-uploads/
 
 # 环境变量
 .env

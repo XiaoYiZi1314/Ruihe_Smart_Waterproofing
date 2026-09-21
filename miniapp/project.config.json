@@ -1,7 +1,13 @@
 {
   "description": "瑞和防水小程序",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "folder", "value": "scripts" },
+      { "type": "file", "value": "README.md" },
+      { "type": "file", "value": "assets/services/README.md" },
+      { "type": "file", "value": "project.private.config.json" },
+      { "type": "file", "value": "utils/mock-services.js" }
+    ],
     "include": []
   },
   "setting": {

@@ -1,6 +1,7 @@
 Component({
   options: {
-    multipleSlots: true
+    multipleSlots: true,
+    virtualHost: true
   },
   properties: {
     variant: { type: String, value: 'brand' },
@@ -13,7 +14,7 @@ Component({
   methods: {
     onTap() {
       if (this.data.disabled || this.data.loading) return;
-      this.triggerEvent('tap');
+      this.triggerEvent('tap', {}, { bubbles: false, composed: false });
     }
   }
 });

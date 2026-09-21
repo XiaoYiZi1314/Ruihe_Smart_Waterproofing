@@ -1,13 +1,15 @@
+const { nextOrderNo } = require('../utils/orderNumber');
+const Workflow = require('../utils/orderWorkflow');
 const db = require('../config/database');
+const { presentOrder, assertOwned } = require('../utils/attachments');
+const CUSTOMER_FIELDS = ['id','order_no','service_id','contact_name','contact_phone','full_address','expected_price','final_price','door_fee','material_fee','labor_fee','remark','status','worker_id','estimated_time','assigned_at','confirmed_at','started_at','completed_at','finished_at','cancelled_at','created_at','updated_at','urge_count','price_dispute_reason','price_adjusted_at','review_submitted_at'].map(key => `wo.${key}`).join(', ');
 
 class WorkOrder {
   /**
    * 生成工单号
    */
-  static generateOrderNo() {
-    const timestamp = Date.now();
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    return `WO${timestamp}${random}`;
+  static async generateOrderNo(connection) {
+    return nextOrderNo(connection);
   }
 
   /**
@@ -38,14 +40,13 @@ class WorkOrder {
     // 构建完整地址
     const fullAddress = `${address.province || ''}${address.city || ''}${address.district || ''}${address.detail_address}`;
 
-    // 生成工单号
-    const orderNo = this.generateOrderNo();
-
     // 开始事务
     const connection = await db.getConnection();
     await connection.beginTransaction();
 
     try {
+      await assertOwned(connection, userId, images);
+      const orderNo = await this.generateOrderNo(connection);
       // 插入工单
       const [result] = await connection.query(
         `INSERT INTO work_orders
@@ -97,11 +98,14 @@ class WorkOrder {
 
     let query = `
       SELECT
-        wo.*,
+        ${CUSTOMER_FIELDS},
         s.name as service_name,
-        s.cover_image as service_cover
+        s.cover_image as service_cover,
+        w.nickname as worker_name,
+        w.phone as worker_phone
       FROM work_orders wo
       LEFT JOIN services s ON wo.service_id = s.id
+      LEFT JOIN users w ON wo.worker_id = w.id
       WHERE wo.user_id = ?
     `;
 
@@ -152,7 +156,7 @@ class WorkOrder {
   static async getById(id) {
     const [rows] = await db.query(
       `SELECT
-        wo.*,
+        ${CUSTOMER_FIELDS},
         s.name as service_name,
         s.description as service_description,
         s.cover_image as service_cover,
@@ -184,12 +188,12 @@ class WorkOrder {
 
     // 获取评价（如果有）
     const [reviews] = await db.query(
-      'SELECT id, service_attitude_score, quality_score, price_score, comment, created_at FROM reviews WHERE order_id = ?',
+      'SELECT id, service_attitude_score, quality_score, price_score, comment, video_url, created_at FROM reviews WHERE order_id = ?',
       [id]
     );
     order.review = reviews.length > 0 ? reviews[0] : null;
 
-    return order;
+    return presentOrder(order);
   }
 
   /**
@@ -241,15 +245,7 @@ class WorkOrder {
   /**
    * 取消工单
    */
-  static async cancel(id, userId) {
-    const [result] = await db.query(
-      `UPDATE work_orders
-       SET status = 'cancelled', cancelled_at = NOW()
-       WHERE id = ? AND user_id = ? AND status = 'pending'`,
-      [id, userId]
-    );
-    return result.affectedRows > 0;
-  }
+  static async cancel(id, userId) { await Workflow.transition(id, { id: userId, role: 'customer' }, 'cancel'); return true; }
 
   /**
    * 催单
@@ -267,83 +263,30 @@ class WorkOrder {
   /**
    * 确认完成
    */
-  static async confirm(id) {
-    const [result] = await db.query(
-      `UPDATE work_orders
-       SET status = 'completed', finished_at = NOW()
-       WHERE id = ? AND status = 'pending_review'`,
-      [id]
-    );
-    return result.affectedRows > 0;
-  }
+  static async confirm(id, userId) { await Workflow.transition(id, { id: userId, role: 'customer' }, 'confirm'); return true; }
 
   /**
    * 价格异议
    */
-  static async disputePrice(id, reason) {
-    const [result] = await db.query(
-      `UPDATE work_orders
-       SET status = 'price_negotiating', 
-           price_dispute_reason = ?,
-           updated_at = NOW()
-       WHERE id = ? AND status = 'pending_review'`,
-      [reason, id]
-    );
-    return result.affectedRows > 0;
-  }
+  static async disputePrice(id, reason, userId) { await Workflow.transition(id, { id: userId, role: 'customer' }, 'dispute', { reason }); return true; }
 
   /**
    * 提交评价
    */
   static async submitReview(orderId, userId, reviewData) {
-    // 检查工单状态
-    const [orders] = await db.query(
-      'SELECT worker_id, status FROM work_orders WHERE id = ?',
-      [orderId]
-    );
-
-    if (orders.length === 0) {
-      throw new Error('工单不存在');
-    }
-
-    const order = orders[0];
-    if (order.status !== 'completed') {
-      return false;
-    }
-
-    if (!order.worker_id) {
-      throw new Error('工单未指派师傅');
-    }
-
-    // 检查是否已评价
-    const [existing] = await db.query(
-      'SELECT id FROM reviews WHERE order_id = ?',
-      [orderId]
-    );
-
-    if (existing.length > 0) {
-      throw new Error('已经评价过此工单');
-    }
-
-    // 插入评价
-    await db.query(
-      `INSERT INTO reviews 
-       (order_id, user_id, worker_id, service_attitude_score, quality_score, 
-        price_score, comment, video_url)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        orderId,
-        userId,
-        order.worker_id,
-        reviewData.service_attitude_score,
-        reviewData.quality_score,
-        reviewData.price_score,
-        reviewData.comment || null,
-        reviewData.video_url || null
-      ]
-    );
-
-    return true;
+    const connection = await db.getConnection();
+    try {
+      await connection.beginTransaction();
+      const [orders] = await connection.query('SELECT worker_id,status,review_submitted_at FROM work_orders WHERE id=? AND user_id=? FOR UPDATE', [orderId,userId]);
+      const order = orders[0];
+      if (!order || order.status !== 'completed' || !order.worker_id) throw Object.assign(new Error('只能评价已完成的工单'), {status:400});
+      if (order.review_submitted_at) throw Object.assign(new Error('该工单已评价，删除后不可重新评价'), {status:409});
+      if (reviewData.video_url) await assertOwned(connection, userId, [reviewData.video_url], 'video');
+      await connection.query(`INSERT INTO reviews(order_id,user_id,worker_id,service_attitude_score,quality_score,price_score,comment,video_url)
+        VALUES(?,?,?,?,?,?,?,?)`, [orderId,userId,order.worker_id,reviewData.service_attitude_score,reviewData.quality_score,reviewData.price_score,reviewData.comment||null,reviewData.video_url||null]);
+      await connection.query('UPDATE work_orders SET review_submitted_at=NOW() WHERE id=?',[orderId]);
+      await connection.commit(); return true;
+    } catch(error) {await connection.rollback();throw error;} finally {connection.release();}
   }
 
   /**
@@ -358,4 +301,5 @@ class WorkOrder {
   }
 }
 
+WorkOrder.CUSTOMER_FIELDS = CUSTOMER_FIELDS;
 module.exports = WorkOrder;

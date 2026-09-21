@@ -2,16 +2,9 @@ const api = require('../../utils/api');
 const statusUtil = require('../../utils/status');
 const theme = require('../../utils/theme');
 
-function formatTime(dateStr) {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  if (Number.isNaN(date.getTime())) return dateStr;
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
 Page({
   data: {
+    imageLoadFailed: false,
     order: null,
     loading: true,
     submitting: false,
@@ -37,6 +30,7 @@ Page({
     showReviewModal: false,
     reviewScores: { attitude: 5, quality: 5, price: 5 },
     reviewComment: '',
+    reviewVideo: '',
     starRange: [1, 2, 3, 4, 5]
   },
 
@@ -48,7 +42,10 @@ Page({
       return;
     }
     this.orderId = id;
-    this.loadOrderDetail(id);
+  },
+
+  onShow() {
+    if (this.orderId) this.loadOrderDetail(this.orderId);
   },
 
   onPullDownRefresh() {
@@ -80,12 +77,12 @@ Page({
           expectedPriceText,
           finalPriceText,
           maskedWorkerPhone: theme.maskPhone(order.worker_phone),
-          createdAt: formatTime(order.created_at),
-          confirmedAt: formatTime(order.confirmed_at),
-          startedAt: formatTime(order.started_at),
-          completedAt: formatTime(order.completed_at),
-          finishedAt: formatTime(order.finished_at),
-          cancelledAt: formatTime(order.cancelled_at),
+          createdAt: theme.formatTime(order.created_at),
+          confirmedAt: theme.formatTime(order.confirmed_at),
+          startedAt: theme.formatTime(order.started_at),
+          completedAt: theme.formatTime(order.completed_at),
+          finishedAt: theme.formatTime(order.finished_at),
+          cancelledAt: theme.formatTime(order.cancelled_at),
           doorFeeText: order.door_fee !== null && order.door_fee !== undefined ? `¥${order.door_fee}` : '',
           materialFeeText: order.material_fee !== null && order.material_fee !== undefined ? `¥${order.material_fee}` : '',
           laborFeeText: order.labor_fee !== null && order.labor_fee !== undefined ? `¥${order.labor_fee}` : ''
@@ -100,6 +97,15 @@ Page({
     }
   },
 
+  onImageError() {
+    this.setData({ imageLoadFailed: true });
+  },
+
+  async onRetryImages() {
+    this.setData({ imageLoadFailed: false });
+    await this.loadOrderDetail(this.orderId);
+  },
+
   onPreviewImage(e) {
     const url = e.currentTarget.dataset.url;
     const urls = this.data.order.images.map((img) => img.image_url);
@@ -107,13 +113,13 @@ Page({
   },
 
   onCallService() {
-    wx.makePhoneCall({ phoneNumber: '400-888-6688' });
+    require('../../utils/notifications').callService();
   },
 
   onCallMaster() {
     const phone = this.data.order.worker_phone;
-    if (!phone) return;
-    wx.makePhoneCall({ phoneNumber: phone });
+    if (!phone) return wx.showToast({ title: '暂无师傅电话，请联系客服', icon: 'none' });
+    wx.makePhoneCall({ phoneNumber: String(phone), fail: () => wx.showToast({ title: '拨号未完成，请重试', icon: 'none' }) });
   },
 
   onCancelOrder() {
@@ -148,9 +154,9 @@ Page({
     try {
       const result = await api.urgeOrder(this.data.order.id);
       if (result.success) {
-        const count = (this.data.order.urge_count || 0) + 1;
+        const count = Number(this.data.order.urge_count || 0) + 1;
         this.setData({ order: { ...this.data.order, urge_count: count } });
-        wx.showToast({ title: '催单成功，已通知师傅', icon: 'success' });
+        wx.showToast({ title: '催单成功，已通知处理', icon: 'success' });
       }
     } catch (error) {
       wx.showToast({ title: error.message || '催单失败', icon: 'none' });
@@ -229,7 +235,8 @@ Page({
     this.setData({
       showReviewModal: true,
       reviewScores: { attitude: 5, quality: 5, price: 5 },
-      reviewComment: ''
+      reviewComment: '',
+      reviewVideo: ''
     });
   },
 
@@ -248,6 +255,20 @@ Page({
     this.setData({ reviewComment: e.detail.value });
   },
 
+  chooseReviewVideo() {
+    wx.chooseVideo({ sourceType: ['album', 'camera'], compressed: true, success: res => {
+      if (res.size > 128 * 1024 * 1024) return wx.showToast({ title: '视频超过128MB，请压缩后上传', icon: 'none' });
+      this.setData({ reviewVideo: res.tempFilePath });
+    } });
+  },
+  removeReviewVideo() { this.setData({ reviewVideo: '' }); },
+  deleteReview() {
+    wx.showModal({ title: '删除评价', content: '删除后不能重新评价，确定删除？', success: async res => {
+      if (!res.confirm) return;
+      try { await api.deleteReview(this.data.order.id); await this.loadOrderDetail(this.data.order.id); }
+      catch (error) { wx.showToast({ title: '删除失败', icon: 'none' }); }
+    } });
+  },
   async submitReview() {
     if (this.data.submitting) return;
 
@@ -261,7 +282,9 @@ Page({
 
     this.setData({ submitting: true });
     try {
+      const videoUrl = this.data.reviewVideo ? await require('../../utils/request').upload(this.data.reviewVideo, 'video') : null;
       const result = await api.submitReview(this.data.order.id, {
+        video_url: videoUrl,
         service_attitude_score: attitude,
         quality_score: quality,
         price_score: price,

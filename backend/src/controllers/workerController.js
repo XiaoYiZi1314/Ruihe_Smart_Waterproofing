@@ -1,3 +1,4 @@
+const Workflow = require('../utils/orderWorkflow');
 /**
  * 师傅端控制器
  * 处理师傅的工单管理、状态切换等操作
@@ -31,7 +32,7 @@ class WorkerController {
       // 查询工单列表
       const [orders] = await db.query(
         `SELECT 
-          wo.*,
+          ${require('../models/WorkOrder').CUSTOMER_FIELDS},
           u.nickname as customer_name,
           u.phone as customer_phone,
           s.name as service_name,
@@ -84,7 +85,7 @@ class WorkerController {
       // 查询工单详情
       const [orders] = await db.query(
         `SELECT 
-          wo.*,
+          ${require('../models/WorkOrder').CUSTOMER_FIELDS},
           u.nickname as customer_name,
           u.phone as customer_phone,
           u.avatar_url as customer_avatar,
@@ -115,6 +116,7 @@ class WorkerController {
 
       order.images = images;
 
+      require('../utils/attachments').presentOrder(order);
       res.json({
         success: true,
         data: order
@@ -134,66 +136,13 @@ class WorkerController {
    */
   static async acceptOrder(req, res) {
     try {
-      const { id } = req.params;
-      const workerId = req.user.id;
+      const id = req.params.id;
+      const result = await Workflow.transition(id, req.user, 'accept', req.body || {});
 
-      // 查询工单
-      const [orders] = await db.query(
-        'SELECT * FROM work_orders WHERE id = ? AND worker_id = ?',
-        [id, workerId]
-      );
-
-      if (orders.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: '工单不存在或无权访问'
-        });
-      }
-
-      const order = orders[0];
-
-      // 验证状态转换
-      const validation = OrderStateMachine.validate(
-        order.status,
-        OrderStateMachine.ACTION.ACCEPT,
-        OrderStateMachine.ROLE.WORKER
-      );
-
-      if (!validation.success) {
-        return res.status(400).json({
-          success: false,
-          message: validation.error
-        });
-      }
-
-      // 更新工单状态（接受后仍为 confirmed，但记录响应时间）
-      await db.query(
-        `UPDATE work_orders 
-         SET confirmed_at = CURRENT_TIMESTAMP,
-             is_exception = 0,
-             updated_at = CURRENT_TIMESTAMP
-         WHERE id = ?`,
-        [id]
-      );
-
-      logOperation({
-        user_id: workerId,
-        order_id: id,
-        action: 'accept',
-        detail: '师傅接受工单',
-        ip: req.ip
-      });
-
-      res.json({
-        success: true,
-        message: '已接受工单'
-      });
+      logOperation({ user_id: req.user.id, order_id: id, action: 'accept', detail: '已接受工单', ip: req.ip });
+      res.json({ success: true, message: '已接受工单', data: { final_price: result.final_price } });
     } catch (error) {
-      console.error('接受工单失败:', error);
-      res.status(500).json({
-        success: false,
-        message: '接受工单失败'
-      });
+      res.status(error.status || 500).json({ success: false, message: error.status ? error.message : '操作失败，请重试' });
     }
   }
 
@@ -203,97 +152,13 @@ class WorkerController {
    */
   static async rejectOrder(req, res) {
     try {
-      const { id } = req.params;
-      const { reason } = req.body;
-      const workerId = req.user.id;
-
-      if (!reason || reason.trim() === '') {
-        return res.status(400).json({
-          success: false,
-          message: '请填写拒单理由'
-        });
-      }
-
-      // 查询工单
-      const [orders] = await db.query(
-        'SELECT * FROM work_orders WHERE id = ? AND worker_id = ?',
-        [id, workerId]
-      );
-
-      if (orders.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: '工单不存在或无权访问'
-        });
-      }
-
-      const order = orders[0];
-
-      // 验证状态转换
-      const validation = OrderStateMachine.validate(
-        order.status,
-        OrderStateMachine.ACTION.REJECT,
-        OrderStateMachine.ROLE.WORKER
-      );
-
-      if (!validation.success) {
-        return res.status(400).json({
-          success: false,
-          message: validation.error
-        });
-      }
-
-      const connection = await db.getConnection();
-      await connection.beginTransaction();
-
-      try {
-        // 更新工单状态为待确认，清除师傅信息
-        await connection.query(
-          `UPDATE work_orders 
-           SET status = ?,
-               worker_id = NULL,
-               estimated_time = NULL,
-               reject_reason = ?,
-               rejected_at = CURRENT_TIMESTAMP,
-               updated_at = CURRENT_TIMESTAMP
-           WHERE id = ?`,
-          [OrderStateMachine.STATUS.PENDING, reason, id]
-        );
-
-        // 增加师傅的拒单次数
-        await connection.query(
-          'UPDATE users SET reject_count = reject_count + 1 WHERE id = ?',
-          [workerId]
-        );
-
-        await connection.commit();
-
-        // 异步：通知管理员师傅拒单
-        NotificationService.notifyAdminOrderRejected(id, reason).catch(() => {});
-        logOperation({
-          user_id: workerId,
-          order_id: id,
-          action: 'reject',
-          detail: `师傅拒单：${reason}`,
-          ip: req.ip
-        });
-
-        res.json({
-          success: true,
-          message: '已拒绝工单'
-        });
-      } catch (error) {
-        await connection.rollback();
-        throw error;
-      } finally {
-        connection.release();
-      }
+      const id = req.params.id;
+      const result = await Workflow.transition(id, req.user, 'reject', req.body || {});
+      NotificationService.notifyAdminOrderRejected(id, req.body.reason, req.user.nickname).catch(() => {});
+      logOperation({ user_id: req.user.id, order_id: id, action: 'reject', detail: '已拒绝工单', ip: req.ip });
+      res.json({ success: true, message: '已拒绝工单', data: { final_price: result.final_price } });
     } catch (error) {
-      console.error('拒绝工单失败:', error);
-      res.status(500).json({
-        success: false,
-        message: '拒绝工单失败'
-      });
+      res.status(error.status || 500).json({ success: false, message: error.status ? error.message : '操作失败，请重试' });
     }
   }
 
@@ -303,69 +168,13 @@ class WorkerController {
    */
   static async startOrder(req, res) {
     try {
-      const { id } = req.params;
-      const workerId = req.user.id;
-
-      // 查询工单
-      const [orders] = await db.query(
-        'SELECT * FROM work_orders WHERE id = ? AND worker_id = ?',
-        [id, workerId]
-      );
-
-      if (orders.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: '工单不存在或无权访问'
-        });
-      }
-
-      const order = orders[0];
-
-      // 验证状态转换
-      const validation = OrderStateMachine.validate(
-        order.status,
-        OrderStateMachine.ACTION.START,
-        OrderStateMachine.ROLE.WORKER
-      );
-
-      if (!validation.success) {
-        return res.status(400).json({
-          success: false,
-          message: validation.error
-        });
-      }
-
-      // 更新工单状态
-      await db.query(
-        `UPDATE work_orders 
-         SET status = ?,
-             started_at = CURRENT_TIMESTAMP,
-             is_exception = 0,
-             updated_at = CURRENT_TIMESTAMP
-         WHERE id = ?`,
-        [validation.nextStatus, id]
-      );
-
-      // 异步：通知客户开始施工 + 记录日志
+      const id = req.params.id;
+      const result = await Workflow.transition(id, req.user, 'start', req.body || {});
       NotificationService.notifyCustomerWorkStarted(id).catch(() => {});
-      logOperation({
-        user_id: workerId,
-        order_id: id,
-        action: 'start',
-        detail: '师傅开始施工',
-        ip: req.ip
-      });
-
-      res.json({
-        success: true,
-        message: '已开始施工'
-      });
+      logOperation({ user_id: req.user.id, order_id: id, action: 'start', detail: '已开始施工', ip: req.ip });
+      res.json({ success: true, message: '已开始施工', data: { final_price: result.final_price } });
     } catch (error) {
-      console.error('开始施工失败:', error);
-      res.status(500).json({
-        success: false,
-        message: '开始施工失败'
-      });
+      res.status(error.status || 500).json({ success: false, message: error.status ? error.message : '操作失败，请重试' });
     }
   }
 
@@ -375,95 +184,13 @@ class WorkerController {
    */
   static async completeOrder(req, res) {
     try {
-      const { id } = req.params;
-      const { door_fee, material_fee, labor_fee } = req.body;
-      const workerId = req.user.id;
-
-      // 验证必填字段
-      if (door_fee === undefined || material_fee === undefined || labor_fee === undefined) {
-        return res.status(400).json({
-          success: false,
-          message: '请填写完整的价格信息（上门费、材料费、工时费）'
-        });
-      }
-
-      // 验证价格为非负数
-      if (door_fee < 0 || material_fee < 0 || labor_fee < 0) {
-        return res.status(400).json({
-          success: false,
-          message: '价格不能为负数'
-        });
-      }
-
-      // 查询工单
-      const [orders] = await db.query(
-        'SELECT * FROM work_orders WHERE id = ? AND worker_id = ?',
-        [id, workerId]
-      );
-
-      if (orders.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: '工单不存在或无权访问'
-        });
-      }
-
-      const order = orders[0];
-
-      // 验证状态转换
-      const validation = OrderStateMachine.validate(
-        order.status,
-        OrderStateMachine.ACTION.COMPLETE,
-        OrderStateMachine.ROLE.WORKER
-      );
-
-      if (!validation.success) {
-        return res.status(400).json({
-          success: false,
-          message: validation.error
-        });
-      }
-
-      // 计算最终价格
-      const finalPrice = parseFloat(door_fee) + parseFloat(material_fee) + parseFloat(labor_fee);
-
-      // 更新工单
-      await db.query(
-        `UPDATE work_orders 
-         SET status = ?,
-             door_fee = ?,
-             material_fee = ?,
-             labor_fee = ?,
-             final_price = ?,
-             completed_at = CURRENT_TIMESTAMP,
-             updated_at = CURRENT_TIMESTAMP
-         WHERE id = ?`,
-        [validation.nextStatus, door_fee, material_fee, labor_fee, finalPrice, id]
-      );
-
-      // 异步：通知客户完工 + 记录日志
+      const id = req.params.id;
+      const result = await Workflow.transition(id, req.user, 'complete', req.body || {});
       NotificationService.notifyCustomerWorkCompleted(id).catch(() => {});
-      logOperation({
-        user_id: workerId,
-        order_id: id,
-        action: 'complete',
-        detail: `师傅完工填价：合计 ¥${finalPrice}`,
-        ip: req.ip
-      });
-
-      res.json({
-        success: true,
-        message: '已完工',
-        data: {
-          final_price: finalPrice
-        }
-      });
+      logOperation({ user_id: req.user.id, order_id: id, action: 'complete', detail: '已完工，等待验收', ip: req.ip });
+      res.json({ success: true, message: '已完工，等待验收', data: { final_price: result.final_price } });
     } catch (error) {
-      console.error('完工失败:', error);
-      res.status(500).json({
-        success: false,
-        message: '完工失败'
-      });
+      res.status(error.status || 500).json({ success: false, message: error.status ? error.message : '操作失败，请重试' });
     }
   }
 

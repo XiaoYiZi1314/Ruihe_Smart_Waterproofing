@@ -54,16 +54,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16rpx;
   margin-top: 12rpx;
 }
 
 .rh-svc__price {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: var(--color-red);
   font-size: 26rpx;
   font-weight: 700;
 }
 
 .rh-svc__unit {
+  display: block;
   font-size: 20rpx;
   font-weight: 400;
   margin-left: 4rpx;

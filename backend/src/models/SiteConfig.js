@@ -89,10 +89,18 @@ class SiteConfig {
   static async getPublicConfigs() {
     const configs = await this.getAll();
 
+    const oldContact = configs.contact_info || {};
+    const join = configs.join_info || {};
+    const hours = configs.contact_hours ?? oldContact.hours ?? oldContact.business_hours ?? '';
+    const subscription_templates = {};
+    for (const [key, value] of Object.entries(process.env)) {
+      if (key.startsWith('WECHAT_TEMPLATE_') && value) subscription_templates[key.slice(16).toLowerCase()] = value;
+    }
     return {
-      contact_info: configs.contact_info || null,
+      contact_info: { ...oldContact, phone: configs.contact_phone ?? oldContact.phone ?? '', mobile: configs.contact_phone ?? oldContact.mobile ?? oldContact.phone ?? '', address: configs.contact_address ?? oldContact.address ?? '', hours, business_hours: hours, wechat: configs.contact_wechat ?? oldContact.wechat ?? '' },
       about_us: configs.about_us || '',
-      join_info: configs.join_info || null
+      join_info: { ...join, phone: join.join_phone ?? join.phone ?? '', partners: join.partners ?? '', description: join.brand_intro ?? join.description ?? join.content ?? '' },
+      subscription_templates
     };
   }
 }

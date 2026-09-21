@@ -33,13 +33,17 @@ async function authMiddleware(req, res, next) {
       });
     }
 
-    if (user.status !== 'active') {
+    if (user.status !== 'active' || Number(decoded.tokenVersion || 0) !== Number(user.token_version || 0)) {
       return res.status(401).json({
         success: false,
         message: '用户已被禁用'
       });
     }
 
+    if (user.role === 'worker' && user.must_change_password &&
+        !['/api/auth/me', '/api/auth/change-password', '/api/auth/bind-wechat'].includes(req.originalUrl.split('?')[0])) {
+      return res.status(403).json({ success: false, code: 'PASSWORD_CHANGE_REQUIRED', message: '请先修改初始密码' });
+    }
     // 将用户信息挂载到请求对象上
     req.user = user;
     next();

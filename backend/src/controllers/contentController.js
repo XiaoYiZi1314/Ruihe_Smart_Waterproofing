@@ -661,6 +661,7 @@ class ContentController {
         'contact_phone',
         'contact_address',
         'contact_hours',
+        'contact_wechat',
         'about_us',
         'join_info'
       ];
@@ -682,7 +683,7 @@ class ContentController {
           await connection.query(
             `INSERT INTO site_config (config_key, config_value, config_type, description)
              VALUES (?, ?, ?, ?)
-             ON DUPLICATE KEY UPDATE config_value = VALUES(config_value)`,
+             ON DUPLICATE KEY UPDATE config_value = VALUES(config_value), config_type = VALUES(config_type)`,
             [key, stringValue, isJson ? 'json' : 'text', KEY_DESCRIPTIONS[key] || key]
           );
         }
@@ -747,6 +748,7 @@ const KEY_DESCRIPTIONS = {
   contact_phone: '联系电话',
   contact_address: '联系地址',
   contact_hours: '营业时间',
+  contact_wechat: '联系微信',
   about_us: '关于我们',
   join_info: '加盟信息'
 };

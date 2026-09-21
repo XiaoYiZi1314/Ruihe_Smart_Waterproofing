@@ -1,5 +1,6 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { io } from 'socket.io-client';
+import api from '../api';
 import { ElNotification } from 'element-plus';
 
 // 全局通知状态（模块级单例）
@@ -28,6 +29,8 @@ export function useRealtimeNotify() {
     socket.on('connect', () => {
       connected.value = true;
       console.log('[WS] 实时通知已连接');
+      loadHistory();
+      window.dispatchEvent(new CustomEvent('ruihe:orders-changed'));
     });
 
     socket.on('disconnect', () => {
@@ -42,10 +45,13 @@ export function useRealtimeNotify() {
     // 管理员通知
     socket.on('admin:notify', ({ event, payload }) => {
       addNotification(event, payload);
+      window.dispatchEvent(new CustomEvent('ruihe:orders-changed'));
+      if (event === 'order_urged') loadHistory();
     });
 
     // 工单状态变更
     socket.on('order:changed', (data) => {
+      window.dispatchEvent(new CustomEvent('ruihe:orders-changed'));
       addNotification('order_changed', {
         title: '工单状态更新',
         content: `工单 #${data.order_id} 状态变更为 ${data.status || ''}`
@@ -84,6 +90,7 @@ export function useRealtimeNotify() {
 
     // 弹出桌面通知
     const typeMap = {
+      order_urged: 'warning',
       new_order: 'success',
       order_rejected: 'warning',
       price_dispute: 'warning',
@@ -101,9 +108,25 @@ export function useRealtimeNotify() {
     });
   }
 
-  function markAllRead() {
-    notifications.value.forEach((n) => (n.read = true));
-    unreadCount.value = 0;
+  async function loadHistory() {
+    try {
+      const res = await api.get('/notifications');
+      const history = (res.data || []).map(item => ({
+        ...item, read: !!item.is_read, persisted: true,
+        time: new Date(item.created_at).toLocaleString('zh-CN')
+      }));
+      const transient = notifications.value.filter(item => !item.persisted && item.event !== 'order_urged');
+      notifications.value = [...transient, ...history].slice(0, MAX_NOTIFICATIONS);
+      unreadCount.value = notifications.value.filter(item => !item.read).length;
+    } catch (error) { /* API interceptor reports errors */ }
+  }
+
+  async function markAllRead() {
+    try {
+      await Promise.all(notifications.value.filter(item => item.persisted && !item.read).map(item => api.put(`/notifications/${item.id}/read`)));
+      notifications.value.forEach((n) => (n.read = true));
+      unreadCount.value = 0;
+    } catch (error) { /* retain unread state if persistence fails */ }
   }
 
   function clearAll() {
@@ -111,9 +134,11 @@ export function useRealtimeNotify() {
     unreadCount.value = 0;
   }
 
-  onMounted(connect);
+  onMounted(() => { connect(); loadHistory(); });
   onBeforeUnmount(() => {
-    // 注意：组件卸载不主动断开，保持全局连接
+    disconnect();
+    notifications.value = [];
+    unreadCount.value = 0;
   });
 
   return {

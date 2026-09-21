@@ -15,6 +15,7 @@ const STATUS_MAP = {
     tagClass: 'confirmed',
     desc: '工单已确认，师傅将按预约时间上门',
     actions: [
+      { key: 'cancel', text: '取消预约', variant: 'line' },
       { key: 'callMaster', text: '联系师傅', variant: 'line' },
       { key: 'urge', text: '催单', variant: 'line' }
     ]
@@ -25,8 +26,7 @@ const STATUS_MAP = {
     tagClass: 'doing',
     desc: '师傅正在现场施工，请您耐心等待',
     actions: [
-      { key: 'callMaster', text: '联系师傅', variant: 'line' },
-      { key: 'urge', text: '催单', variant: 'line' }
+      { key: 'callMaster', text: '联系师傅', variant: 'line' }
     ]
   },
   waiting_acceptance: {
@@ -103,7 +103,14 @@ function getStatusText(status) {
   return getStatusMeta(status).text;
 }
 
+function getOrderActions(order) {
+  return getStatusMeta(order.status).actions.filter(action =>
+    !(action.key === 'dispute' && order.price_adjusted_at) &&
+    !(action.key === 'review' && (order.review_submitted_at || order.review)));
+}
+
 module.exports = {
+  getOrderActions,
   STATUS_MAP,
   getStatusMeta,
   getStatusText

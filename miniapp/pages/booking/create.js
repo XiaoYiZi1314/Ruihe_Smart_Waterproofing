@@ -1,3 +1,4 @@
+const notifications = require('../../utils/notifications');
 const api = require('../../utils/api');
 const theme = require('../../utils/theme');
 const { upload } = require('../../utils/request');
@@ -57,6 +58,7 @@ Page({
       dateOptions,
       dateValue: dateOptions[0].value
     });
+    notifications.loadConfig();
     this.loadService(serviceId);
     this.loadDefaultAddress();
   },
@@ -183,8 +185,9 @@ Page({
   },
 
   async onSubmit() {
-    if (!this.validateForm()) return;
-
+    if (!this.validateForm() || this.submitting) return;
+    this.submitting = true;
+    await notifications.subscribe(['customer_assigned','work_completed','price_adjusted']);
     wx.showLoading({ title: '提交中...', mask: true });
 
     try {
@@ -239,6 +242,7 @@ Page({
       console.error('提交预约失败:', error);
       wx.showToast({ title: error.message || '提交失败', icon: 'none' });
     } finally {
+      this.submitting = false;
       wx.hideLoading();
     }
   }

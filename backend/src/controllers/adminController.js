@@ -1,3 +1,4 @@
+const Workflow = require('../utils/orderWorkflow');
 /**
  * 管理员控制器
  * 处理工单管理、师傅管理、数据统计等管理员操作
@@ -30,40 +31,13 @@ class AdminController {
       const offset = (page - 1) * limit;
       
       // 构建查询条件
-      let whereClause = '1=1';
-      const params = [];
-
-      if (status) {
-        whereClause += ' AND wo.status = ?';
-        params.push(status);
-      }
-
-      if (worker_id) {
-        whereClause += ' AND wo.worker_id = ?';
-        params.push(worker_id);
-      }
-
-      if (start_date) {
-        whereClause += ' AND DATE(wo.created_at) >= ?';
-        params.push(start_date);
-      }
-
-      if (end_date) {
-        whereClause += ' AND DATE(wo.created_at) <= ?';
-        params.push(end_date);
-      }
-
-      if (keyword) {
-        whereClause += ' AND (wo.order_no LIKE ? OR wo.contact_name LIKE ? OR wo.contact_phone LIKE ?)';
-        const likeKeyword = `%${keyword}%`;
-        params.push(likeKeyword, likeKeyword, likeKeyword);
-      }
+      const { whereClause, params } = require('../utils/orderFilter').orderFilter(req.query);
 
       // 查询工单列表
       const [orders] = await db.query(
         `SELECT 
           wo.*,
-          c.nickname as customer_name,
+          wo.contact_name as customer_name,
           c.phone as customer_phone,
           w.nickname as worker_name,
           w.phone as worker_phone,
@@ -117,7 +91,7 @@ class AdminController {
       const [orders] = await db.query(
         `SELECT 
           wo.*,
-          c.nickname as customer_name,
+          wo.contact_name as customer_name,
           c.phone as customer_phone,
           c.avatar_url as customer_avatar,
           w.nickname as worker_name,
@@ -156,6 +130,7 @@ class AdminController {
       );
       order.review = reviews.length > 0 ? reviews[0] : null;
 
+      require('../utils/attachments').presentOrder(order);
       res.json({
         success: true,
         data: order
@@ -175,118 +150,13 @@ class AdminController {
    */
   static async assignOrder(req, res) {
     try {
-      const { id } = req.params;
-      const { worker_id, estimated_time } = req.body;
-
-      // 验证必填字段
-      if (!worker_id || !estimated_time) {
-        return res.status(400).json({
-          success: false,
-          message: '请选择师傅并填写预计上门时间'
-        });
-      }
-
-      // 查询工单
-      const [orders] = await db.query(
-        'SELECT * FROM work_orders WHERE id = ?',
-        [id]
-      );
-
-      if (orders.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: '工单不存在'
-        });
-      }
-
-      const order = orders[0];
-
-      // 验证状态转换
-      const validation = OrderStateMachine.validate(
-        order.status,
-        OrderStateMachine.ACTION.ASSIGN,
-        OrderStateMachine.ROLE.ADMIN
-      );
-
-      if (!validation.success) {
-        return res.status(400).json({
-          success: false,
-          message: validation.error
-        });
-      }
-
-      // 查询师傅信息
-      const [workers] = await db.query(
-        "SELECT * FROM users WHERE id = ? AND role = 'worker'",
-        [worker_id]
-      );
-
-      if (workers.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: '师傅不存在'
-        });
-      }
-
-      const worker = workers[0];
-
-      // 检查师傅状态
-      if (worker.worker_status === 'resting') {
-        return res.status(400).json({
-          success: false,
-          message: '该师傅当前处于休息状态，无法接单'
-        });
-      }
-
-      const connection = await db.getConnection();
-      await connection.beginTransaction();
-
-      try {
-        // 更新工单
-        await connection.query(
-          `UPDATE work_orders 
-           SET status = ?,
-               worker_id = ?,
-               estimated_time = ?,
-               updated_at = CURRENT_TIMESTAMP
-           WHERE id = ?`,
-          [validation.nextStatus, worker_id, estimated_time, id]
-        );
-
-        // 增加师傅的指派次数
-        await connection.query(
-          'UPDATE users SET assign_count = assign_count + 1 WHERE id = ?',
-          [worker_id]
-        );
-
-        await connection.commit();
-
-        // 异步：通知师傅和客户 + 记录日志
-        NotificationService.notifyOrderAssigned(id).catch(() => {});
-        logOperation({
-          user_id: req.user.id,
-          order_id: id,
-          action: 'assign',
-          detail: `指派给师傅：${worker.nickname}，预计上门：${estimated_time}`,
-          ip: req.ip
-        });
-
-        res.json({
-          success: true,
-          message: '工单已指派'
-        });
-      } catch (error) {
-        await connection.rollback();
-        throw error;
-      } finally {
-        connection.release();
-      }
+      const id = req.params.id;
+      const result = await Workflow.transition(id, req.user, 'assign', req.body || {});
+      NotificationService.notifyOrderAssigned(id).catch(() => {});
+      logOperation({ user_id: req.user.id, order_id: id, action: 'assign', detail: '工单已指派', ip: req.ip });
+      res.json({ success: true, message: '工单已指派', data: { final_price: result.final_price } });
     } catch (error) {
-      console.error('指派工单失败:', error);
-      res.status(500).json({
-        success: false,
-        message: '指派工单失败'
-      });
+      res.status(error.status || 500).json({ success: false, message: error.status ? error.message : '操作失败，请重试' });
     }
   }
 
@@ -296,94 +166,13 @@ class AdminController {
    */
   static async adjustPrice(req, res) {
     try {
-      const { id } = req.params;
-      const { door_fee, material_fee, labor_fee } = req.body;
-
-      // 验证必填字段
-      if (door_fee === undefined || material_fee === undefined || labor_fee === undefined) {
-        return res.status(400).json({
-          success: false,
-          message: '请填写完整的价格信息'
-        });
-      }
-
-      // 验证价格为非负数
-      if (door_fee < 0 || material_fee < 0 || labor_fee < 0) {
-        return res.status(400).json({
-          success: false,
-          message: '价格不能为负数'
-        });
-      }
-
-      // 查询工单
-      const [orders] = await db.query(
-        'SELECT * FROM work_orders WHERE id = ?',
-        [id]
-      );
-
-      if (orders.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: '工单不存在'
-        });
-      }
-
-      const order = orders[0];
-
-      // 验证状态
-      const validation = OrderStateMachine.validate(
-        order.status,
-        OrderStateMachine.ACTION.ADJUST_PRICE,
-        OrderStateMachine.ROLE.ADMIN
-      );
-
-      if (!validation.success) {
-        return res.status(400).json({
-          success: false,
-          message: validation.error
-        });
-      }
-
-      // 计算最终价格
-      const finalPrice = parseFloat(door_fee) + parseFloat(material_fee) + parseFloat(labor_fee);
-
-      // 更新工单
-      await db.query(
-        `UPDATE work_orders 
-         SET status = ?,
-             door_fee = ?,
-             material_fee = ?,
-             labor_fee = ?,
-             final_price = ?,
-             price_adjusted_at = CURRENT_TIMESTAMP,
-             updated_at = CURRENT_TIMESTAMP
-         WHERE id = ?`,
-        [validation.nextStatus, door_fee, material_fee, labor_fee, finalPrice, id]
-      );
-
-      // 异步：通知客户价格调整 + 记录日志
+      const id = req.params.id;
+      const result = await Workflow.transition(id, req.user, 'adjust_price', req.body || {});
       NotificationService.notifyCustomerPriceAdjusted(id).catch(() => {});
-      logOperation({
-        user_id: req.user.id,
-        order_id: id,
-        action: 'adjust_price',
-        detail: `管理员调整价格：合计 ¥${finalPrice}`,
-        ip: req.ip
-      });
-
-      res.json({
-        success: true,
-        message: '价格已调整',
-        data: {
-          final_price: finalPrice
-        }
-      });
+      logOperation({ user_id: req.user.id, order_id: id, action: 'adjust_price', detail: '价格已调整', ip: req.ip });
+      res.json({ success: true, message: '价格已调整', data: { final_price: result.final_price } });
     } catch (error) {
-      console.error('调整价格失败:', error);
-      res.status(500).json({
-        success: false,
-        message: '调整价格失败'
-      });
+      res.status(error.status || 500).json({ success: false, message: error.status ? error.message : '操作失败，请重试' });
     }
   }
 
@@ -393,70 +182,13 @@ class AdminController {
    */
   static async cancelOrder(req, res) {
     try {
-      const { id } = req.params;
-      const { reason } = req.body;
-
-      if (!reason || reason.trim() === '') {
-        return res.status(400).json({
-          success: false,
-          message: '请填写取消原因'
-        });
-      }
-
-      // 查询工单
-      const [orders] = await db.query(
-        'SELECT * FROM work_orders WHERE id = ?',
-        [id]
-      );
-
-      if (orders.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: '工单不存在'
-        });
-      }
-
-      const order = orders[0];
-
-      // 管理员可以取消任何非终态工单
-      if (OrderStateMachine.isFinalStatus(order.status)) {
-        return res.status(400).json({
-          success: false,
-          message: '已完成或已取消的工单无法再次取消'
-        });
-      }
-
-      // 更新工单状态
-      await db.query(
-        `UPDATE work_orders 
-         SET status = 'cancelled',
-             remark = CONCAT(IFNULL(remark, ''), '\n\n[管理员取消原因] ', ?),
-             cancelled_at = CURRENT_TIMESTAMP,
-             updated_at = CURRENT_TIMESTAMP
-         WHERE id = ?`,
-        [reason, id]
-      );
-
-      // 异步：通知师傅工单取消 + 记录日志
-      NotificationService.notifyWorkerOrderCancelled(id, `管理员取消：${reason}`).catch(() => {});
-      logOperation({
-        user_id: req.user.id,
-        order_id: id,
-        action: 'cancel',
-        detail: `管理员取消工单：${reason}`,
-        ip: req.ip
-      });
-
-      res.json({
-        success: true,
-        message: '工单已取消'
-      });
+      const id = req.params.id;
+      const result = await Workflow.transition(id, req.user, 'cancel', req.body || {});
+      NotificationService.notifyWorkerOrderCancelled(id, req.body.reason).catch(() => {});
+      logOperation({ user_id: req.user.id, order_id: id, action: 'cancel', detail: '工单已取消', ip: req.ip });
+      res.json({ success: true, message: '工单已取消', data: { final_price: result.final_price } });
     } catch (error) {
-      console.error('取消工单失败:', error);
-      res.status(500).json({
-        success: false,
-        message: '取消工单失败'
-      });
+      res.status(error.status || 500).json({ success: false, message: error.status ? error.message : '操作失败，请重试' });
     }
   }
 
@@ -472,14 +204,14 @@ class AdminController {
       // 查询师傅列表
       const [workers] = await db.query(
         `SELECT 
-          id, nickname, phone, avatar_url, worker_status,
+          id, nickname, phone, avatar_url, worker_status, status,
           reject_count, assign_count, created_at,
           CASE 
             WHEN assign_count > 0 THEN ROUND((reject_count / assign_count) * 100, 2)
             ELSE 0 
           END as reject_rate
          FROM users
-         WHERE role = 'worker'
+         WHERE role = 'worker' AND status = 'active'
          ORDER BY created_at DESC
          LIMIT ? OFFSET ?`,
         [parseInt(limit), parseInt(offset)]
@@ -487,7 +219,7 @@ class AdminController {
 
       // 查询总数
       const [countResult] = await db.query(
-        "SELECT COUNT(*) as total FROM users WHERE role = 'worker'"
+        "SELECT COUNT(*) as total FROM users WHERE role = 'worker' AND status = 'active'"
       );
 
       res.json({
@@ -519,7 +251,7 @@ class AdminController {
     try {
       const { phone, nickname, password } = req.body;
 
-      if (!phone || !nickname) {
+      if (typeof phone !== 'string' || !/^1[3-9]\d{9}$/.test(phone) || typeof nickname !== 'string' || !nickname.trim()) {
         return res.status(400).json({
           success: false,
           message: '手机号和昵称不能为空'
@@ -543,13 +275,14 @@ class AdminController {
       const openid = `worker_${phone}_${Date.now()}`;
 
       // 生成密码哈希（传入了密码则用密码，否则生成随机密码）
-      const rawPassword = password || Math.random().toString(36).slice(-8).toUpperCase();
-      const passwordHash = bcrypt.hashSync(rawPassword, 10);
+      const rawPassword = password || require('crypto').randomBytes(18).toString('base64url');
+      if (typeof rawPassword !== 'string' || rawPassword.length < 12 || Buffer.byteLength(rawPassword) > 72) return res.status(400).json({ success: false, message: '密码需12位以上，最多72字节' });
+      const passwordHash = await bcrypt.hash(rawPassword, 12);
 
       // 创建师傅账号
       const [result] = await db.query(
-        `INSERT INTO users (openid, phone, nickname, role, worker_status, username, password)
-         VALUES (?, ?, ?, 'worker', 'working', ?, ?)`,
+        `INSERT INTO users (openid, phone, nickname, role, worker_status, username, password, must_change_password)
+         VALUES (?, ?, ?, 'worker', 'working', ?, ?, 1)`,
         [openid, phone, nickname, phone, passwordHash]
       );
 
@@ -585,53 +318,10 @@ class AdminController {
    */
   static async deleteWorker(req, res) {
     try {
-      const { id } = req.params;
-
-      // 检查师傅是否有进行中的工单
-      const [orders] = await db.query(
-        `SELECT COUNT(*) as count FROM work_orders 
-         WHERE worker_id = ? AND status NOT IN ('completed', 'cancelled')`,
-        [id]
-      );
-
-      if (orders[0].count > 0) {
-        return res.status(400).json({
-          success: false,
-          message: '该师傅有进行中的工单，无法删除'
-        });
-      }
-
-      // 删除师傅（软删除，更改状态）
-      const [result] = await db.query(
-        "UPDATE users SET status = 'inactive' WHERE id = ? AND role = 'worker'",
-        [id]
-      );
-
-      if (result.affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          message: '师傅不存在'
-        });
-      }
-
-      logOperation({
-        user_id: req.user.id,
-        action: 'delete_worker',
-        detail: `删除师傅账号 ID=${id}`,
-        ip: req.ip
-      });
-
-      res.json({
-        success: true,
-        message: '师傅已删除'
-      });
-    } catch (error) {
-      console.error('删除师傅失败:', error);
-      res.status(500).json({
-        success: false,
-        message: '删除师傅失败'
-      });
-    }
+      await Workflow.deleteWorker(req.params.id);
+      logOperation({ user_id: req.user.id, action: 'delete_worker', detail: '停用师傅 ID=' + req.params.id, ip: req.ip });
+      res.json({ success: true, message: '师傅已停用' });
+    } catch (error) { res.status(error.status || 500).json({ success: false, message: error.status ? error.message : '操作失败' }); }
   }
 
   /**
@@ -668,30 +358,29 @@ class AdminController {
       // 今日数据
       const [todayStats] = await db.query(`
         SELECT 
-          COUNT(*) as new_orders,
-          SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_orders
+          SUM(DATE(created_at) = CURDATE()) as new_orders,
+          SUM(status = 'completed' AND DATE(finished_at) = CURDATE()) as completed_orders
         FROM work_orders
-        WHERE DATE(created_at) = CURDATE()
       `);
 
       // 本月数据
       const [monthStats] = await db.query(`
         SELECT 
-          COUNT(*) as new_orders,
-          SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_orders,
-          SUM(CASE WHEN status = 'completed' THEN final_price ELSE 0 END) as total_revenue
+          SUM(YEAR(created_at) = YEAR(CURDATE()) AND MONTH(created_at) = MONTH(CURDATE())) as new_orders,
+          SUM(status = 'completed' AND YEAR(finished_at) = YEAR(CURDATE()) AND MONTH(finished_at) = MONTH(CURDATE())) as completed_orders,
+          COALESCE(SUM(CASE WHEN status = 'completed' AND YEAR(finished_at) = YEAR(CURDATE()) AND MONTH(finished_at) = MONTH(CURDATE()) THEN final_price ELSE 0 END), 0) as total_revenue
         FROM work_orders
-        WHERE YEAR(created_at) = YEAR(CURDATE()) 
-        AND MONTH(created_at) = MONTH(CURDATE())
       `);
 
+      // MySQL SUM returns DECIMAL strings; the API contract exposes numeric metrics.
+      const numbers = row => Object.fromEntries(Object.entries(row).map(([key, value]) => [key, Number(value || 0)]));
       res.json({
         success: true,
         data: {
-          orders: orderStats[0],
-          workers: workerStats[0],
-          today: todayStats[0],
-          month: monthStats[0]
+          orders: numbers(orderStats[0]),
+          workers: numbers(workerStats[0]),
+          today: numbers(todayStats[0]),
+          month: numbers(monthStats[0])
         }
       });
     } catch (error) {
@@ -712,29 +401,13 @@ class AdminController {
       const { status, start_date, end_date } = req.query;
 
       // 构建查询条件
-      let whereClause = '1=1';
-      const params = [];
-
-      if (status) {
-        whereClause += ' AND wo.status = ?';
-        params.push(status);
-      }
-
-      if (start_date) {
-        whereClause += ' AND DATE(wo.created_at) >= ?';
-        params.push(start_date);
-      }
-
-      if (end_date) {
-        whereClause += ' AND DATE(wo.created_at) <= ?';
-        params.push(end_date);
-      }
+      const { whereClause, params } = require('../utils/orderFilter').orderFilter(req.query);
 
       // 查询工单数据
       const [orders] = await db.query(
         `SELECT 
           wo.order_no,
-          c.nickname as customer_name,
+          wo.contact_name as customer_name,
           wo.contact_phone,
           s.name as service_name,
           wo.full_address,
@@ -786,7 +459,7 @@ class AdminController {
       });
 
       // 设置响应头
-      const filename = `工单导出_${new Date().toISOString().split('T')[0]}.xlsx`;
+      const filename = `${new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' }).replaceAll('-', '')}.xlsx`;
       res.setHeader(
         'Content-Type',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -881,43 +554,16 @@ class AdminController {
    */
   static async getTrend(req, res) {
     try {
-      const days = Math.min(parseInt(req.query.days) || 30, 90);
-
-      const [rows] = await db.query(
-        `SELECT 
-           DATE(created_at) as date,
-           COUNT(*) as new_orders,
-           SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_orders
-         FROM work_orders
-         WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
-         GROUP BY DATE(created_at)
-         ORDER BY date ASC`,
-        [days]
-      );
-
-      // 补齐缺失日期
-      const result = [];
-      const dateMap = new Map(rows.map((r) => [String(r.date).slice(0, 10), r]));
-      for (let i = days - 1; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const key = d.toISOString().slice(0, 10);
-        const row = dateMap.get(key);
-        result.push({
-          date: key,
-          new_orders: row ? row.new_orders : 0,
-          completed_orders: row ? row.completed_orders : 0
-        });
-      }
-
-      res.json({
-        success: true,
-        data: { trend: result }
-      });
-    } catch (error) {
-      console.error('获取趋势数据失败:', error);
-      res.status(500).json({ success: false, message: '获取趋势数据失败' });
-    }
+      const days = Math.max(1, Math.min(parseInt(req.query.days) || 30, 90));
+      const [trend] = await db.query(`WITH RECURSIVE dates AS (
+        SELECT DATE_SUB(CURDATE(), INTERVAL ? DAY) AS day
+        UNION ALL SELECT DATE_ADD(day, INTERVAL 1 DAY) FROM dates WHERE day < CURDATE()
+      ) SELECT DATE_FORMAT(day, '%Y-%m-%d') AS date,
+        (SELECT COUNT(*) FROM work_orders WHERE created_at >= day AND created_at < DATE_ADD(day, INTERVAL 1 DAY)) AS new_orders,
+        (SELECT COUNT(*) FROM work_orders WHERE status='completed' AND finished_at >= day AND finished_at < DATE_ADD(day, INTERVAL 1 DAY)) AS completed_orders
+        FROM dates ORDER BY day`, [days - 1]);
+      res.json({ success: true, data: { trend } });
+    } catch (error) { res.status(500).json({ success: false, message: '获取趋势数据失败' }); }
   }
 
   /**
@@ -966,12 +612,23 @@ class AdminController {
    * 编辑师傅信息
    * PUT /api/admin/workers/:id
    */
+  static async resetWorkerPassword(req, res) {
+    try {
+      const password = require('crypto').randomBytes(18).toString('base64url');
+      const hash = await bcrypt.hash(password, 12);
+      const [result] = await db.query("UPDATE users SET password=?, must_change_password=1, token_version=token_version+1 WHERE id=? AND role='worker' AND status='active'", [hash, req.params.id]);
+      if (!result.affectedRows) return res.status(404).json({ success: false, message: '师傅不存在' });
+      logOperation({ user_id: req.user.id, action: 'reset_worker_password', detail: '重置师傅密码 ID=' + req.params.id, ip: req.ip });
+      res.json({ success: true, data: { initial_password: password } });
+    } catch (error) { res.status(500).json({ success: false, message: '重置失败' }); }
+  }
+
   static async updateWorker(req, res) {
     try {
       const { id } = req.params;
       const { nickname, phone } = req.body;
 
-      if (!nickname || !nickname.trim() || !phone) {
+      if (typeof nickname !== 'string' || !nickname.trim() || typeof phone !== 'string' || !/^1[3-9]\d{9}$/.test(phone)) {
         return res.status(400).json({ success: false, message: '姓名和手机号不能为空' });
       }
 

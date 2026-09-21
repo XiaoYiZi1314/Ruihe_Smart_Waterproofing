@@ -20,7 +20,11 @@
     />
   </rh-form-field>
 
-  <rh-form-field label="所在地区" required>
+  <rh-form-field label="地图选点">
+    <rh-button variant="line" block text="从地图选择地址" bind:tap="onChooseLocation" />
+  </rh-form-field>
+
+  <rh-form-field label="所在地区（可选）">
     <picker mode="region" value="{{region}}" bindchange="onRegionChange">
       <view class="rh-form-value">
         <text wx:if="{{region[0]}}">{{region[0]}} {{region[1]}} {{region[2]}}</text>
@@ -33,7 +37,7 @@
   <rh-form-field label="详细地址" required>
     <textarea
       class="rh-input rh-input--area"
-      placeholder="请输入详细地址（街道、门牌号等）"
+      placeholder="请输入完整地址（省市区、街道、门牌号等）"
       maxlength="200"
       value="{{form.detail_address}}"
       bindinput="onDetailInput"

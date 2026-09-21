@@ -1,58 +1,54 @@
+const session = require('./utils/session');
+const { getApiBaseUrl } = require('./utils/environment');
+
 App({
   onLaunch() {
-    // 小程序启动时执行
     console.log('瑞和防水小程序启动');
-
-    // 检查登录状态
-    const token = wx.getStorageSync('token');
-    if (token) {
-      // 验证token是否有效
-      this.checkToken();
-    }
+    this.globalData.apiBaseUrl = getApiBaseUrl();
+    this.sessionReady = this.checkToken();
   },
 
-  onShow() {
-    // 小程序显示时执行
-  },
-
-  onHide() {
-    // 小程序隐藏时执行
-  },
+  onShow() {},
+  onHide() {},
 
   checkToken() {
-    // 验证token有效性
-    wx.request({
-      url: this.globalData.apiBaseUrl + '/api/auth/me',
-      method: 'GET',
-      header: {
-        'Authorization': 'Bearer ' + wx.getStorageSync('token')
-      },
-      success: (res) => {
-        if (res.statusCode === 200 && res.data.success) {
-          this.globalData.userInfo = res.data.data;
-          // 师傅角色启动时直接进入师傅工作台
-          const curPages = getCurrentPages();
-          const curPath = curPages.length ? curPages[curPages.length - 1].route : '';
-          const inWorkerPages = curPath.indexOf('pages/worker/') === 0 || curPath === 'pages/login/login';
-          if (res.data.data.role === 'worker' && !inWorkerPages) {
-            wx.reLaunch({ url: '/pages/worker/orders/list' });
+    const snapshot = session.capture();
+    if (!snapshot.token) return Promise.resolve(false);
+    return new Promise(resolve => {
+      wx.request({
+        url: this.globalData.apiBaseUrl + '/api/auth/me',
+        method: 'GET',
+        timeout: 15000,
+        header: { Authorization: 'Bearer ' + snapshot.token },
+        success: res => {
+          // An old request must never overwrite or invalidate a newer session.
+          if (!session.isCurrent(snapshot)) return resolve(false);
+          if (res.statusCode === 200 && res.data.success) {
+            session.updateUser(res.data.data);
+            const pages = getCurrentPages();
+            const currentPath = pages.length ? pages[pages.length - 1].route : '';
+            const user = res.data.data;
+            if (user.role === 'worker' && currentPath && currentPath !== 'pages/login/login') {
+              const destination = user.must_change_password ? 'pages/worker/profile/index' : 'pages/worker/orders/list';
+              if (!currentPath.startsWith('pages/worker/') || (user.must_change_password && currentPath !== destination)) {
+                wx.reLaunch({ url: '/' + destination });
+              }
+            }
+            resolve(true);
+          } else {
+            if (res.statusCode === 401) session.clear(snapshot);
+            // Server/network errors are not proof that credentials expired.
+            resolve(false);
           }
-        } else {
-          // token无效，清除本地存储
-          wx.removeStorageSync('token');
-          wx.removeStorageSync('userInfo');
-        }
-      },
-      fail: () => {
-        wx.removeStorageSync('token');
-        wx.removeStorageSync('userInfo');
-      }
+        },
+        fail: () => resolve(false)
+      });
     });
   },
 
   globalData: {
     userInfo: null,
-    apiBaseUrl: 'https://ruihezhihui.cn',
+    apiBaseUrl: getApiBaseUrl(),
     serviceKeyword: ''
   }
 });

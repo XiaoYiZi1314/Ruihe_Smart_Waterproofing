@@ -24,7 +24,7 @@
       variant="{{item.variant}}"
       text="{{item.text}}"
       data-action="{{item.key}}"
-      bind:tap="onAction"
+      catch:tap="onAction"
     />
   </view>
 </view>

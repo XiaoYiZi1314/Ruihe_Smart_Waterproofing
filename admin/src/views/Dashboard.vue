@@ -177,11 +177,11 @@ const stats = ref({
 const pendingCount = computed(() => {
   const o = stats.value.orders || {};
   return (
-    (o.pending || 0) +
-    (o.confirmed || 0) +
-    (o.in_progress || 0) +
-    (o.pending_review || 0) +
-    (o.price_negotiating || 0)
+    Number(o.pending || 0) +
+    Number(o.confirmed || 0) +
+    Number(o.in_progress || 0) +
+    Number(o.pending_review || 0) +
+    Number(o.price_negotiating || 0)
   );
 });
 
@@ -313,15 +313,23 @@ function handleResize() {
   if (chartInstance) chartInstance.resize();
 }
 
+function refreshDashboard() {
+  loadStats();
+  loadTrend();
+  loadRanking();
+}
+
 onMounted(() => {
   loadStats();
   loadTrend();
   loadRanking();
   window.addEventListener('resize', handleResize);
+  window.addEventListener('ruihe:orders-changed', refreshDashboard);
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize);
+  window.removeEventListener('ruihe:orders-changed', refreshDashboard);
   if (chartInstance) {
     chartInstance.dispose();
     chartInstance = null;

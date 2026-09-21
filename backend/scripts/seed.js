@@ -98,30 +98,25 @@ async function seed() {
       {
         config_key: 'contact_info',
         config_value: JSON.stringify({
-          address: '深圳市南山区科技园瑞和大厦8楼',
-          phone: '0755-88889999',
-          mobile: '138-2888-9999',
-          wechat: 'ruihe_waterproof',
-          business_hours: '周一至周日 8:00-20:00',
-          email: 'service@ruihe-waterproof.com'
+          address: '',
+          phone: '',
+          mobile: '',
+          wechat: '',
+          business_hours: '',
+          email: ''
         }),
         config_type: 'json',
         description: '联系方式'
       },
       {
         config_key: 'about_us',
-        config_value: '瑞和防水成立于2010年，是一家专业从事建筑防水工程的企业。公司拥有国家防水防腐保温工程专业承包资质，技术力量雄厚，施工经验丰富。\n\n我们专注于各类防水工程施工，包括屋面防水、地下室防水、卫生间防水、外墙防水等。采用国内外优质防水材料，严格按照国家标准施工，为客户提供优质、高效、专业的防水服务。\n\n公司秉承"质量第一，信誉至上"的经营理念，以专业的技术、优质的服务赢得了广大客户的信赖和好评。我们承诺：所有防水工程质保3-5年，让您无后顾之忧。',
+        config_value: '',
         config_type: 'text',
         description: '关于我们'
       },
       {
         config_key: 'join_info',
-        config_value: JSON.stringify({
-          title: '诚邀加盟合作',
-          content: '瑞和防水现面向全国诚招加盟合作伙伴！\n\n加盟优势：\n• 品牌支持：统一品牌形象，共享品牌价值\n• 技术支持：免费技术培训，持续技术指导\n• 材料支持：厂家直供优质材料，价格优惠\n• 运营支持：提供运营管理经验，助力快速盈利\n\n加盟条件：\n• 认同瑞和防水的企业文化和经营理念\n• 具有一定的资金实力和市场运作能力\n• 有固定的经营场所和施工团队\n• 愿意接受公司的统一管理和培训',
-          phone: '400-888-9999',
-          wechat: 'ruihe_join'
-        }),
+        config_value: JSON.stringify(require('../data/confirmed-join-info.json')),
         config_type: 'json',
         description: '加盟信息'
       }

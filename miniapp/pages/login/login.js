@@ -1,6 +1,7 @@
 const auth = require('../../utils/auth');
 const request = require('../../utils/request');
 const app = getApp();
+const session = require('../../utils/session');
 
 Page({
   data: {
@@ -12,12 +13,18 @@ Page({
     workerLoading: false
   },
 
-  onLoad() {
+  onLoad(options = {}) {
+    if (options.mode === 'worker') this.setData({ mode: 'worker' });
     // 检查是否已登录
     if (auth.checkLogin()) {
-      this.routeByRole();
+      const snapshot = session.capture();
+      Promise.resolve(app.sessionReady).then(() => {
+        if (!this._unloaded && session.isCurrent(snapshot) && auth.checkLogin()) this.routeByRole();
+      });
     }
   },
+
+  onUnload() { this._unloaded = true; },
 
   /**
    * 按角色路由
@@ -25,7 +32,7 @@ Page({
   routeByRole() {
     const userInfo = wx.getStorageSync('userInfo') || {};
     if (userInfo.role === 'worker') {
-      wx.reLaunch({ url: '/pages/worker/orders/list' });
+      wx.reLaunch({ url: userInfo.must_change_password ? '/pages/worker/profile/index' : '/pages/worker/orders/list' });
     } else {
       wx.reLaunch({ url: '/pages/index/index' });
     }
@@ -61,19 +68,21 @@ Page({
     this.setData({ workerLoading: true });
 
     try {
+      await app.sessionReady;
+      if (this._unloaded) return;
       const res = await request.post('/api/auth/worker-login', {
         phone: workerPhone,
         password: workerPassword
       });
 
       if (res.success && res.data) {
-        wx.setStorageSync('token', res.data.token);
-        wx.setStorageSync('userInfo', res.data.user);
-        app.globalData.userInfo = res.data.user;
+        session.save(res.data.token, res.data.user);
 
+        const snapshot = session.capture();
         wx.showToast({ title: '登录成功', icon: 'success' });
         setTimeout(() => {
-          wx.reLaunch({ url: '/pages/worker/orders/list' });
+          if (this._unloaded || !session.isCurrent(snapshot)) return;
+          wx.reLaunch({ url: res.data.user.must_change_password ? '/pages/worker/profile/index' : '/pages/worker/orders/list' });
         }, 1200);
       }
     } catch (error) {
@@ -87,6 +96,7 @@ Page({
    * 客户微信登录
    */
   onGetUserProfile() {
+    if (this.data.loading) return;
     const that = this;
 
     wx.getUserProfile({
@@ -94,18 +104,18 @@ Page({
       success: (res) => {
         that.setData({ loading: true });
 
-        auth.login(res.userInfo)
+        Promise.resolve(app.sessionReady)
+          .then(() => {
+            if (that._unloaded) throw new Error('登录页面已关闭');
+            return auth.login(res.userInfo);
+          })
           .then((loginRes) => {
             // worker 角色走师傅工作台，其余走客户端
-            const role = loginRes.user && loginRes.user.role;
+            const snapshot = session.capture();
             wx.showToast({ title: '登录成功', icon: 'success', duration: 1200 });
 
             setTimeout(() => {
-              if (role === 'worker') {
-                wx.reLaunch({ url: '/pages/worker/orders/list' });
-              } else {
-                wx.reLaunch({ url: '/pages/index/index' });
-              }
+              if (!that._unloaded && session.isCurrent(snapshot)) that.routeByRole();
             }, 1200);
           })
           .catch((err) => {

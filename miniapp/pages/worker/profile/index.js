@@ -1,91 +1,59 @@
+const session = require('../../../utils/session');
 const api = require('../../../utils/request');
-
-const app = getApp();
-
+const notifications = require('../../../utils/notifications');
 Page({
-  data: {
-    userInfo: null,
-    stats: null,
-    statusChanging: false
-  },
-
-  onShow() {
-    // 角色防护：非师傅用户不能进入
-    const userInfo = wx.getStorageSync('userInfo') || {};
-    if (!wx.getStorageSync('token') || userInfo.role !== 'worker') {
-      wx.reLaunch({ url: '/pages/login/login' });
-      return;
-    }
-    this.loadStats();
-  },
-
-  /**
-   * 加载统计信息
-   */
-  async loadStats() {
+  data: { userInfo: null, stats: null, submitting: false, currentPassword: '', newPassword: '' },
+  async onShow() {
+    const user = wx.getStorageSync('userInfo') || {};
+    if (!wx.getStorageSync('token') || user.role !== 'worker') return wx.reLaunch({ url: '/pages/login/login' });
+    notifications.loadConfig();
     try {
-      const res = await api.get('/api/worker/stats');
-      const stats = (res && res.data) || null;
-      this.setData({ stats });
-    } catch (error) {
-      console.error('加载统计失败:', error);
-    }
+      const res = await api.get('/api/auth/me');
+      this.setData({ userInfo: res.data }); wx.setStorageSync('userInfo', res.data);
+      if (!res.data.must_change_password) await this.loadStats();
+    } catch (error) { /* request handles authentication errors */ }
   },
-
-  /**
-   * 切换工作状态
-   */
+  async loadStats() { const res = await api.get('/api/worker/stats'); this.setData({ stats: res.data }); },
+  onCurrentPassword(e) { this.setData({ currentPassword: e.detail.value }); },
+  onNewPassword(e) { this.setData({ newPassword: e.detail.value }); },
+  async changePassword() {
+    if (this.data.submitting) return;
+    this.setData({ submitting: true });
+    try {
+      const res = await api.post('/api/auth/change-password', { current_password: this.data.currentPassword, new_password: this.data.newPassword });
+      session.save(res.data.token, res.data.user);
+      this.setData({ userInfo: res.data.user, currentPassword: '', newPassword: '' });
+      await this.loadStats(); wx.showToast({ title: '密码已修改' });
+    } catch (error) { /* request displays the error */ }
+    finally { this.setData({ submitting: false }); }
+  },
+  async bindWechat() {
+    if (this.data.submitting) return;
+    this.setData({ submitting: true });
+    try {
+      const login = await new Promise((resolve, reject) => wx.login({ success: resolve, fail: reject }));
+      await api.post('/api/auth/bind-wechat', { code: login.code });
+      this.setData({ 'userInfo.wechat_bound': true }); wx.showToast({ title: '微信已绑定' });
+    } catch (error) { wx.showToast({ title: error.message || '绑定失败', icon: 'none' }); }
+    finally { this.setData({ submitting: false }); }
+  },
+  async subscribe() {
+    const result = await notifications.subscribe(['worker_assigned','order_urged','order_cancelled']);
+    if (!result) wx.showToast({ title: '暂不可订阅，请查看站内消息', icon: 'none' });
+  },
   async toggleStatus() {
-    if (this.data.statusChanging || !this.data.stats) return;
-
-    const current = this.data.stats.worker_status;
-    const next = current === 'working' ? 'resting' : 'working';
-    const tip = next === 'resting' ? '休息状态下不会接收到新工单指派' : '切换后可正常接收工单指派';
-
-    const confirmRes = await new Promise((resolve) => {
-      wx.showModal({
-        title: next === 'resting' ? '切换为休息' : '切换为上班',
-        content: tip,
-        confirmText: '确认切换',
-        success: resolve
-      });
-    });
-
-    if (!confirmRes.confirm) return;
-
-    this.setData({ statusChanging: true });
-
+    if (this.data.submitting || !this.data.stats) return;
+    this.setData({ submitting: true });
     try {
-      await api.put('/api/worker/status', { status: next });
-      wx.showToast({ title: '已切换', icon: 'success' });
-      this.loadStats();
-    } catch (error) {
-      console.error('切换状态失败:', error);
-    } finally {
-      this.setData({ statusChanging: false });
-    }
+      await api.put('/api/worker/status', { status: this.data.stats.worker_status === 'working' ? 'resting' : 'working' });
+      await this.loadStats();
+    } catch (error) { /* request displays the error */ }
+    finally { this.setData({ submitting: false }); }
   },
-
-  /**
-   * 退出登录
-   */
-  async handleLogout() {
-    const confirmRes = await new Promise((resolve) => {
-      wx.showModal({
-        title: '退出登录',
-        content: '确定要退出当前账号吗？',
-        confirmText: '退出',
-        confirmColor: '#EF4444',
-        success: resolve
-      });
-    });
-
-    if (!confirmRes.confirm) return;
-
-    wx.removeStorageSync('token');
-    wx.removeStorageSync('userInfo');
-    app.globalData.token = null;
-    app.globalData.userInfo = null;
+  goOrders() { wx.reLaunch({ url: '/pages/worker/orders/list' }); },
+  goMessages() { wx.navigateTo({ url: '/pages/notifications/list' }); },
+  handleLogout() {
+    session.clear();
     wx.reLaunch({ url: '/pages/login/login' });
   }
 });

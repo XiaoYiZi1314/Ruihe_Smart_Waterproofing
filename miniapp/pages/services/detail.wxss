@@ -21,6 +21,19 @@
   justify-content: center;
 }
 
+.banner-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 56rpx 120rpx 28rpx 32rpx;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  color: var(--color-surface);
+  font-size: 36rpx;
+  font-weight: 600;
+  pointer-events: none;
+}
+
 .banner-indicator {
   position: absolute;
   right: 24rpx;
