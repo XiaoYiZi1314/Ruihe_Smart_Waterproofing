@@ -177,6 +177,9 @@
           <el-descriptions-item v-if="currentOrder.review" label="客户评价">
             <div>态度 {{ currentOrder.review.service_attitude_score }} / 质量 {{ currentOrder.review.quality_score }} / 收费 {{ currentOrder.review.price_score }}</div>
             <div>{{ currentOrder.review.comment }}</div>
+            <div v-if="(currentOrder.review.images || []).length" style="margin-top:4px">
+              <el-image v-for="image in currentOrder.review.images" :key="image.id" :src="image.image_url" :preview-src-list="currentOrder.review.images.map(i => i.image_url)" preview-teleported style="width:90px;height:90px;margin:4px" fit="cover" />
+            </div>
             <video v-if="currentOrder.review.video_url" :src="currentOrder.review.video_url" controls style="width:100%" />
           </el-descriptions-item>
           <el-descriptions-item label="拒单理由" v-if="currentOrder.reject_reason">

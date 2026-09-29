@@ -28,7 +28,22 @@ async function assertOwned(connection, userId, urls, kind = 'image') {
 function presentOrder(order) {
   if (order.images) order.images = order.images.map(image => ({ ...image, image_url: signUrl(image.image_url) }));
   if (order.review && order.review.video_url) order.review.video_url = signUrl(order.review.video_url);
+  if (order.review && Array.isArray(order.review.images)) order.review.images = order.review.images.map(image => ({ ...image, image_url: signUrl(image.image_url) }));
   return order;
+}
+// 批量读取评价图片，返回 { [reviewId]: [{ id, image_url }] }（地址未签名，展示前需 signUrl）
+async function loadReviewImages(reviewIds) {
+  const ids = (reviewIds || []).filter(id => id != null);
+  const result = {};
+  if (!ids.length) return result;
+  try {
+    const [rows] = await db.query('SELECT id, review_id, image_url FROM review_images WHERE review_id IN (?) ORDER BY review_id ASC, sort_order ASC', [ids]);
+    for (const row of rows) (result[row.review_id] = result[row.review_id] || []).push({ id: row.id, image_url: row.image_url });
+  } catch (error) {
+    // 迁移尚未执行时表不存在：按“没有图片”处理，不影响评价和工单详情本身
+    if (error.code !== 'ER_NO_SUCH_TABLE') throw error;
+  }
+  return result;
 }
 async function serve(req, res, next) {
   try {
@@ -53,10 +68,11 @@ async function protectLegacy(req, res, next) {
 async function cleanupOrphans() {
   const [rows] = await db.query(`SELECT u.* FROM uploads u WHERE u.is_public=0 AND u.created_at < DATE_SUB(NOW(), INTERVAL 1 DAY)
     AND NOT EXISTS (SELECT 1 FROM work_order_images i WHERE i.image_url=CONCAT('/api/upload/file/',u.id))
-    AND NOT EXISTS (SELECT 1 FROM reviews r WHERE r.video_url=CONCAT('/api/upload/file/',u.id))`);
+    AND NOT EXISTS (SELECT 1 FROM reviews r WHERE r.video_url=CONCAT('/api/upload/file/',u.id))
+    AND NOT EXISTS (SELECT 1 FROM review_images ri WHERE ri.image_url=CONCAT('/api/upload/file/',u.id))`);
   for (const row of rows) {
     await fs.promises.rm(path.join(privateDir, row.filename), { force: true });
     await db.query('DELETE FROM uploads WHERE id=?', [row.id]);
   }
 }
-module.exports = { signUrl, validSignature, assertOwned, presentOrder, serve, protectLegacy, cleanupOrphans, privateDir, publicDir };
+module.exports = { signUrl, validSignature, assertOwned, presentOrder, loadReviewImages, serve, protectLegacy, cleanupOrphans, privateDir, publicDir };

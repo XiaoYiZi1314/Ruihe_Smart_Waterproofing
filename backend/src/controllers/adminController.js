@@ -129,6 +129,10 @@ class AdminController {
         [id]
       );
       order.review = reviews.length > 0 ? reviews[0] : null;
+      if (order.review) {
+        const imagesByReview = await require('../utils/attachments').loadReviewImages([order.review.id]);
+        order.review.images = imagesByReview[order.review.id] || [];
+      }
 
       require('../utils/attachments').presentOrder(order);
       res.json({

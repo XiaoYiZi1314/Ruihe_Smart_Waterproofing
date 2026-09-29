@@ -90,6 +90,16 @@
           </view>
           <view class="review-comment">{{order.review.comment}}</view>
           <video wx:if="{{order.review.video_url}}" src="{{order.review.video_url}}" style="width:100%;height:360rpx" />
+          <view class="review-images" wx:if="{{order.review.images.length}}">
+            <rh-image
+              wx:for="{{order.review.images}}"
+              wx:key="key"
+              class="review-image"
+              src="{{item.image_url}}"
+              data-url="{{item.image_url}}"
+              bindtap="onPreviewReviewImage"
+            />
+          </view>
           <rh-button variant="danger" text="删除评价" bind:tap="deleteReview" />
         </view>
       </rh-card>
@@ -211,6 +221,20 @@
       <rh-button variant="line" text="选择视频" bind:tap="chooseReviewVideo" />
       <video wx:if="{{reviewVideo}}" src="{{reviewVideo}}" style="width:100%;height:280rpx" />
       <rh-button wx:if="{{reviewVideo}}" variant="ghost" text="移除视频" bind:tap="removeReviewVideo" />
+
+      <view class="review-media">
+        <view class="review-thumbs">
+          <view class="review-thumb" wx:for="{{reviewImages}}" wx:key="*this">
+            <rh-image class="review-thumb__img" src="{{item}}" data-url="{{item}}" bindtap="previewReviewDraftImage" />
+            <view class="review-thumb__del" catchtap="removeReviewImage" data-index="{{index}}">×</view>
+          </view>
+          <view class="review-thumb review-thumb--add" wx:if="{{reviewImages.length < maxReviewImages}}" bindtap="chooseReviewImages">
+            <text class="review-thumb__plus">+</text>
+            <text>添加图片</text>
+          </view>
+        </view>
+        <view class="review-media__tip">图片最多 {{maxReviewImages}} 张，可与视频同时提交</view>
+      </view>
 
       <view class="rate-row">
         <text class="rate-label">服务态度</text>

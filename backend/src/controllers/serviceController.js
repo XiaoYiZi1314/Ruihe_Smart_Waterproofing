@@ -101,7 +101,13 @@ exports.getServiceById = async (req, res) => {
       };
     }
 
-    service.reviews = reviews.map(review => ({ ...review, video_url: require('../utils/attachments').signUrl(review.video_url) }));
+    const attachments = require('../utils/attachments');
+    const imagesByReview = await attachments.loadReviewImages(reviews.map(review => review.id));
+    service.reviews = reviews.map(review => ({
+      ...review,
+      video_url: attachments.signUrl(review.video_url),
+      images: (imagesByReview[review.id] || []).map(image => ({ ...image, image_url: attachments.signUrl(image.image_url) }))
+    }));
     service.review_stats = reviewStats;
 
     res.json({

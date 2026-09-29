@@ -89,6 +89,19 @@
           <text>价格 {{item.price_score}}</text>
         </view>
         <view class="review-item__comment">{{item.comment}}</view>
+        <view class="review-item__images" wx:if="{{item.images.length}}">
+          <rh-image
+            wx:for="{{item.images}}"
+            wx:for-item="img"
+            wx:for-index="imgIndex"
+            wx:key="key"
+            class="review-item__image"
+            src="{{img.image_url}}"
+            data-review="{{index}}"
+            data-url="{{img.image_url}}"
+            bindtap="onPreviewReviewImage"
+          />
+        </view>
         <video wx:if="{{item.video_url}}" src="{{item.video_url}}" style="width:100%;height:360rpx" />
         <view class="review-item__time">{{item.dateText}}</view>
       </view>

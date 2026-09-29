@@ -402,7 +402,8 @@ exports.submitReview = async (req, res) => {
       quality_score,
       price_score,
       comment,
-      video_url
+      video_url,
+      images
     } = req.body;
 
     // 验证评分
@@ -433,7 +434,8 @@ exports.submitReview = async (req, res) => {
       quality_score,
       price_score,
       comment,
-      video_url
+      video_url,
+      images
     });
 
     if (!success) {

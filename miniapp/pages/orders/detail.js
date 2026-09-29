@@ -31,7 +31,10 @@ Page({
     reviewScores: { attitude: 5, quality: 5, price: 5 },
     reviewComment: '',
     reviewVideo: '',
-    starRange: [1, 2, 3, 4, 5]
+    starRange: [1, 2, 3, 4, 5],
+    // 评价图片：本地临时路径，最多 3 张；提交时逐张上传
+    reviewImages: [],
+    maxReviewImages: 3
   },
 
   onLoad(options) {
@@ -72,6 +75,12 @@ Page({
           ...img,
           key: img.id != null ? String(img.id) : String(img.image_url || '').split('?')[0]
         }));
+        if (order.review) {
+          order.review.images = (order.review.images || []).map((img) => ({
+            ...img,
+            key: img.id != null ? String(img.id) : String(img.image_url || '').split('?')[0]
+          }));
+        }
         const statusMeta = statusUtil.getStatusMeta(order.status);
 
         // 格式化价格
@@ -121,6 +130,14 @@ Page({
     this._previewing = true;
     const url = e.currentTarget.dataset.url;
     const urls = this.data.order.images.map((img) => img.image_url);
+    wx.previewImage({ current: url, urls });
+  },
+
+  // 预览“我的评价”里的图片
+  onPreviewReviewImage(e) {
+    this._previewing = true;
+    const url = e.currentTarget.dataset.url;
+    const urls = ((this.data.order.review && this.data.order.review.images) || []).map((img) => img.image_url);
     wx.previewImage({ current: url, urls });
   },
 
@@ -248,7 +265,8 @@ Page({
       showReviewModal: true,
       reviewScores: { attitude: 5, quality: 5, price: 5 },
       reviewComment: '',
-      reviewVideo: ''
+      reviewVideo: '',
+      reviewImages: []
     });
   },
 
@@ -277,6 +295,32 @@ Page({
     } });
   },
   removeReviewVideo() { this.setData({ reviewVideo: '' }); },
+
+  // ---- 评价图片（最多 3 张，可与视频同时提交）----
+  chooseReviewImages() {
+    const remain = this.data.maxReviewImages - this.data.reviewImages.length;
+    if (remain <= 0) {
+      wx.showToast({ title: `最多上传${this.data.maxReviewImages}张图片`, icon: 'none' });
+      return;
+    }
+    wx.chooseImage({
+      count: remain,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const merged = [...this.data.reviewImages, ...(res.tempFilePaths || [])];
+        this.setData({ reviewImages: merged.slice(0, this.data.maxReviewImages) });
+      }
+    });
+  },
+  removeReviewImage(e) {
+    const index = Number(e.currentTarget.dataset.index);
+    this.setData({ reviewImages: this.data.reviewImages.filter((_, i) => i !== index) });
+  },
+  previewReviewDraftImage(e) {
+    this._previewing = true;
+    wx.previewImage({ current: e.currentTarget.dataset.url, urls: this.data.reviewImages });
+  },
   deleteReview() {
     wx.showModal({ title: '删除评价', content: '删除后不能重新评价，确定删除？', success: async res => {
       if (!res.confirm) return;
@@ -297,8 +341,13 @@ Page({
 
     this.setData({ submitting: true });
     try {
-      const videoUrl = this.data.reviewVideo ? await require('../../utils/request').upload(this.data.reviewVideo, 'video') : null;
+      const request = require('../../utils/request');
+      // 图片逐张上传（服务端对上传有频率限制，不并发），再连同视频一起提交
+      const imageUrls = [];
+      for (const filePath of this.data.reviewImages) imageUrls.push(await request.upload(filePath, 'image'));
+      const videoUrl = this.data.reviewVideo ? await request.upload(this.data.reviewVideo, 'video') : null;
       const result = await api.submitReview(this.data.order.id, {
+        images: imageUrls,
         video_url: videoUrl,
         service_attitude_score: attitude,
         quality_score: quality,

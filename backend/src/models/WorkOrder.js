@@ -1,8 +1,11 @@
 const { nextOrderNo } = require('../utils/orderNumber');
 const Workflow = require('../utils/orderWorkflow');
 const db = require('../config/database');
-const { presentOrder, assertOwned } = require('../utils/attachments');
+const { presentOrder, assertOwned, loadReviewImages } = require('../utils/attachments');
 const CUSTOMER_FIELDS = ['id','order_no','service_id','contact_name','contact_phone','full_address','expected_price','final_price','door_fee','material_fee','labor_fee','remark','status','worker_id','estimated_time','assigned_at','confirmed_at','started_at','completed_at','finished_at','cancelled_at','created_at','updated_at','urge_count','price_dispute_reason','price_adjusted_at','review_submitted_at'].map(key => `wo.${key}`).join(', ');
+
+// 每条评价最多附带的图片数量（视频另算，最多 1 个，两者可同时提交）
+const MAX_REVIEW_IMAGES = 3;
 
 class WorkOrder {
   /**
@@ -192,6 +195,10 @@ class WorkOrder {
       [id]
     );
     order.review = reviews.length > 0 ? reviews[0] : null;
+    if (order.review) {
+      const imagesByReview = await loadReviewImages([order.review.id]);
+      order.review.images = imagesByReview[order.review.id] || [];
+    }
 
     return presentOrder(order);
   }
@@ -274,6 +281,10 @@ class WorkOrder {
    * 提交评价
    */
   static async submitReview(orderId, userId, reviewData) {
+    const images = reviewData.images == null ? [] : reviewData.images;
+    if (!Array.isArray(images)) throw Object.assign(new Error('评价图片格式错误'), {status:400});
+    if (images.length > MAX_REVIEW_IMAGES) throw Object.assign(new Error(`评价图片最多上传${MAX_REVIEW_IMAGES}张`), {status:400});
+    if (new Set(images).size !== images.length) throw Object.assign(new Error('评价图片不能重复'), {status:400});
     const connection = await db.getConnection();
     try {
       await connection.beginTransaction();
@@ -282,8 +293,12 @@ class WorkOrder {
       if (!order || order.status !== 'completed' || !order.worker_id) throw Object.assign(new Error('只能评价已完成的工单'), {status:400});
       if (order.review_submitted_at) throw Object.assign(new Error('该工单已评价，删除后不可重新评价'), {status:409});
       if (reviewData.video_url) await assertOwned(connection, userId, [reviewData.video_url], 'video');
-      await connection.query(`INSERT INTO reviews(order_id,user_id,worker_id,service_attitude_score,quality_score,price_score,comment,video_url)
+      if (images.length) await assertOwned(connection, userId, images, 'image');
+      const [inserted] = await connection.query(`INSERT INTO reviews(order_id,user_id,worker_id,service_attitude_score,quality_score,price_score,comment,video_url)
         VALUES(?,?,?,?,?,?,?,?)`, [orderId,userId,order.worker_id,reviewData.service_attitude_score,reviewData.quality_score,reviewData.price_score,reviewData.comment||null,reviewData.video_url||null]);
+      for (let index = 0; index < images.length; index++) {
+        await connection.query('INSERT INTO review_images(review_id,image_url,sort_order) VALUES (?,?,?)', [inserted.insertId, images[index], index]);
+      }
       await connection.query('UPDATE work_orders SET review_submitted_at=NOW() WHERE id=?',[orderId]);
       await connection.commit(); return true;
     } catch(error) {await connection.rollback();throw error;} finally {connection.release();}

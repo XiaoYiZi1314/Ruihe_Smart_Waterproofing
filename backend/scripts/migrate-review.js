@@ -27,6 +27,13 @@ async function migrate() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, INDEX idx_upload_user(user_id),
       FOREIGN KEY(user_id) REFERENCES users(id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
+    // 评价图片：一条评价最多 3 张（数量在应用层校验），随评价级联删除；可重复执行
+    await db.query(`CREATE TABLE IF NOT EXISTS review_images (
+      id INT PRIMARY KEY AUTO_INCREMENT, review_id INT NOT NULL, image_url VARCHAR(500) NOT NULL,
+      sort_order TINYINT NOT NULL DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_review_images_review(review_id),
+      FOREIGN KEY(review_id) REFERENCES reviews(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
     const [idx] = await db.query("SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='users' AND INDEX_NAME='idx_wechat_openid'");
     if (!idx.length) await db.query('ALTER TABLE users ADD UNIQUE INDEX idx_wechat_openid (wechat_openid)');
     console.log('Review migration complete (additive and repeatable)');

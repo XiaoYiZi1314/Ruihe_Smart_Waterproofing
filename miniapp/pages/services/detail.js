@@ -77,6 +77,10 @@ Page({
             ...r,
             maskedName: maskName(r.user_name),
             dateText: formatDate(r.created_at),
+            images: (r.images || []).map((img) => ({
+              ...img,
+              key: img.id != null ? String(img.id) : String(img.image_url || '').split('?')[0]
+            })),
             avgScore: (
               ((r.service_attitude_score || 0) + (r.quality_score || 0) + (r.price_score || 0)) /
               3
@@ -104,6 +108,14 @@ Page({
       current,
       urls: this.data.bannerImages
     });
+  },
+
+  // 点击评价里的图片：在该条评价的图片集合内左右滑动预览
+  onPreviewReviewImage(e) {
+    const { review, url } = e.currentTarget.dataset;
+    const item = this.data.reviews[Number(review)];
+    const urls = ((item && item.images) || []).map((img) => img.image_url);
+    wx.previewImage({ current: url, urls: urls.length ? urls : [url] });
   },
 
   onConsult() {

@@ -76,6 +76,19 @@
   line-height: 1.7;
 }
 
+.review-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.review-image {
+  width: 188rpx;
+  height: 188rpx;
+  border-radius: var(--radius-md);
+}
+
 /* ========== 弹窗 ========== */
 .modal-mask {
   position: fixed;
@@ -109,6 +122,9 @@
 
 .modal--review {
   width: 660rpx;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .modal__title {
@@ -148,6 +164,67 @@
 }
 
 /* ========== 评分星级 ========== */
+.review-media {
+  margin: 16rpx 0 8rpx;
+}
+
+.review-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.review-thumb {
+  position: relative;
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: var(--radius-md);
+}
+
+.review-thumb__img {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-md);
+}
+
+.review-thumb__del {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40rpx;
+  height: 40rpx;
+  line-height: 36rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 0 var(--radius-md) 0 var(--radius-md);
+}
+
+.review-thumb--add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  box-sizing: border-box;
+  background: var(--color-input-bg, #F8FAFD);
+  border: 1rpx dashed var(--color-input-border, #E5E7EB);
+  color: var(--color-text-muted, #9CA3AF);
+  font-size: 22rpx;
+}
+
+.review-thumb__plus {
+  font-size: 44rpx;
+  line-height: 1;
+}
+
+.review-media__tip {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: var(--color-text-muted, #9CA3AF);
+}
+
 .rate-row {
   display: flex;
   justify-content: space-between;

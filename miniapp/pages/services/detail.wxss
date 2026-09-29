@@ -226,6 +226,19 @@
   margin-top: 16rpx;
 }
 
+.review-item__images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.review-item__image {
+  width: 168rpx;
+  height: 168rpx;
+  border-radius: var(--radius-md);
+}
+
 .review-item__time {
   font-size: 22rpx;
   color: #D1D5DB;
