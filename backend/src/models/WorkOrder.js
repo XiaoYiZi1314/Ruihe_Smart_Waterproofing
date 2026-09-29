@@ -1,7 +1,7 @@
 const { nextOrderNo } = require('../utils/orderNumber');
 const Workflow = require('../utils/orderWorkflow');
 const db = require('../config/database');
-const { presentOrder, assertOwned, loadReviewImages } = require('../utils/attachments');
+const { presentOrder, assertOwned, loadReviewImages, purgeUnreferenced } = require('../utils/attachments');
 const CUSTOMER_FIELDS = ['id','order_no','service_id','contact_name','contact_phone','full_address','expected_price','final_price','door_fee','material_fee','labor_fee','remark','status','worker_id','estimated_time','assigned_at','confirmed_at','started_at','completed_at','finished_at','cancelled_at','created_at','updated_at','urge_count','price_dispute_reason','price_adjusted_at','review_submitted_at'].map(key => `wo.${key}`).join(', ');
 
 // 每条评价最多附带的图片数量（视频另算，最多 1 个，两者可同时提交）
@@ -308,11 +308,25 @@ class WorkOrder {
    * 删除评价
    */
   static async deleteReview(orderId, userId) {
-    const [result] = await db.query(
-      'DELETE FROM reviews WHERE order_id = ? AND user_id = ?',
-      [orderId, userId]
-    );
-    return result.affectedRows > 0;
+    const connection = await db.getConnection();
+    let files = [];
+    try {
+      await connection.beginTransaction();
+      const [reviews] = await connection.query('SELECT id, video_url FROM reviews WHERE order_id = ? AND user_id = ? FOR UPDATE', [orderId, userId]);
+      if (!reviews.length) { await connection.rollback(); return false; }
+      let images = [];
+      try {
+        [images] = await connection.query('SELECT image_url FROM review_images WHERE review_id IN (?)', [reviews.map(review => review.id)]);
+      } catch (error) {
+        if (error.code !== 'ER_NO_SUCH_TABLE') throw error;
+      }
+      files = [...reviews.map(review => review.video_url), ...images.map(image => image.image_url)].filter(Boolean);
+      await connection.query('DELETE FROM reviews WHERE order_id = ? AND user_id = ?', [orderId, userId]);
+      await connection.commit();
+    } catch (error) { await connection.rollback(); throw error; } finally { connection.release(); }
+    // 数据库已提交后再立即回收附件；失败不影响删除结果，剩余文件由每日孤儿清理兜底
+    try { await purgeUnreferenced(files); } catch (error) { console.error('清理评价附件失败:', error.message); }
+    return true;
   }
 }
 

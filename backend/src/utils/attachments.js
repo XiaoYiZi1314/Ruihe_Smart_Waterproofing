@@ -75,4 +75,20 @@ async function cleanupOrphans() {
     await db.query('DELETE FROM uploads WHERE id=?', [row.id]);
   }
 }
-module.exports = { signUrl, validSignature, assertOwned, presentOrder, loadReviewImages, serve, protectLegacy, cleanupOrphans, privateDir, publicDir };
+// 评价被删除后立即回收其附件：仅处理私有上传，且确认已没有任何业务表再引用（失败的留给 cleanupOrphans 兜底）
+async function purgeUnreferenced(urls) {
+  const ids = [...new Set((urls || []).map(url => /^\/api\/upload\/file\/([a-f0-9-]{36})$/.exec(String(url || ''))).filter(Boolean).map(match => match[1]))];
+  if (!ids.length) return 0;
+  const [rows] = await db.query(`SELECT u.id, u.filename FROM uploads u WHERE u.id IN (?) AND u.is_public=0
+    AND NOT EXISTS (SELECT 1 FROM work_order_images i WHERE i.image_url=CONCAT('/api/upload/file/',u.id))
+    AND NOT EXISTS (SELECT 1 FROM reviews r WHERE r.video_url=CONCAT('/api/upload/file/',u.id))
+    AND NOT EXISTS (SELECT 1 FROM review_images ri WHERE ri.image_url=CONCAT('/api/upload/file/',u.id))`, [ids]);
+  let removed = 0;
+  for (const row of rows) {
+    await fs.promises.rm(path.join(privateDir, row.filename), { force: true });
+    await db.query('DELETE FROM uploads WHERE id=?', [row.id]);
+    removed++;
+  }
+  return removed;
+}
+module.exports = { signUrl, validSignature, assertOwned, presentOrder, loadReviewImages, purgeUnreferenced, serve, protectLegacy, cleanupOrphans, privateDir, publicDir };
