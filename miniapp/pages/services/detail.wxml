@@ -14,10 +14,9 @@
         bindchange="onBannerChange"
       >
         <swiper-item wx:for="{{bannerImages}}" wx:key="*this">
-          <image 
-            class="banner-image" 
-            src="{{item}}" 
-            mode="aspectFill"
+          <rh-image
+            class="banner-image"
+            src="{{item}}"
             bindtap="onPreviewImage"
             data-url="{{item}}"
           />
@@ -98,7 +97,14 @@
     </view>
   </view>
 
-  <rh-empty wx:if="{{loading}}" text="加载中..." />
+  <!-- 骨架屏：与正式内容同布局，避免“空白 → 整页替换”的闪烁 -->
+  <view wx:if="{{loading}}" class="sk">
+    <view class="sk__banner sk__shimmer"></view>
+    <view class="sk__price sk__shimmer"></view>
+    <view class="sk__line sk__shimmer"></view>
+    <view class="sk__line sk__line--short sk__shimmer"></view>
+    <view class="sk__line sk__shimmer"></view>
+  </view>
 
   <rh-sticky-bar wx:if="{{!loading && service}}">
     <rh-button variant="line" size="lg" text="咨询客服" bind:tap="onConsult" />

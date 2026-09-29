@@ -1,11 +1,10 @@
 <view class="page-wrap">
   <view class="profile-head">
     <view class="profile-top">
-      <image
+      <rh-image
         wx:if="{{userInfo.avatar_url}}"
         class="avatar"
         src="{{userInfo.avatar_url}}"
-        mode="aspectFill"
       />
       <view wx:else class="avatar avatar--placeholder">
         <rh-icon name="user" tone="white" size="56" />

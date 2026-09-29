@@ -2,6 +2,7 @@
   "component": true,
   "usingComponents": {
     "rh-button": "/components/rh-button/rh-button",
+    "rh-image": "/components/rh-image/rh-image",
     "rh-icon": "/components/rh-icon/rh-icon"
   }
 }

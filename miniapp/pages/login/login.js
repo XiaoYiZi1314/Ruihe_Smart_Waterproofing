@@ -6,6 +6,8 @@ const session = require('../../utils/session');
 Page({
   data: {
     loading: false,
+    // 已有登录态时先校验并跳转，期间不渲染登录表单，避免“登录页一闪而过”
+    checking: false,
     // 登录模式：customer = 客户微信登录，worker = 师傅账号登录
     mode: 'customer',
     workerPhone: '',
@@ -18,8 +20,11 @@ Page({
     // 检查是否已登录
     if (auth.checkLogin()) {
       const snapshot = session.capture();
+      this.setData({ checking: true });
       Promise.resolve(app.sessionReady).then(() => {
-        if (!this._unloaded && session.isCurrent(snapshot) && auth.checkLogin()) this.routeByRole();
+        if (this._unloaded) return;
+        if (session.isCurrent(snapshot) && auth.checkLogin()) this.routeByRole();
+        else this.setData({ checking: false });
       });
     }
   },

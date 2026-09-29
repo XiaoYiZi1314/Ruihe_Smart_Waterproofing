@@ -52,10 +52,13 @@ Page({
    * 加载工单列表
    */
   async loadOrders(refresh = false) {
-    if (this.data.loading || this.data.loadingMore) return;
+    if (this._busy) return;
+    this._busy = true;
 
+    // 已有列表时的刷新是静默的，不切换“加载中 / 暂无工单”状态
+    const silent = refresh && this.data.orders.length > 0;
     if (refresh) this.setData({ page: 1 });
-    this.setData(refresh ? { loading: true } : { loadingMore: true });
+    if (!silent) this.setData(refresh ? { loading: true } : { loadingMore: true });
 
     try {
       const res = await api.get('/api/worker/orders', {
@@ -73,8 +76,10 @@ Page({
         createdTimeText: formatTime(o.created_at)
       }));
 
+      const nextOrders = refresh ? orders : [...this.data.orders, ...orders];
+      const unchanged = refresh && JSON.stringify(nextOrders) === JSON.stringify(this.data.orders);
       this.setData({
-        orders: refresh ? orders : [...this.data.orders, ...orders],
+        ...(unchanged ? {} : { orders: nextOrders }),
         total: data.pagination ? data.pagination.total : orders.length,
         hasMore: refresh
           ? orders.length >= this.data.limit
@@ -83,6 +88,7 @@ Page({
     } catch (error) {
       console.error('加载工单失败:', error);
     } finally {
+      this._busy = false;
       this.setData({ loading: false, loadingMore: false });
     }
   },

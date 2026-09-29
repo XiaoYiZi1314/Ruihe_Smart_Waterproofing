@@ -11,7 +11,7 @@
     <rh-info-row label="期望价格" value="{{order.expected_price}}" />
     <rh-info-row label="预计上门" value="{{order.estimatedTimeText}}" />
     <view class="rh-form-value">{{order.remark || '无备注'}}</view>
-    <view class="image-grid"><image wx:for="{{order.images}}" wx:key="id" src="{{item.image_url}}" mode="aspectFill" data-url="{{item.image_url}}" bindtap="previewImage" /></view>
+    <view class="image-grid"><rh-image wx:for="{{order.images}}" wx:key="key" class="grid-img" src="{{item.image_url}}" data-url="{{item.image_url}}" bindtap="previewImage" bind:retry="loadOrder" /></view>
     <view class="detail-section"><rh-section-title title="费用明细" /></view>
     <rh-info-row label="上门费" value="{{order.door_fee}}" />
     <rh-info-row label="材料费" value="{{order.material_fee}}" />

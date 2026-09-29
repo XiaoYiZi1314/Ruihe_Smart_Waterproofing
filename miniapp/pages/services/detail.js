@@ -48,8 +48,6 @@ Page({
   },
 
   async loadServiceDetail(id) {
-    wx.showLoading({ title: '加载中...' });
-
     try {
       const res = await api.getServiceById(id);
       if (res.success) {
@@ -91,8 +89,6 @@ Page({
       console.error('加载服务详情失败:', error);
       wx.showToast({ title: '加载失败', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 1500);
-    } finally {
-      wx.hideLoading();
     }
   },
 

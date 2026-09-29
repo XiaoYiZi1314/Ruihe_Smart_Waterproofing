@@ -32,6 +32,8 @@ Page({
     const userInfo = wx.getStorageSync('userInfo');
     if (userInfo?.role === 'worker') return wx.reLaunch({ url: '/pages/worker/orders/list' });
     if (userInfo) this.setData({ userInfo });
+    // 30 秒内从其他 Tab 切回来不重复拉取，避免遮罩和整页重绘（下拉刷新仍会强制刷新）
+    if (this._loadedAt && Date.now() - this._loadedAt < 30000) return;
     this.loadData();
   },
 
@@ -42,7 +44,9 @@ Page({
 
   async loadData() {
     const requestId = this._requestId = (this._requestId || 0) + 1;
-    wx.showLoading({ title: '加载中...' });
+    // 只有第一次加载才显示遮罩；之后都是静默刷新
+    const silent = !!this._loadedAt;
+    if (!silent) wx.showLoading({ title: '加载中...' });
 
     try {
       const [bannersRes, servicesRes, categoriesRes, configRes] = await Promise.all([
@@ -88,13 +92,14 @@ Page({
         joinInfo: { ...(config.join_info || {}), partners: Array.isArray(config.join_info?.partners) ? config.join_info.partners.join('\n') : config.join_info?.partners || '' },
         loading: false
       });
+      this._loadedAt = Date.now();
     } catch (error) {
       if (requestId !== this._requestId) return;
       console.error('加载数据失败:', error);
       wx.showToast({ title: '加载失败，请重试', icon: 'none' });
       this.setData({ loading: false });
     } finally {
-      if (requestId === this._requestId) wx.hideLoading();
+      if (!silent && requestId === this._requestId) wx.hideLoading();
     }
   },
 

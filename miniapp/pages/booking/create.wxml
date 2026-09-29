@@ -62,7 +62,7 @@
   <rh-form-field label="现场图片">
     <view class="image-list">
       <view wx:for="{{form.images}}" wx:key="*this" class="image-item">
-        <image class="image-preview" src="{{item}}" mode="aspectFill" bindtap="onPreviewImage" data-url="{{item}}" />
+        <rh-image class="image-preview" src="{{item}}" bindtap="onPreviewImage" data-url="{{item}}" />
         <view class="image-delete" catchtap="onDeleteImage" data-index="{{index}}">×</view>
       </view>
       <view wx:if="{{form.images.length < maxImages}}" class="image-add" bindtap="onChooseImage">

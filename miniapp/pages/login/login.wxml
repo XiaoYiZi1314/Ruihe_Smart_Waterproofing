@@ -8,7 +8,9 @@
   </view>
 
   <!-- 客户登录 -->
-  <view class="login-panel" wx:if="{{mode === 'customer'}}">
+  <view wx:if="{{checking}}" style="text-align: center; color: #9CA3AF; font-size: 26rpx; margin-top: 80rpx;">正在进入…</view>
+
+  <view class="login-panel" wx:elif="{{mode === 'customer'}}">
     <rh-button
       variant="brand"
       size="lg"

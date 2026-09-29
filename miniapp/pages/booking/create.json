@@ -4,6 +4,7 @@
     "rh-button": "/components/rh-button/rh-button",
     "rh-form-field": "/components/rh-form-field/rh-form-field",
     "rh-icon": "/components/rh-icon/rh-icon",
+    "rh-image": "/components/rh-image/rh-image",
     "rh-slot-picker": "/components/rh-slot-picker/rh-slot-picker",
     "rh-sticky-bar": "/components/rh-sticky-bar/rh-sticky-bar"
   }

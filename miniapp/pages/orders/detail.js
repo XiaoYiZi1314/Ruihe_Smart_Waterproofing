@@ -45,7 +45,13 @@ Page({
   },
 
   onShow() {
-    if (this.orderId) this.loadOrderDetail(this.orderId);
+    if (!this.orderId) return;
+    // 从图片预览返回时数据没有变化，不重新加载（否则图片会重新请求，页面闪一下）
+    if (this._previewing) {
+      this._previewing = false;
+      return;
+    }
+    this.loadOrderDetail(this.orderId);
   },
 
   onPullDownRefresh() {
@@ -55,11 +61,17 @@ Page({
   },
 
   async loadOrderDetail(id) {
-    wx.showLoading({ title: '加载中...' });
+    const requestId = this._requestId = (this._requestId || 0) + 1;
     try {
       const res = await api.getOrderById(id);
+      if (requestId !== this._requestId) return;
       if (res.success) {
         const order = res.data;
+        // 图片用稳定的 key（签名参数每次都会变，不能用 image_url 当 key）
+        order.images = (order.images || []).map((img) => ({
+          ...img,
+          key: img.id != null ? String(img.id) : String(img.image_url || '').split('?')[0]
+        }));
         const statusMeta = statusUtil.getStatusMeta(order.status);
 
         // 格式化价格
@@ -89,11 +101,10 @@ Page({
         });
       }
     } catch (error) {
+      if (requestId !== this._requestId) return;
       console.error('加载工单详情失败:', error);
       wx.showToast({ title: '加载失败', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 1500);
-    } finally {
-      wx.hideLoading();
     }
   },
 
@@ -107,6 +118,7 @@ Page({
   },
 
   onPreviewImage(e) {
+    this._previewing = true;
     const url = e.currentTarget.dataset.url;
     const urls = this.data.order.images.map((img) => img.image_url);
     wx.previewImage({ current: url, urls });

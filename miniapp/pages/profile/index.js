@@ -81,6 +81,9 @@ Page({
 
   loadUserInfo() {
     const userInfo = wx.getStorageSync('userInfo') || {};
+    // 内容没变就不 setData，避免个人中心头部重复渲染
+    const previous = this.data.userInfo;
+    if (previous && JSON.stringify(previous) === JSON.stringify(userInfo)) return;
     this.setData({
       userInfo,
       displayPhone: theme.maskPhone(userInfo.phone)
@@ -91,9 +94,12 @@ Page({
     try {
       const res = await api.getOrders({ status: 'pending', limit: 1 });
       if (res.success) {
+        const badge = res.pagination ? res.pagination.total : 0;
+        const current = this.data.menuItems.find((item) => item.id === 'orders');
+        if (current && current.badge === badge) return;
         const menuItems = this.data.menuItems.map((item) => {
           if (item.id === 'orders') {
-            return { ...item, badge: res.pagination ? res.pagination.total : 0 };
+            return { ...item, badge };
           }
           return item;
         });

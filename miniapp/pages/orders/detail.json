@@ -6,6 +6,7 @@
     "rh-card": "/components/rh-card/rh-card",
     "rh-empty": "/components/rh-empty/rh-empty",
     "rh-icon": "/components/rh-icon/rh-icon",
+    "rh-image": "/components/rh-image/rh-image",
     "rh-info-row": "/components/rh-info-row/rh-info-row",
     "rh-section-title": "/components/rh-section-title/rh-section-title",
     "rh-status-tag": "/components/rh-status-tag/rh-status-tag",

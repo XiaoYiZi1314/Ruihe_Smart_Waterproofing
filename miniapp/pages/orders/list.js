@@ -43,7 +43,8 @@ Page({
 
   async loadOrders(refresh = false) {
     const requestId = this._requestId = (this._requestId || 0) + 1;
-    this.setData({ loading: true });
+    // 已有列表时的刷新是静默的（从详情返回、切 Tab 回来），不显示加载条
+    if (!refresh || this.data.orders.length === 0) this.setData({ loading: true });
 
     try {
       const params = {
@@ -58,8 +59,9 @@ Page({
       if (requestId !== this._requestId) return;
       if (res.success) {
         const orders = refresh ? res.data : [...this.data.orders, ...res.data];
+        const unchanged = refresh && JSON.stringify(orders) === JSON.stringify(this.data.orders);
         this.setData({
-          orders,
+          ...(unchanged ? {} : { orders }),
           page: res.pagination ? res.pagination.page : 1,
           total: res.pagination ? res.pagination.total : orders.length,
           hasMore: res.pagination ? res.pagination.page < res.pagination.pages : false,

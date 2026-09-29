@@ -3,5 +3,6 @@
 .worker-actions { display: flex; flex-wrap: wrap; gap: 16rpx; margin-top: 20rpx; }
 .image-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16rpx; margin-top: 24rpx; }
 .image-grid image { width: 100%; height: 180rpx; }
+.image-grid .grid-img { width: 100%; height: 180rpx; border-radius: var(--radius-md); }
 .modal-mask { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: var(--color-overlay, rgba(0, 0, 0, 0.45)); }
 .modal-content { width: 90%; max-height: 85vh; overflow-y: auto; }

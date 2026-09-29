@@ -28,6 +28,8 @@ Page({
       getApp().globalData.serviceKeyword = '';
       this.setData({ keyword, page: 1 });
     }
+    // 每次回来都刷新（保证分类/服务是最新的），但刷新是静默的：
+    // 不清空列表、不显示加载条，数据没变就不重绘
     await this.loadCategories();
     return this.loadServices(true);
   },
@@ -39,11 +41,12 @@ Page({
         if (this.data.currentCategoryId && !res.data.some(item => item.id === this.data.currentCategoryId)) {
           this.setData({ currentCategoryId: null });
         }
-        this.setData({
-          categories: [{ key: null, label: '全部' }].concat(
-            res.data.map((item) => ({ key: item.id, label: item.name }))
-          )
-        });
+        const categories = [{ key: null, label: '全部' }].concat(
+          res.data.map((item) => ({ key: item.id, label: item.name }))
+        );
+        if (JSON.stringify(categories) !== JSON.stringify(this.data.categories)) {
+          this.setData({ categories });
+        }
       }
     } catch (error) {
       console.error('加载分类失败:', error);
@@ -52,7 +55,8 @@ Page({
 
   async loadServices(refresh = false) {
     const requestId = this._requestId = (this._requestId || 0) + 1;
-    this.setData({ loading: true });
+    // 已有列表时的刷新是静默的：不显示加载条，也不清空列表
+    if (!refresh || this.data.services.length === 0) this.setData({ loading: true });
 
     try {
       const params = {
@@ -74,14 +78,16 @@ Page({
         // 为服务数据添加真实封面图片
         const servicesWithCovers = addRealCovers(res.data);
         const list = refresh ? servicesWithCovers : [...this.data.services, ...servicesWithCovers];
-        
+        const unchanged = refresh && JSON.stringify(list) === JSON.stringify(this.data.services);
+
         this.setData({
-          services: list,
+          ...(unchanged ? {} : { services: list }),
           page: res.pagination ? res.pagination.page : 1,
           total: res.pagination ? res.pagination.total : list.length,
           hasMore: res.pagination ? res.pagination.page < res.pagination.pages : false,
           loading: false
         });
+        this._loadedAt = Date.now();
       }
     } catch (error) {
       if (requestId !== this._requestId) return;

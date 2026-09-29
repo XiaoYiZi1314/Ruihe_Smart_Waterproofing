@@ -49,14 +49,14 @@
       <rh-card>
         <rh-section-title title="现场图片" />
         <view class="images-grid">
-          <image
+          <rh-image
             wx:for="{{order.images}}"
-            wx:key="image_url"
+            wx:key="key"
             class="scene-image"
             src="{{item.image_url}}"
-            mode="aspectFill"
             bindtap="onPreviewImage"
-            binderror="onImageError"
+            bind:error="onImageError"
+            bind:retry="onRetryImages"
             data-url="{{item.image_url}}"
           />
         </view>

@@ -31,7 +31,8 @@ Page({
    * 加载工单详情
    */
   async loadOrder() {
-    this.setData({ loading: true });
+    // 已有数据时静默刷新，不切回“加载中”，避免整页闪一下
+    this.setData({ loading: !this.data.order });
     try {
       const res = await api.get(`/api/worker/orders/${this.data.id}`);
       const order = (res && res.data) || null;
@@ -48,6 +49,11 @@ Page({
       order.completedTimeText = formatTime(order.completed_at);
       order.finishedTimeText = formatTime(order.finished_at);
       order.maskedPhone = order.contact_phone;
+      // 图片用稳定 key（私有图片地址的签名参数每次都会变）
+      order.images = (order.images || []).map((img) => ({
+        ...img,
+        key: img.id != null ? String(img.id) : String(img.image_url || '').split('?')[0]
+      }));
 
       // 根据状态决定可用操作
       order.canAccept = order.status === STATUS.CONFIRMED && !order.confirmed_at;

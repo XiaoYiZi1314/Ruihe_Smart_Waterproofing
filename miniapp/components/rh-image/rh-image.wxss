@@ -1,0 +1,75 @@
+/* 通用图片：加载占位 → 渐显 → 失败可重试。尺寸/圆角由使用处给组件标签加 class 控制。 */
+:host {
+  display: block;
+  overflow: hidden;
+}
+
+.rh-img {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--color-border, #EEF1F6);
+  overflow: hidden;
+}
+
+.rh-img__ph {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  background: var(--color-border, #EEF1F6);
+}
+
+.rh-img__ph--shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 60%;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
+  animation: rh-img-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes rh-img-shimmer {
+  0% { left: -60%; }
+  100% { left: 110%; }
+}
+
+.rh-img__err {
+  font-size: 22rpx;
+  color: var(--color-text-muted, #9CA3AF);
+}
+
+.rh-img__retry {
+  font-size: 20rpx;
+  color: var(--color-brand, #2B7BE4);
+}
+
+.rh-img__img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.rh-img__img--on {
+  opacity: 1;
+}
+
+.rh-img__mask {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
