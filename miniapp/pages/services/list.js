@@ -1,11 +1,6 @@
 const { addRealCovers } = require('../../utils/resources');
 const api = require('../../utils/api');
-
-// 服务名称到真实图片的映射
-
-
-// 为服务添加真实封面图片
-
+const auth = require('../../utils/auth');
 
 Page({
   data: {
@@ -17,7 +12,8 @@ Page({
     limit: 10,
     total: 0,
     hasMore: true,
-    loading: false
+    loading: false,
+    loadFailed: false
   },
 
   onLoad() {},
@@ -59,8 +55,10 @@ Page({
     if (!refresh || this.data.services.length === 0) this.setData({ loading: true });
 
     try {
+      // 上拉加载：只有请求成功后才推进页码，失败后再次上拉会重试同一页而不是漏掉一页
+      const pageToLoad = refresh ? 1 : this.data.page + 1;
       const params = {
-        page: refresh ? 1 : this.data.page,
+        page: pageToLoad,
         limit: this.data.limit
       };
 
@@ -82,10 +80,11 @@ Page({
 
         this.setData({
           ...(unchanged ? {} : { services: list }),
-          page: res.pagination ? res.pagination.page : 1,
+          page: res.pagination ? res.pagination.page : pageToLoad,
           total: res.pagination ? res.pagination.total : list.length,
           hasMore: res.pagination ? res.pagination.page < res.pagination.pages : false,
-          loading: false
+          loading: false,
+          loadFailed: false
         });
         this._loadedAt = Date.now();
       }
@@ -93,6 +92,7 @@ Page({
       if (requestId !== this._requestId) return;
       console.error('加载服务列表失败:', error);
       wx.showToast({ title: '加载失败，请下拉重试', icon: 'none' });
+      this.setData({ loadFailed: true });
     } finally {
       if (requestId === this._requestId) this.setData({ loading: false });
     }
@@ -111,8 +111,13 @@ Page({
     this.setData({
       currentCategoryId: e.detail.key,
       page: 1,
-      services: []
+      services: [],
+      loadFailed: false
     });
+    this.loadServices(true);
+  },
+
+  onRetryLoad() {
     this.loadServices(true);
   },
 
@@ -125,9 +130,10 @@ Page({
 
   onBookTap(e) {
     const service = e.detail.service || {};
-    wx.navigateTo({
-      url: `/pages/booking/create?serviceId=${service.id}`
-    });
+    if (!service.id) return;
+    const url = `/pages/booking/create?serviceId=${service.id}`;
+    if (!auth.requireLogin(url)) return;
+    wx.navigateTo({ url });
   },
 
   async onPullDownRefresh() {
@@ -141,7 +147,6 @@ Page({
 
   onReachBottom() {
     if (this.data.hasMore && !this.data.loading) {
-      this.setData({ page: this.data.page + 1 });
       this.loadServices();
     }
   }

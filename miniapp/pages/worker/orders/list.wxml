@@ -18,6 +18,7 @@
       </view>
     </rh-card>
   </view>
-  <rh-empty wx:if="{{!loading && orders.length === 0}}" text="暂无工单" />
+  <rh-empty wx:if="{{!loading && loadFailed && orders.length === 0}}" text="网络不佳，加载失败" action-text="重新加载" bind:action="onRetryLoad" />
+  <rh-empty wx:elif="{{!loading && orders.length === 0}}" text="暂无工单" />
   <rh-load-more loading="{{loading || loadingMore}}" finished="{{!hasMore}}" />
 </view>

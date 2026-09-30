@@ -3,11 +3,21 @@ const api = require('../../utils/api');
 const theme = require('../../utils/theme');
 const notifications = require('../../utils/notifications');
 
+// 这些入口需要登录，游客点击时先去登录，登录成功后回到对应页面
+const LOGIN_REQUIRED = {
+  orders: '/pages/orders/list',
+  address: '/pages/address/list?mode=manage'
+};
+
 Page({
-  onMessages() { wx.navigateTo({ url: '/pages/notifications/list' }); },
+  onMessages() {
+    if (!auth.requireLogin('/pages/notifications/list')) return;
+    wx.navigateTo({ url: '/pages/notifications/list' });
+  },
   data: {
     userInfo: null,
     displayPhone: '',
+    guest: false,
     isDev: false,
     menuItems: []
   },
@@ -19,7 +29,12 @@ Page({
   },
 
   onShow() {
-    if (!auth.checkLogin()) return wx.reLaunch({ url: '/pages/login/login' });
+    // 游客也能看“我的”页：展示登录入口，而不是直接跳去登录页
+    if (!auth.checkLogin()) {
+      this.setData({ guest: true, userInfo: null, displayPhone: '' });
+      return;
+    }
+    if (this.data.guest) this.setData({ guest: false });
     this.loadUserInfo();
 
     // 师傅角色跳转到师傅工作台（防止误入客户端页面）
@@ -34,6 +49,14 @@ Page({
 
   onEditProfile() {
     wx.navigateTo({ url: '/pages/profile/edit' });
+  },
+
+  onGuestLogin() {
+    auth.requireLogin('/pages/profile/index');
+  },
+
+  onWorkerLoginEntry() {
+    wx.navigateTo({ url: '/pages/login/login?mode=worker' });
   },
 
   buildMenu() {
@@ -118,6 +141,7 @@ Page({
     const id = e.currentTarget.dataset.id;
     const item = this.data.menuItems.find((menu) => menu.id === id);
     if (!item) return;
+    if (LOGIN_REQUIRED[id] && !auth.requireLogin(LOGIN_REQUIRED[id])) return;
     if (item.url) {
       wx.navigateTo({ url: item.url });
     } else if (item.action && this[item.action]) {

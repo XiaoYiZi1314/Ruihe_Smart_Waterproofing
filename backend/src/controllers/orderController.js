@@ -47,7 +47,7 @@ exports.createOrder = async (req, res) => {
     }
 
     // 验证期望价格
-    if (expected_price != null && (!Number.isFinite(Number(expected_price)) || Number(expected_price) < 0)) {
+    if (expected_price != null && (!Number.isFinite(Number(expected_price)) || Number(expected_price) <= 0)) {
       return res.status(400).json({
         success: false,
         message: '期望价格必须大于0'

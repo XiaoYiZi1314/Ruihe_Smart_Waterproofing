@@ -5,12 +5,6 @@ const theme = require('../../utils/theme');
 
 const FALLBACK_BANNERS = [];
 
-// 服务名称到真实图片的映射
-
-
-// 为服务添加真实封面图片
-
-
 Page({
   data: {
     banners: FALLBACK_BANNERS,
@@ -22,13 +16,14 @@ Page({
     aboutUs: '',
     joinInfo: {},
     keyword: '',
-    loading: true
+    loading: true,
+    loadFailed: false
   },
 
   onLoad() {},
 
   onShow() {
-    if (!auth.checkLogin()) return wx.reLaunch({ url: '/pages/login/login' });
+    // 游客也可以浏览首页；师傅登录后自动进入工作台
     const userInfo = wx.getStorageSync('userInfo');
     if (userInfo?.role === 'worker') return wx.reLaunch({ url: '/pages/worker/orders/list' });
     if (userInfo) this.setData({ userInfo });
@@ -90,14 +85,15 @@ Page({
         contact: config.contact_info || {},
         aboutUs: config.about_us || '',
         joinInfo: { ...(config.join_info || {}), partners: Array.isArray(config.join_info?.partners) ? config.join_info.partners.join('\n') : config.join_info?.partners || '' },
-        loading: false
+        loading: false,
+        loadFailed: false
       });
       this._loadedAt = Date.now();
     } catch (error) {
       if (requestId !== this._requestId) return;
       console.error('加载数据失败:', error);
       wx.showToast({ title: '加载失败，请重试', icon: 'none' });
-      this.setData({ loading: false });
+      this.setData({ loading: false, loadFailed: true });
     } finally {
       if (!silent && requestId === this._requestId) wx.hideLoading();
     }
@@ -107,6 +103,10 @@ Page({
     this.loadData().then(() => {
       wx.stopPullDownRefresh();
     });
+  },
+
+  onRetryLoad() {
+    this.loadData();
   },
 
   onSearchInput(e) {
@@ -152,6 +152,17 @@ Page({
       wx.navigateTo({
         url: `/pages/services/detail?id=${banner.link_value}`
       });
+    } else if (banner.link_type === 'url' && banner.link_value) {
+      const value = String(banner.link_value);
+      if (value.indexOf('/pages/') === 0) {
+        wx.navigateTo({ url: value });
+      } else {
+        // 小程序内无法直接打开外部网页：复制链接并提示
+        wx.setClipboardData({
+          data: value,
+          success: () => wx.showToast({ title: '链接已复制，请在浏览器中打开', icon: 'none' })
+        });
+      }
     }
   },
 
@@ -166,9 +177,9 @@ Page({
   onBookTap(e) {
     const service = e.detail.service || {};
     if (!service.id) return;
-    wx.navigateTo({
-      url: `/pages/booking/create?serviceId=${service.id}`
-    });
+    const url = `/pages/booking/create?serviceId=${service.id}`;
+    if (!auth.requireLogin(url)) return;
+    wx.navigateTo({ url });
   },
 
   onViewMoreServices() {

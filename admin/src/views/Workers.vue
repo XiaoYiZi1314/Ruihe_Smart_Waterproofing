@@ -45,9 +45,9 @@
               {{ row.worker_status === 'working' ? '设为休息' : '设为上班' }}
             </el-button>
             <el-button link type="warning" size="small" @click="resetPassword(row)">重置密码</el-button>
-            <el-popconfirm title="确定删除该师傅吗？" @confirm="handleDelete(row)">
+            <el-popconfirm title="确定停用该师傅吗？停用后该账号将无法登录（有未完成工单时不能停用）。" width="260" @confirm="handleDelete(row)">
               <template #reference>
-                <el-button link type="danger" size="small">删除</el-button>
+                <el-button link type="danger" size="small">停用</el-button>
               </template>
             </el-popconfirm>
           </template>
@@ -203,11 +203,7 @@ async function handleCreate() {
     const initialPassword = res.data && res.data.initial_password;
     createDialogVisible.value = false;
     if (initialPassword) {
-      ElMessageBox.alert(
-        `初始密码：${initialPassword}。请通过安全渠道交给师傅，首次登录需修改密码。`,
-        '创建成功',
-        { confirmButtonText: '我已知晓' }
-      );
+      showPassword('创建成功', '初始密码', initialPassword);
     } else {
       ElMessage.success('师傅创建成功');
     }
@@ -222,7 +218,7 @@ async function handleCreate() {
 async function handleDelete(row) {
   try {
     await api.delete(`/admin/workers/${row.id}`);
-    ElMessage.success('师傅已删除');
+    ElMessage.success('师傅已停用');
     loadWorkers();
   } catch (err) {
     // 拦截器已处理
@@ -233,8 +229,46 @@ async function resetPassword(row) {
   try {
     await ElMessageBox.confirm(`重置 ${row.nickname} 的密码并使旧登录失效？`, '重置密码');
     const res = await api.post(`/admin/workers/${row.id}/reset-password`);
-    await ElMessageBox.alert(`临时密码：${res.data.initial_password}。首次登录需修改密码。`, '密码已重置');
+    await showPassword('密码已重置', '临时密码', res.data.initial_password);
   } catch (error) { /* cancellation or interceptor handles failure */ }
+}
+
+// 复制文本：优先使用剪贴板 API，失败时退回 textarea + execCommand
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (error) {
+    const input = document.createElement('textarea');
+    input.value = text;
+    input.style.position = 'fixed';
+    input.style.opacity = '0';
+    document.body.appendChild(input);
+    input.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(input);
+    return ok;
+  }
+}
+
+// 展示一次性密码：提供“复制密码”，避免管理员手动抄写出错
+async function showPassword(title, label, password) {
+  try {
+    await ElMessageBox.confirm(
+      `${label}：${password}\n请通过安全渠道交给师傅，首次登录需修改密码。`,
+      title,
+      {
+        confirmButtonText: '复制密码',
+        cancelButtonText: '我已记录',
+        type: 'success',
+        distinguishCancelAndClose: true,
+        closeOnClickModal: false
+      }
+    );
+    const copied = await copyText(password);
+    if (copied) ElMessage.success('密码已复制');
+    else ElMessage.warning('复制失败，请手动记录密码');
+  } catch (error) { /* 点击“我已记录”或关闭 */ }
 }
 
 onMounted(loadWorkers);

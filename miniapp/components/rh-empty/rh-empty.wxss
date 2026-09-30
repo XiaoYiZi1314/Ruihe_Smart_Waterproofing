@@ -11,3 +11,9 @@
   margin-top: 24rpx;
   font-size: 26rpx;
 }
+
+.rh-empty__action {
+  display: flex;
+  width: 280rpx;
+  margin-top: 32rpx;
+}

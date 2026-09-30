@@ -45,6 +45,18 @@ function checkLogin() {
 }
 
 /**
+ * 需要登录的操作（预约、看工单、地址管理…）入口：
+ * 未登录时跳到登录页，登录成功后回到 redirectUrl；返回 false 表示调用方应停止后续操作
+ * 游客可以自由浏览首页/服务，只有这些操作才要求登录
+ */
+function requireLogin(redirectUrl) {
+  if (checkLogin()) return true;
+  const query = redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : '';
+  wx.navigateTo({ url: `/pages/login/login${query}` });
+  return false;
+}
+
+/**
  * 退出登录
  */
 function clearAuth() {
@@ -59,6 +71,7 @@ function logout() {
 module.exports = {
   login,
   checkLogin,
+  requireLogin,
   clearAuth,
   logout
 };

@@ -15,6 +15,8 @@ function applyHttpError(res, url, snapshot, reject) {
 
   if (verdict.type === 'session') {
     session.clear(snapshot);
+    const globalData = app && app.globalData;
+    if (globalData) globalData.loginNotice = '登录已过期，请重新登录';
     wx.reLaunch({ url: '/pages/login/login' });
     reject(new Error(verdict.message));
     return;

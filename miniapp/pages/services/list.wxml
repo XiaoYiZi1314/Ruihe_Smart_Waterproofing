@@ -19,7 +19,8 @@
     bind:book="onBookTap"
   />
 
-  <rh-empty wx:if="{{!loading && services.length === 0}}" text="暂无服务项目" />
+  <rh-empty wx:if="{{!loading && loadFailed && services.length === 0}}" text="网络不佳，加载失败" action-text="重新加载" bind:action="onRetryLoad" />
+  <rh-empty wx:elif="{{!loading && services.length === 0}}" text="暂无服务项目" />
   <rh-load-more
     wx:if="{{services.length > 0}}"
     loading="{{loading}}"

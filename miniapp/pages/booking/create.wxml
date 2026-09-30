@@ -6,9 +6,9 @@
   </view>
 
   <rh-form-field label="服务项目" required>
-    <view class="rh-form-value">
-      <text>{{service.name || '加载中...'}}</text>
-      <text class="rh-form-value__ph">已选择</text>
+    <view class="rh-form-value" bindtap="onRetryService">
+      <text>{{service.name || (serviceFailed ? '加载失败' : '加载中...')}}</text>
+      <text class="rh-form-value__ph">{{service ? '已选择' : (serviceFailed ? '点击重试' : '')}}</text>
     </view>
   </rh-form-field>
 

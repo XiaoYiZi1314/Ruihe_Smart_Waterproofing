@@ -1,4 +1,5 @@
 {
+  "enablePullDownRefresh": true,
   "navigationBarTitleText": "地址管理",
   "usingComponents": {
     "rh-button": "/components/rh-button/rh-button",

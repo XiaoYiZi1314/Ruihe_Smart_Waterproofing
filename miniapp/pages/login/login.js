@@ -4,6 +4,20 @@ const app = getApp();
 const session = require('../../utils/session');
 const profileGuide = require('../../utils/profile-guide');
 
+const TAB_PAGES = [
+  '/pages/index/index',
+  '/pages/services/list',
+  '/pages/orders/list',
+  '/pages/profile/index'
+];
+// 登录成功后的回跳地址只允许客户端内部页面，避免被构造成任意跳转
+function safeRedirect(value) {
+  let url = '';
+  try { url = decodeURIComponent(value || ''); } catch (error) { return ''; }
+  if (!/^\/pages\//.test(url) || /^\/pages\/(login|worker|dev)\//.test(url)) return '';
+  return url;
+}
+
 Page({
   data: {
     loading: false,
@@ -18,6 +32,7 @@ Page({
 
   onLoad(options = {}) {
     if (options.mode === 'worker') this.setData({ mode: 'worker' });
+    this.redirect = safeRedirect(options.redirect);
     // 检查是否已登录
     if (auth.checkLogin()) {
       const snapshot = session.capture();
@@ -32,6 +47,31 @@ Page({
 
   onUnload() { this._unloaded = true; },
 
+  onShow() {
+    // 登录态过期被送回这里时，告诉用户原因，而不是悄悄跳转
+    const globalData = (app && app.globalData) || {};
+    if (globalData.loginNotice) {
+      const title = globalData.loginNotice;
+      globalData.loginNotice = '';
+      wx.showToast({ title, icon: 'none', duration: 2000 });
+    }
+  },
+
+  // 游客点“先逛逛”：能返回就返回，否则回首页
+  onBrowse() {
+    if (getCurrentPages().length > 1) wx.navigateBack();
+    else wx.reLaunch({ url: '/pages/index/index' });
+  },
+
+  goRedirect(url) {
+    const path = url.split('?')[0];
+    if (TAB_PAGES.indexOf(path) >= 0) {
+      wx.switchTab({ url: path, fail: () => wx.reLaunch({ url }) });
+      return;
+    }
+    wx.redirectTo({ url, fail: () => wx.reLaunch({ url }) });
+  },
+
   /**
    * 按角色路由
    */
@@ -39,6 +79,9 @@ Page({
     const userInfo = wx.getStorageSync('userInfo') || {};
     if (userInfo.role === 'worker') {
       wx.reLaunch({ url: userInfo.must_change_password ? '/pages/worker/profile/index' : '/pages/worker/orders/list' });
+    } else if (this.redirect) {
+      // 从预约/工单等入口来登录的：回到原来想去的页面（优先于资料引导）
+      this.goRedirect(this.redirect);
     } else {
       wx.reLaunch({
         url: '/pages/index/index',
@@ -93,7 +136,7 @@ Page({
         setTimeout(() => {
           if (this._unloaded || !session.isCurrent(snapshot)) return;
           wx.reLaunch({ url: res.data.user.must_change_password ? '/pages/worker/profile/index' : '/pages/worker/orders/list' });
-        }, 1200);
+        }, 500);
       }
     } catch (error) {
       console.error('师傅登录失败:', error);
@@ -118,13 +161,13 @@ Page({
       })
       .then((loginRes) => {
         const snapshot = session.capture();
-        wx.showToast({ title: '登录成功', icon: 'success', duration: 1200 });
+        wx.showToast({ title: '登录成功', icon: 'success', duration: 1000 });
         // worker 角色走师傅工作台，其余走客户端；新客户引导完善一次资料
         const guideProfile = profileGuide.consume(loginRes.user);
 
         setTimeout(() => {
           if (!this._unloaded && session.isCurrent(snapshot)) this.routeByRole(guideProfile);
-        }, 1200);
+        }, 500);
       })
       .catch((err) => {
         wx.showToast({

@@ -33,13 +33,23 @@
   position: absolute;
   top: 0;
   right: 0;
-  width: 36rpx;
-  height: 36rpx;
+  width: 44rpx;
+  height: 44rpx;
   background: rgba(0, 0, 0, 0.6);
   color: #fff;
   text-align: center;
-  line-height: 32rpx;
+  line-height: 40rpx;
   font-size: 28rpx;
+}
+
+/* 视觉尺寸不变的前提下扩大点击热区（微信建议至少 88rpx，这里向外扩到约 76rpx） */
+.image-delete::after {
+  content: '';
+  position: absolute;
+  top: -14rpx;
+  right: -14rpx;
+  bottom: 0;
+  left: 0;
 }
 
 .image-add {

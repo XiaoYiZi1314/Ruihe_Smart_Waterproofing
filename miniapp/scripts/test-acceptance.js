@@ -105,17 +105,20 @@ test('profile actions wrap virtual-host buttons so flex-basis cannot collapse th
   const actions = [...markup.matchAll(
     /<view class="profile-action">\s*<rh-button\b([^>]+)\/>\s*<\/view>/g
   )].map(match => match[1]);
-  assert.equal(actions.length, 3);
-  assert.match(actions[0], /text="退出登录"/);
-  assert.match(actions[0], /variant="danger"/);
-  assert.match(actions[0], /bind:tap="onLogout"/);
-  assert.match(actions[1], /bind:tap="onSwitchRole"/);
-  assert.match(actions[2], /bind:tap="onMessages"/);
+  // 游客两个入口 + 已登录三个入口
+  assert.equal(actions.length, 5);
+  assert.match(actions[0], /bind:tap="onGuestLogin"/);
+  assert.match(actions[1], /bind:tap="onWorkerLoginEntry"/);
+  assert.match(actions[2], /text="退出登录"/);
+  assert.match(actions[2], /variant="danger"/);
+  assert.match(actions[2], /bind:tap="onLogout"/);
+  assert.match(actions[3], /bind:tap="onSwitchRole"/);
+  assert.match(actions[4], /bind:tap="onMessages"/);
 });
 
 test('all button sizes keep their height as virtual-host children of a column flex container', () => {
   const css = fs.readFileSync(path.join(root, 'miniapp/components/rh-button/rh-button.wxss'), 'utf8');
-  for (const [size, height] of [['sm', 52], ['md', 72], ['lg', 88]]) {
+  for (const [size, height] of [['sm', 64], ['md', 72], ['lg', 88]]) {
     const rule = css.match(new RegExp(`\\.rh-btn--${size}\\s*\\{([^}]+)\\}`));
     assert(rule, `Missing button size: ${size}`);
     assert.match(rule[1], new RegExp(`min-height:\\s*${height}rpx`));

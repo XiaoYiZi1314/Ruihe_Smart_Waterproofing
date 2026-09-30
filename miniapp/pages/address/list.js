@@ -1,20 +1,35 @@
 const api = require('../../utils/api');
+const auth = require('../../utils/auth');
 
 Page({
   data: {
     addresses: [],
     mode: 'manage', // manage 或 select
-    loading: true
+    loading: true,
+    loadFailed: false
   },
 
   onLoad(options) {
     const mode = options.mode || 'manage';
+    // 分享/历史页面直接进入时，游客先登录，登录后回到这里
+    if (!auth.checkLogin()) {
+      wx.redirectTo({ url: `/pages/login/login?redirect=${encodeURIComponent(`/pages/address/list?mode=${mode}`)}` });
+      return;
+    }
     this.setData({ mode });
-    this.loadAddresses();
   },
 
   onShow() {
-    // 从编辑页返回时刷新列表
+    // 首次进入和从编辑页返回都会经过这里：只在 onShow 加载一次，避免进入时请求两遍
+    if (!auth.checkLogin()) return;
+    this.loadAddresses();
+  },
+
+  onPullDownRefresh() {
+    return this.loadAddresses().then(() => wx.stopPullDownRefresh());
+  },
+
+  onRetryLoad() {
     this.loadAddresses();
   },
 
@@ -22,15 +37,18 @@ Page({
    * 加载地址列表
    */
   async loadAddresses() {
-    this.setData({ loading: true });
+    // 已有列表时静默刷新，不清空、不闪“加载中”
+    if (!this._loaded) this.setData({ loading: true, loadFailed: false });
 
     try {
       const res = await api.getAddresses();
 
       if (res.success) {
+        this._loaded = true;
         this.setData({
           addresses: res.data,
-          loading: false
+          loading: false,
+          loadFailed: false
         });
       }
     } catch (error) {
@@ -39,7 +57,7 @@ Page({
         title: '加载失败',
         icon: 'none'
       });
-      this.setData({ loading: false });
+      this.setData({ loading: false, loadFailed: !this._loaded });
     }
   },
 

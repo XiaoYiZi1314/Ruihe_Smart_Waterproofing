@@ -119,6 +119,8 @@
     <view class="sk__line sk__shimmer"></view>
   </view>
 
+  <rh-empty wx:if="{{!loading && !service && loadFailed}}" text="网络不佳，加载失败" action-text="重新加载" bind:action="onRetryLoad" />
+
   <rh-sticky-bar wx:if="{{!loading && service}}">
     <rh-button variant="line" size="lg" text="咨询客服" bind:tap="onConsult" />
     <rh-button variant="brand" size="lg" block text="立即预约" bind:tap="onBook" />

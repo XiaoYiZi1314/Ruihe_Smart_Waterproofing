@@ -18,7 +18,8 @@ Page({
     total: 0,
     loading: false,
     loadingMore: false,
-    hasMore: true
+    hasMore: true,
+    loadFailed: false
   },
 
   onLoad() {
@@ -28,7 +29,7 @@ Page({
       wx.reLaunch({ url: '/pages/login/login' });
       return;
     }
-    this.loadOrders(true);
+    // 数据由紧随其后的 onShow 加载，这里不再重复请求
   },
 
   onShow() {
@@ -44,7 +45,7 @@ Page({
   onTabChange(e) {
     const { key } = e.detail;
     if (key === this.data.activeTab) return;
-    this.setData({ activeTab: key, orders: [], page: 1, hasMore: true });
+    this.setData({ activeTab: key, orders: [], page: 1, hasMore: true, loadFailed: false });
     this.loadOrders(true);
   },
 
@@ -52,20 +53,22 @@ Page({
    * 加载工单列表
    */
   async loadOrders(refresh = false) {
-    if (this._busy) return;
-    this._busy = true;
+    // 用请求序号代替“忙碌锁”：切换 Tab 时旧请求的结果会被丢弃，新请求不会被吞掉
+    const requestId = this._requestId = (this._requestId || 0) + 1;
 
     // 已有列表时的刷新是静默的，不切换“加载中 / 暂无工单”状态
     const silent = refresh && this.data.orders.length > 0;
-    if (refresh) this.setData({ page: 1 });
-    if (!silent) this.setData(refresh ? { loading: true } : { loadingMore: true });
+    if (!silent) this.setData(refresh ? { loading: true, loadingMore: false, loadFailed: false } : { loadingMore: true });
 
     try {
+      // 上拉加载：请求成功后才推进页码，失败后再次上拉会重试同一页
+      const pageToLoad = refresh ? 1 : this.data.page + 1;
       const res = await api.get('/api/worker/orders', {
         status: this.data.activeTab,
-        page: this.data.page,
+        page: pageToLoad,
         limit: this.data.limit
       });
+      if (requestId !== this._requestId) return;
       const data = (res && res.data) || {};
 
       const orders = (data.orders || []).map((o) => ({
@@ -78,19 +81,27 @@ Page({
 
       const nextOrders = refresh ? orders : [...this.data.orders, ...orders];
       const unchanged = refresh && JSON.stringify(nextOrders) === JSON.stringify(this.data.orders);
+      const total = data.pagination ? Number(data.pagination.total) : NaN;
       this.setData({
         ...(unchanged ? {} : { orders: nextOrders }),
-        total: data.pagination ? data.pagination.total : orders.length,
-        hasMore: refresh
+        page: pageToLoad,
+        total: Number.isNaN(total) ? nextOrders.length : total,
+        hasMore: Number.isNaN(total)
           ? orders.length >= this.data.limit
-          : orders.length > 0
+          : nextOrders.length < total,
+        loadFailed: false
       });
     } catch (error) {
+      if (requestId !== this._requestId) return;
       console.error('加载工单失败:', error);
+      this.setData({ loadFailed: true });
     } finally {
-      this._busy = false;
-      this.setData({ loading: false, loadingMore: false });
+      if (requestId === this._requestId) this.setData({ loading: false, loadingMore: false });
     }
+  },
+
+  onRetryLoad() {
+    this.loadOrders(true);
   },
 
   /**
@@ -107,8 +118,7 @@ Page({
    * 上拉加载更多
    */
   onReachBottom() {
-    if (!this.data.hasMore || this.data.loadingMore) return;
-    this.setData({ page: this.data.page + 1 });
+    if (!this.data.hasMore || this.data.loading || this.data.loadingMore) return;
     this.loadOrders(false);
   },
 

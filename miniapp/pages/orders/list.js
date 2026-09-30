@@ -1,5 +1,6 @@
 const api = require('../../utils/api');
 const statusUtil = require('../../utils/status');
+const auth = require('../../utils/auth');
 
 Page({
   data: {
@@ -10,7 +11,9 @@ Page({
     limit: 10,
     total: 0,
     hasMore: true,
-    loading: false
+    loading: false,
+    loadFailed: false,
+    guest: false
   },
 
   onLoad() {
@@ -19,7 +22,7 @@ Page({
     const tabs = [{ key: null, label: '全部' }];
     
     // 添加主要状态标签
-    ['pending', 'confirmed', 'in_progress', 'pending_review', 'completed', 'cancelled'].forEach(key => {
+    ['pending', 'confirmed', 'in_progress', 'pending_review', 'price_negotiating', 'completed', 'cancelled'].forEach(key => {
       if (STATUS_MAP[key]) {
         tabs.push({ key, label: STATUS_MAP[key].text });
       }
@@ -29,6 +32,20 @@ Page({
   },
 
   onShow() {
+    // 游客可以浏览，但看不到工单：给出登录入口，而不是把人直接赶去登录页
+    if (!auth.checkLogin()) {
+      this.setData({ guest: true, orders: [], loading: false, loadFailed: false });
+      return;
+    }
+    if (this.data.guest) this.setData({ guest: false });
+    this.loadOrders(true);
+  },
+
+  onGoLogin() {
+    auth.requireLogin('/pages/orders/list');
+  },
+
+  onRetryLoad() {
     this.loadOrders(true);
   },
 
@@ -36,7 +53,8 @@ Page({
     this.setData({
       currentTab: e.detail.key,
       page: 1,
-      orders: []
+      orders: [],
+      loadFailed: false
     });
     this.loadOrders(true);
   },
@@ -47,8 +65,10 @@ Page({
     if (!refresh || this.data.orders.length === 0) this.setData({ loading: true });
 
     try {
+      // 上拉加载：请求成功后才推进页码，失败后再次上拉会重试同一页
+      const pageToLoad = refresh ? 1 : this.data.page + 1;
       const params = {
-        page: refresh ? 1 : this.data.page,
+        page: pageToLoad,
         limit: this.data.limit
       };
       if (this.data.currentTab) {
@@ -62,16 +82,18 @@ Page({
         const unchanged = refresh && JSON.stringify(orders) === JSON.stringify(this.data.orders);
         this.setData({
           ...(unchanged ? {} : { orders }),
-          page: res.pagination ? res.pagination.page : 1,
+          page: res.pagination ? res.pagination.page : pageToLoad,
           total: res.pagination ? res.pagination.total : orders.length,
           hasMore: res.pagination ? res.pagination.page < res.pagination.pages : false,
-          loading: false
+          loading: false,
+          loadFailed: false
         });
       }
     } catch (error) {
       if (requestId !== this._requestId) return;
       console.error('加载工单列表失败:', error);
       wx.showToast({ title: '加载失败', icon: 'none' });
+      this.setData({ loadFailed: true });
     } finally {
       if (requestId === this._requestId) this.setData({ loading: false });
     }
@@ -132,6 +154,8 @@ Page({
         confirmColor: '#F5222D',
         success: async (res) => {
           if (!res.confirm) return;
+          if (this._cancelling) return;
+          this._cancelling = true;
           try {
             const result = await api.cancelOrder(order.id);
             if (result.success) {
@@ -140,6 +164,8 @@ Page({
             }
           } catch (error) {
             wx.showToast({ title: error.message || '取消失败', icon: 'none' });
+          } finally {
+            this._cancelling = false;
           }
         }
       });
@@ -147,6 +173,7 @@ Page({
   },
 
   onPullDownRefresh() {
+    if (this.data.guest) return wx.stopPullDownRefresh();
     this.setData({ page: 1 });
     this.loadOrders(true).then(() => {
       wx.stopPullDownRefresh();
@@ -154,8 +181,8 @@ Page({
   },
 
   onReachBottom() {
+    if (this.data.guest) return;
     if (this.data.hasMore && !this.data.loading) {
-      this.setData({ page: this.data.page + 1 });
       this.loadOrders();
     }
   }

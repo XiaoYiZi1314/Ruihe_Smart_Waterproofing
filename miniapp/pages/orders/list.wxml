@@ -1,5 +1,5 @@
 <view class="page-wrap">
-  <view class="order-tags">
+  <view class="order-tags" wx:if="{{!guest}}">
     <rh-tag-bar items="{{tabs}}" active-key="{{currentTab}}" bind:change="onTabChange" />
   </view>
 
@@ -11,7 +11,9 @@
     bind:action="onOrderAction"
   />
 
-  <rh-empty wx:if="{{!loading && orders.length === 0}}" text="暂无相关工单" icon="empty" />
+  <rh-empty wx:if="{{guest}}" text="登录后即可查看我的工单" icon="empty" action-text="立即登录" bind:action="onGoLogin" />
+  <rh-empty wx:elif="{{!loading && loadFailed && orders.length === 0}}" text="网络不佳，加载失败" icon="empty" action-text="重新加载" bind:action="onRetryLoad" />
+  <rh-empty wx:elif="{{!loading && orders.length === 0}}" text="暂无相关工单" icon="empty" />
   <rh-load-more
     wx:if="{{orders.length > 0}}"
     loading="{{loading}}"

@@ -1,4 +1,5 @@
 {
+  "enablePullDownRefresh": true,
   "navigationBarTitleText": "服务详情",
   "usingComponents": {
     "rh-button": "/components/rh-button/rh-button",

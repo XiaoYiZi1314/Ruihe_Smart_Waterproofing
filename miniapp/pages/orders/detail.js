@@ -7,6 +7,7 @@ Page({
     imageLoadFailed: false,
     order: null,
     loading: true,
+    loadFailed: false,
     submitting: false,
     statusMeta: {},
     maskedWorkerPhone: '',
@@ -63,6 +64,11 @@ Page({
     });
   },
 
+  onRetryLoad() {
+    this.setData({ loading: true, loadFailed: false });
+    this.loadOrderDetail(this.orderId);
+  },
+
   async loadOrderDetail(id) {
     const requestId = this._requestId = (this._requestId || 0) + 1;
     try {
@@ -94,6 +100,7 @@ Page({
         this.setData({
           order,
           loading: false,
+          loadFailed: false,
           statusMeta,
           expectedPriceText,
           finalPriceText,
@@ -108,12 +115,14 @@ Page({
           materialFeeText: order.material_fee !== null && order.material_fee !== undefined ? `¥${order.material_fee}` : '',
           laborFeeText: order.labor_fee !== null && order.labor_fee !== undefined ? `¥${order.labor_fee}` : ''
         });
+      } else if (!this.data.order) {
+        this.setData({ loading: false, loadFailed: true });
       }
     } catch (error) {
       if (requestId !== this._requestId) return;
       console.error('加载工单详情失败:', error);
-      wx.showToast({ title: '加载失败', icon: 'none' });
-      setTimeout(() => wx.navigateBack(), 1500);
+      // 已有内容时保持页面不动（请求层已提示错误）；首次加载失败显示重试入口，不再自动退出页面
+      if (!this.data.order) this.setData({ loading: false, loadFailed: true });
     }
   },
 

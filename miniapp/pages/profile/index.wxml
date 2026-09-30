@@ -1,6 +1,16 @@
 <view class="page-wrap">
   <view class="profile-head">
-    <view class="profile-top" bindtap="onEditProfile">
+    <view wx:if="{{guest}}" class="profile-top" bindtap="onGuestLogin">
+      <view class="avatar avatar--placeholder">
+        <rh-icon name="user" tone="white" size="56" />
+      </view>
+      <view>
+        <view class="profile-name">点击登录</view>
+        <view class="profile-phone">登录后可预约服务、查看工单</view>
+      </view>
+      <text class="profile-edit">去登录 ›</text>
+    </view>
+    <view wx:else class="profile-top" bindtap="onEditProfile">
       <rh-image
         wx:if="{{userInfo.avatar_url}}"
         class="avatar"
@@ -15,7 +25,7 @@
       </view>
       <text class="profile-edit">编辑资料 ›</text>
     </view>
-    <view class="profile-vip">
+    <view class="profile-vip" wx:if="{{!guest}}">
       <text>✓ 认证会员 · 享专属服务保障</text>
       <text class="profile-vip__more">查看权益 ›</text>
     </view>
@@ -36,7 +46,15 @@
     </rh-card>
   </view>
 
-  <view class="logout-wrap">
+  <view class="logout-wrap" wx:if="{{guest}}">
+    <view class="profile-action">
+      <rh-button variant="brand" size="lg" block text="微信快捷登录" bind:tap="onGuestLogin" />
+    </view>
+    <view class="profile-action">
+      <rh-button variant="line" size="lg" block text="我是师傅，使用工号登录" bind:tap="onWorkerLoginEntry" />
+    </view>
+  </view>
+  <view class="logout-wrap" wx:else>
     <view class="profile-action">
       <rh-button variant="danger" size="lg" block text="退出登录" bind:tap="onLogout" />
     </view>

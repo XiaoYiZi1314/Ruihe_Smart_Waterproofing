@@ -22,6 +22,9 @@
     <view class="login-switch" bindtap="switchMode">
       <text>我是师傅，使用工号登录</text>
     </view>
+    <view class="login-switch" bindtap="onBrowse">
+      <text>暂不登录，先逛逛</text>
+    </view>
     <view class="login-tips">
       <text>登录即表示同意</text>
       <text class="text-brand">《用户协议》</text>

@@ -1,1 +1,21 @@
-<view class="page-wrap page-pad"><rh-load-more wx:if="{{loading}}" loading /><rh-empty wx:if="{{!loading && items.length === 0}}" text="暂无消息" /><view class="message" wx:for="{{items}}" wx:key="id" data-id="{{item.id}}" bindtap="markRead"><rh-card><rh-section-title title="{{item.title}}" /><view class="rh-form-value">{{item.content}}</view><rh-info-row label="状态" value="{{item.is_read ? '已读' : '未读'}}" /><rh-info-row label="时间" value="{{item.created_at}}" /></rh-card></view></view>
+<view class="page-wrap page-pad">
+  <view wx:if="{{unreadCount > 0}}" class="msg-toolbar">
+    <text class="msg-toolbar__text">{{unreadCount}} 条未读</text>
+    <text class="msg-toolbar__action" bindtap="markAllRead">全部已读</text>
+  </view>
+
+  <rh-load-more wx:if="{{loading}}" loading />
+  <rh-empty wx:elif="{{loadFailed && items.length === 0}}" text="网络不佳，加载失败" action-text="重新加载" bind:action="onRetryLoad" />
+  <rh-empty wx:elif="{{items.length === 0}}" text="暂无消息" />
+
+  <view class="message" wx:for="{{items}}" wx:key="id" data-id="{{item.id}}" bindtap="markRead">
+    <rh-card>
+      <view class="msg-head">
+        <view wx:if="{{!item.is_read}}" class="msg-dot"></view>
+        <rh-section-title title="{{item.title}}" />
+      </view>
+      <view class="rh-form-value">{{item.content}}</view>
+      <rh-info-row label="时间" value="{{item.timeText}}" />
+    </rh-card>
+  </view>
+</view>

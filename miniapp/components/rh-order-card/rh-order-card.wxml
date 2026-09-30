@@ -6,7 +6,7 @@
   <view class="rh-order__name">{{view.name}}</view>
   <view wx:if="{{view.time}}" class="rh-order__line">
     <rh-icon name="clock" size="26" />
-    <text>预约时间：{{view.time}}</text>
+    <text>{{view.timeLabel}}：{{view.time}}</text>
   </view>
   <view wx:if="{{view.addr}}" class="rh-order__line">
     <rh-icon name="location" size="26" />

@@ -78,6 +78,10 @@ Page({
     });
   },
 
+  onRetryLoad() {
+    this.loadOrder();
+  },
+
   /**
    * 拨打客户电话
    */
@@ -247,6 +251,20 @@ Page({
       wx.showToast({ title: '价格必须为非负数字', icon: 'none' });
       return;
     }
+
+    // 完工填价提交后不能自行修改，先让师傅核对一遍
+    const total = (d + m + l).toFixed(2);
+    const confirmRes = await new Promise((resolve) => {
+      wx.showModal({
+        title: '确认提交完工价格',
+        content: `上门费 ¥${d.toFixed(2)}\n材料费 ¥${m.toFixed(2)}\n工时费 ¥${l.toFixed(2)}\n合计 ¥${total}\n\n提交后将通知客户验收，确认提交？`,
+        confirmText: '确认提交',
+        success: resolve,
+        fail: () => resolve({ confirm: false })
+      });
+    });
+    if (!confirmRes.confirm) return;
+    if (this.data.submitting) return;
 
     this.setData({ submitting: true });
 

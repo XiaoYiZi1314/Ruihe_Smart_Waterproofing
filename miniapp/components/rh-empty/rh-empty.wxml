@@ -1,5 +1,8 @@
 <view class="rh-empty">
   <rh-icon name="{{icon}}" size="112" />
   <text class="rh-empty__text">{{text}}</text>
+  <view wx:if="{{actionText}}" class="rh-empty__action">
+    <rh-button variant="line" size="md" text="{{actionText}}" bind:tap="onAction" />
+  </view>
   <slot></slot>
 </view>

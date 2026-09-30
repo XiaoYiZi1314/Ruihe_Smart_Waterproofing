@@ -1,5 +1,5 @@
 <view class="page-wrap page-wrap--footer">
-  <view wx:if="{{!loading && addresses.length > 0}}">
+  <view wx:if="{{addresses.length > 0}}">
     <view
       wx:for="{{addresses}}"
       wx:key="id"
@@ -32,8 +32,9 @@
     </view>
   </view>
 
-  <rh-empty wx:if="{{!loading && addresses.length === 0}}" text="还没有地址" icon="location" />
   <rh-empty wx:if="{{loading}}" text="加载中..." />
+  <rh-empty wx:elif="{{loadFailed && addresses.length === 0}}" text="网络不佳，加载失败" action-text="重新加载" bind:action="onRetryLoad" />
+  <rh-empty wx:elif="{{addresses.length === 0}}" text="还没有地址" icon="location" />
 
   <rh-sticky-bar>
     <rh-button variant="brand" size="lg" block text="+ 新增地址" bind:tap="onAddAddress" />

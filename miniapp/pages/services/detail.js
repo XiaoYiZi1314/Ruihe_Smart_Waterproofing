@@ -1,5 +1,6 @@
 const api = require('../../utils/api');
 const theme = require('../../utils/theme');
+const auth = require('../../utils/auth');
 
 /**
  * 用户昵称脱敏：张三 → 张**
@@ -26,6 +27,7 @@ Page({
   data: {
     service: null,
     loading: true,
+    loadFailed: false,
     bannerImages: [],
     currentBannerIndex: 0,
     bannerGradient: '',
@@ -40,6 +42,7 @@ Page({
   onLoad(options) {
     const { id } = options;
     if (id) {
+      this.serviceId = id;
       this.loadServiceDetail(id);
     } else {
       wx.showToast({ title: '参数错误', icon: 'none' });
@@ -47,7 +50,18 @@ Page({
     }
   },
 
+  onPullDownRefresh() {
+    if (!this.serviceId) return wx.stopPullDownRefresh();
+    return this.loadServiceDetail(this.serviceId).then(() => wx.stopPullDownRefresh());
+  },
+
+  onRetryLoad() {
+    if (this.serviceId) this.loadServiceDetail(this.serviceId);
+  },
+
   async loadServiceDetail(id) {
+    // 首次加载显示骨架屏；已有内容时静默刷新
+    if (!this.data.service) this.setData({ loading: true, loadFailed: false });
     try {
       const res = await api.getServiceById(id);
       if (res.success) {
@@ -66,6 +80,7 @@ Page({
         this.setData({
           service,
           loading: false,
+          loadFailed: false,
           bannerImages,
           bannerGradient: theme.coverGradient(service.id || service.name),
           priceMain: price.main,
@@ -88,11 +103,13 @@ Page({
           })),
           reviewStats: service.review_stats
         });
+      } else if (!this.data.service) {
+        this.setData({ loading: false, loadFailed: true });
       }
     } catch (error) {
       console.error('加载服务详情失败:', error);
-      wx.showToast({ title: '加载失败', icon: 'none' });
-      setTimeout(() => wx.navigateBack(), 1500);
+      // 已有内容时保持页面不动（请求层已提示错误）；首次加载失败显示重试，不再自动退出页面
+      if (!this.data.service) this.setData({ loading: false, loadFailed: true });
     }
   },
 
@@ -125,17 +142,18 @@ Page({
   onBook() {
     const service = this.data.service;
     if (!service) return;
-    wx.navigateTo({
-      url: `/pages/booking/create?serviceId=${service.id}`
-    });
+    const url = `/pages/booking/create?serviceId=${service.id}`;
+    if (!auth.requireLogin(url)) return;
+    wx.navigateTo({ url });
   },
 
   onShareAppMessage() {
     const service = this.data.service;
+    const id = service ? service.id : this.serviceId;
     return {
       title: service ? service.name : '瑞和防水',
-      path: `/pages/services/detail?id=${service.id}`,
-      imageUrl: service ? service.cover_image : ''
+      path: id ? `/pages/services/detail?id=${id}` : '/pages/index/index',
+      imageUrl: service && service.cover_image ? service.cover_image : ''
     };
   }
 });

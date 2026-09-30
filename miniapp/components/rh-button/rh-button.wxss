@@ -52,11 +52,22 @@
 /* virtualHost makes the button a direct flex child; a zero flex-basis must not
    collapse its tap target in auto-height column layouts (for example login). */
 .rh-btn--sm {
-  height: 52rpx;
-  min-height: 52rpx;
+  position: relative;
+  height: 64rpx;
+  min-height: 64rpx;
   padding: 0 24rpx;
   font-size: 24rpx;
   border-radius: var(--radius-md);
+}
+
+/* 小按钮视觉高度 64rpx，点击热区上下各外扩到约 80rpx，避免并排按钮误触 */
+.rh-btn--sm::after {
+  content: '';
+  position: absolute;
+  top: -8rpx;
+  bottom: -8rpx;
+  left: -4rpx;
+  right: -4rpx;
 }
 
 .rh-btn--md {

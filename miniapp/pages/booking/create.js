@@ -1,40 +1,25 @@
 const notifications = require('../../utils/notifications');
 const api = require('../../utils/api');
 const theme = require('../../utils/theme');
+const auth = require('../../utils/auth');
+const slots = require('../../utils/booking-slots');
 const { upload } = require('../../utils/request');
 
-function buildDateOptions() {
-  const labels = ['今天', '明天'];
-  const options = [];
-  const now = new Date();
-  for (let i = 0; i < 5; i += 1) {
-    const date = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    options.push({
-      value: `${date.getFullYear()}-${month}-${day}`,
-      label: labels[i] || `${month}-${day}`
-    });
-  }
-  return options;
-}
+const PHONE_REGEX = /^1[3-9]\d{9}$/;
 
 Page({
   data: {
     serviceId: null,
     service: null,
+    serviceFailed: false,
     selectedAddress: null,
     addressText: '',
     contactName: '',
     contactPhone: '',
     dateOptions: [],
-    timeOptions: [
-      { value: '上午 08-12', label: '上午 08-12' },
-      { value: '下午 13-18', label: '下午 13-18' },
-      { value: '晚上 18-20', label: '晚上 18-20' }
-    ],
+    timeOptions: [],
     dateValue: '',
-    timeValue: '上午 08-12',
+    timeValue: '',
     form: {
       expected_price: '',
       remark: '',
@@ -45,7 +30,6 @@ Page({
 
   onLoad(options) {
     const { serviceId } = options;
-    const dateOptions = buildDateOptions();
 
     if (!serviceId) {
       wx.showToast({ title: '参数错误', icon: 'none' });
@@ -53,10 +37,23 @@ Page({
       return;
     }
 
+    // 分享链接/历史页面直接进入时，游客先登录，登录后回到这里
+    if (!auth.checkLogin()) {
+      wx.redirectTo({ url: `/pages/login/login?redirect=${encodeURIComponent(`/pages/booking/create?serviceId=${serviceId}`)}` });
+      return;
+    }
+
+    // 已经过去的时段不可选；今天没有可选时段时从明天开始
+    const dateOptions = slots.buildDateOptions();
+    const dateValue = dateOptions[0].value;
+    const timeOptions = slots.availableSlots(dateValue);
+
     this.setData({
       serviceId,
       dateOptions,
-      dateValue: dateOptions[0].value
+      dateValue,
+      timeOptions,
+      timeValue: timeOptions.length ? timeOptions[0].value : ''
     });
     notifications.loadConfig();
     this.loadService(serviceId);
@@ -64,14 +61,22 @@ Page({
   },
 
   async loadService(id) {
+    this.setData({ serviceFailed: false });
     try {
       const res = await api.getServiceById(id);
       if (res.success) {
         this.setData({ service: res.data });
+      } else {
+        this.setData({ serviceFailed: true });
       }
     } catch (error) {
       console.error('加载服务失败:', error);
+      this.setData({ serviceFailed: true });
     }
+  },
+
+  onRetryService() {
+    if (!this.data.service && this.data.serviceFailed) this.loadService(this.data.serviceId);
   },
 
   async loadDefaultAddress() {
@@ -107,7 +112,13 @@ Page({
   },
 
   onDateChange(e) {
-    this.setData({ dateValue: e.detail.value });
+    const dateValue = e.detail.value;
+    const timeOptions = slots.availableSlots(dateValue);
+    this.setData({
+      dateValue,
+      timeOptions,
+      timeValue: slots.pickTime(dateValue, this.data.timeValue)
+    });
   },
 
   onTimeChange(e) {
@@ -163,16 +174,42 @@ Page({
   },
 
   validateForm() {
+    const contactName = (this.data.contactName || '').trim();
+    const contactPhone = (this.data.contactPhone || '').trim();
+
     if (!this.data.selectedAddress) {
       wx.showToast({ title: '请选择服务地址', icon: 'none' });
       return false;
     }
-    if (!this.data.contactName) {
+    if (!contactName) {
       wx.showToast({ title: '请输入联系人姓名', icon: 'none' });
       return false;
     }
-    if (!this.data.contactPhone) {
+    if (contactName.length > 20) {
+      wx.showToast({ title: '姓名不能超过20个字符', icon: 'none' });
+      return false;
+    }
+    if (!contactPhone) {
       wx.showToast({ title: '请输入联系电话', icon: 'none' });
+      return false;
+    }
+    if (!PHONE_REGEX.test(contactPhone)) {
+      wx.showToast({ title: '请输入正确的11位手机号', icon: 'none' });
+      return false;
+    }
+
+    // 页面停留太久，选中的时段可能已经过去
+    if (!slots.isSlotAvailable(this.data.dateValue, this.data.timeValue)) {
+      const dateOptions = slots.buildDateOptions();
+      const dateValue = dateOptions[0].value;
+      const timeOptions = slots.availableSlots(dateValue);
+      this.setData({
+        dateOptions,
+        dateValue,
+        timeOptions,
+        timeValue: timeOptions.length ? timeOptions[0].value : ''
+      });
+      wx.showToast({ title: '所选时段已过，请重新选择预约时间', icon: 'none' });
       return false;
     }
 
@@ -210,8 +247,8 @@ Page({
       const formData = {
         service_id: this.data.serviceId,
         address_id: this.data.selectedAddress.id,
-        contact_name: this.data.contactName,
-        contact_phone: this.data.contactPhone,
+        contact_name: this.data.contactName.trim(),
+        contact_phone: this.data.contactPhone.trim(),
         remark: remarkParts.join('\n'),
         images: uploadedUrls
       };

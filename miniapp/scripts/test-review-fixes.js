@@ -178,7 +178,7 @@ test('subscription uses preloaded templates and reports actual consent',async()=
   assert.equal(await notifications.subscribe(['worker_assigned']),true);
 });
 test('booking and worker profile preload configuration without waiting for a support-phone tap',async()=>{
-  const customer=harness(null);let customerLoads=0;
+  const customer=harness();let customerLoads=0;
   customer.load('miniapp/pages/booking/create.js',{'../../utils/notifications':{loadConfig:()=>customerLoads++}});
   const booking=customer.page;booking.setData=v=>Object.assign(booking.data,v);booking.loadService=()=>{};booking.loadDefaultAddress=()=>{};
   booking.onLoad({serviceId:1});assert.equal(customerLoads,1);

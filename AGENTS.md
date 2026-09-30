@@ -40,8 +40,8 @@ miniapp/
 
 | 页面 | 说明 |
 | --- | --- |
-| `pages/login/login` | 登录 |
-| `pages/index/index` | 首页 Tab |
+| `pages/login/login` | 登录（支持 `?redirect=` 登录后回跳、`?mode=worker`） |
+| `pages/index/index` | 首页 Tab（小程序入口页，游客可浏览） |
 | `pages/services/list` | 服务 Tab |
 | `pages/orders/list` | 工单 Tab |
 | `pages/profile/index` | 我的 Tab |
@@ -86,7 +86,7 @@ miniapp/
 | `rh-contact-line` | 联系人行 | `icon`、`title`、`subtitle` |
 | `rh-menu-item` | 个人中心菜单 | `icon`、`title`、`gradient`、`badge` |
 | `rh-quick-entry` | 首页四宫格 | `items` |
-| `rh-empty` / `rh-load-more` | 空态与加载 | 文案 props |
+| `rh-empty` / `rh-load-more` | 空态与加载 | 文案 props；`rh-empty` 传 `action-text` 会显示按钮并触发 `action` 事件（用于“重新加载”“立即登录”） |
 | `rh-sticky-bar` | 底部操作栏 | slot |
 | `rh-info-row` | 详情键值行 | `label`、`value`、`emphasize` |
 | `rh-icon` | 图标 | `name`、`tone`、`size` |

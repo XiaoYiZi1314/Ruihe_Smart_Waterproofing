@@ -1,1 +1,29 @@
 .message { margin-bottom: 24rpx; }
+
+.msg-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+  font-size: 26rpx;
+  color: var(--color-text-muted);
+}
+
+.msg-toolbar__action {
+  padding: 12rpx 0 12rpx 24rpx;
+  color: var(--color-brand, #2B7BE4);
+}
+
+.msg-head {
+  display: flex;
+  align-items: center;
+}
+
+.msg-dot {
+  flex: none;
+  width: 16rpx;
+  height: 16rpx;
+  margin-right: 12rpx;
+  border-radius: 50%;
+  background: #F5222D;
+}

@@ -25,7 +25,7 @@
     <rh-info-row label="完工时间" value="{{order.completedTimeText}}" />
     <rh-info-row label="验收完成" value="{{order.finishedTimeText}}" />
   </block>
-  <rh-empty wx:else text="工单不存在或暂时无法加载" />
+  <rh-empty wx:else text="工单不存在或暂时无法加载" action-text="重新加载" bind:action="onRetryLoad" />
   <rh-sticky-bar wx:if="{{order}}">
     <rh-button wx:if="{{order.canReject}}" variant="danger" text="拒绝" bind:tap="openRejectModal" disabled="{{submitting}}" />
     <rh-button wx:if="{{order.canAccept}}" text="接受工单" bind:tap="handleAccept" loading="{{submitting}}" />
