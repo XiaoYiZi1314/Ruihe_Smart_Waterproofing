@@ -31,7 +31,7 @@ function fixture(orderOverrides = {}) {
       return [{}];
     }
   };
-  const WorkOrder = load('models/WorkOrder.js', {
+  const WorkOrder = load('models/WorkOrder.js', { '../utils/orderChangeLog': require('../src/utils/orderChangeLog'),
     '../utils/orderNumber': {}, '../utils/orderWorkflow': {},
     '../utils/attachments': { presentOrder: o => o, assertOwned: async (c, userId, urls, kind) => { owned.push({ urls, kind }); }, loadReviewImages: async () => ({}) },
     '../config/database': { async getConnection() { calls.push('getConnection'); return connection; } }
@@ -75,7 +75,7 @@ test('more than 3 images, duplicates or a non-array are rejected before touching
 
 test('an image that fails ownership validation rolls the whole review back', async () => {
   const f = fixture();
-  const WorkOrder = load('models/WorkOrder.js', {
+  const WorkOrder = load('models/WorkOrder.js', { '../utils/orderChangeLog': require('../src/utils/orderChangeLog'),
     '../utils/orderNumber': {}, '../utils/orderWorkflow': {},
     '../utils/attachments': { presentOrder: o => o, assertOwned: async () => { throw Object.assign(new Error('附件不属于当前用户或格式错误'), { status: 403 }); }, loadReviewImages: async () => ({}) },
     '../config/database': { async getConnection() { f.calls.push('getConnection'); return { async beginTransaction() {}, async commit() { f.calls.push('commit'); }, async rollback() { f.calls.push('rollback'); }, release() {},
@@ -88,7 +88,7 @@ test('an image that fails ownership validation rolls the whole review back', asy
 
 test('getById attaches review images to the review', async () => {
   const queries = [];
-  const Model = load('models/WorkOrder.js', {
+  const Model = load('models/WorkOrder.js', { '../utils/orderChangeLog': require('../src/utils/orderChangeLog'),
     '../utils/orderNumber': {}, '../utils/orderWorkflow': {},
     '../utils/attachments': { presentOrder: o => o, assertOwned: async () => {}, loadReviewImages: async ids => ({ [ids[0]]: [{ id: 1, image_url: IMG(1) }] }) },
     '../config/database': { async query(q) { queries.push(q);

@@ -41,6 +41,12 @@
           </el-button>
         </el-form-item>
       </el-form>
+      <div class="quick-filters">
+        <span class="quick-label">快捷筛选：</span>
+        <el-check-tag v-for="item in QUICK_FILTERS" :key="item.key" :checked="filter.quick === item.key" @change="toggleQuick(item.key)">
+          {{ item.label }}<template v-if="item.key === 'request' && pendingRequestCount"> ({{ pendingRequestCount }})</template>
+        </el-check-tag>
+      </div>
     </el-card>
 
     <!-- 工单表格 -->
@@ -79,6 +85,13 @@
           <template #default="{ row }">
             <el-tag v-if="row.is_exception" type="danger" size="small">异常</el-tag>
             <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="更正 / 申请" width="150" align="center">
+          <template #default="{ row }">
+            <el-tag v-if="Number(row.pending_requests) > 0" type="warning" size="small">待处理申请</el-tag>
+            <el-tag v-if="Number(row.correction_count) > 0" type="danger" size="small" effect="plain">已更正{{ row.correction_count }}次</el-tag>
+            <span v-if="!Number(row.pending_requests) && !Number(row.correction_count)">-</span>
           </template>
         </el-table-column>
         <el-table-column prop="created_at" label="创建时间" width="170" />
@@ -148,7 +161,7 @@
     </el-dialog>
 
     <!-- 详情抽屉 -->
-    <el-drawer v-model="detailVisible" title="工单详情" size="450px">
+    <el-drawer v-model="detailVisible" title="工单详情" size="680px">
       <template v-if="currentOrder">
         <el-descriptions :column="1" border size="small">
           <el-descriptions-item label="工单号">{{ currentOrder.order_no }}</el-descriptions-item>
@@ -169,6 +182,7 @@
           <el-descriptions-item label="问题描述"><span style="white-space: pre-wrap">{{ currentOrder.remark || '-' }}</span></el-descriptions-item>
           <el-descriptions-item label="期望价格">{{ currentOrder.expected_price ?? '未填写' }}</el-descriptions-item>
           <el-descriptions-item label="预计上门">{{ currentOrder.estimated_time || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="客户预约">{{ currentOrder.appointment_date ? `${currentOrder.appointment_date} ${currentOrder.appointment_slot || ''}` : '-' }}</el-descriptions-item>
           <el-descriptions-item label="上门/材料/工时费">{{ currentOrder.door_fee ?? '-' }} / {{ currentOrder.material_fee ?? '-' }} / {{ currentOrder.labor_fee ?? '-' }}</el-descriptions-item>
           <el-descriptions-item v-for="(label, key) in timeFields" :key="key" :label="label">{{ currentOrder[key] || '-' }}</el-descriptions-item>
           <el-descriptions-item label="现场图片">
@@ -200,6 +214,9 @@
         <div class="drawer-actions" v-if="canCancel(currentOrder)">
           <el-button type="danger" @click="handleCancelOrder">取消工单</el-button>
         </div>
+
+        <!-- 更正 / 改派 / 状态更正 / 操作记录 -->
+        <OrderManage :key="currentOrder.id" :order="currentOrder" @changed="onOrderChanged" />
       </template>
     </el-drawer>
 
@@ -226,8 +243,10 @@
 
 <script setup>
 import { ref, reactive, watch, onMounted, onBeforeUnmount } from 'vue';
+import { useRoute } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import api from '../api';
+import OrderManage from '../components/order/OrderManage.vue';
 
 const timeFields = { assigned_at: '指派时间', confirmed_at: '接单时间', started_at: '开始施工', completed_at: '完工时间', finished_at: '验收完成', cancelled_at: '取消时间' };
 const STATUS_TEXT = {
@@ -247,8 +266,24 @@ const submitting = ref(false);
 const filter = reactive({
   status: '',
   keyword: '',
+  quick: '',
   dateRange: null
 });
+
+// 从「更正复盘」跳转过来时带上工单号
+const route = useRoute();
+if (route.query.keyword) filter.keyword = String(route.query.keyword);
+
+const QUICK_FILTERS = [
+  { key: 'unassigned', label: '超时未指派' },
+  { key: 'unaccepted', label: '超时未接单' },
+  { key: 'urged', label: '客户催单' },
+  { key: 'dispute', label: '价格协商中' },
+  { key: 'exception', label: '异常工单' },
+  { key: 'request', label: '师傅变更申请' },
+  { key: 'corrected', label: '已更正' }
+];
+const pendingRequestCount = ref(0);
 
 const pagination = reactive({
   page: 1,
@@ -314,6 +349,7 @@ async function loadOrders(options = {}) {
     };
     if (filter.status) params.status = filter.status;
     if (filter.keyword) params.keyword = filter.keyword;
+    if (filter.quick) params.quick = filter.quick;
     if (filter.dateRange && filter.dateRange.length === 2) {
       params.start_date = filter.dateRange[0];
       params.end_date = filter.dateRange[1];
@@ -333,6 +369,7 @@ async function loadOrders(options = {}) {
 function resetFilter() {
   filter.status = '';
   filter.keyword = '';
+  filter.quick = '';
   filter.dateRange = null;
   pagination.page = 1;
   loadOrders();
@@ -341,6 +378,7 @@ function resetFilter() {
 async function exportOrders() {
   const params = {};
   if (filter.keyword) params.keyword = filter.keyword;
+  if (filter.quick) params.quick = filter.quick;
   if (filter.status) params.status = filter.status;
   if (filter.dateRange && filter.dateRange.length === 2) {
     params.start_date = filter.dateRange[0];
@@ -475,6 +513,28 @@ async function handleCancelOrder() {
   }
 }
 
+function toggleQuick(key) {
+  filter.quick = filter.quick === key ? '' : key;
+  pagination.page = 1;
+  loadOrders();
+}
+
+async function loadPendingRequestCount() {
+  try {
+    const res = await api.get('/admin/change-requests', { params: { status: 'pending', limit: 1 } });
+    if (!disposed) pendingRequestCount.value = res.data.pending || 0;
+  } catch (err) {
+    // 拦截器已处理
+  }
+}
+
+// 更正 / 改派 / 状态更正 / 处理申请之后：刷新列表、详情和待处理申请数
+function onOrderChanged() {
+  loadOrders({ silent: true });
+  if (selectedDetailId !== null) loadOrderDetail(selectedDetailId);
+  loadPendingRequestCount();
+}
+
 function refreshCurrentOrders() {
   if (disposed || document.visibilityState === 'hidden') return;
   loadOrders({ silent: true });
@@ -483,6 +543,7 @@ function refreshCurrentOrders() {
 
 onMounted(() => {
   loadOrders();
+  loadPendingRequestCount();
   window.addEventListener('ruihe:orders-changed', refreshCurrentOrders);
   window.addEventListener('focus', refreshCurrentOrders);
   document.addEventListener('visibilitychange', refreshCurrentOrders);
@@ -532,5 +593,17 @@ onBeforeUnmount(() => {
 .reject-reason {
   color: #ef4444;
   white-space: pre-wrap;
+}
+
+.quick-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.quick-label {
+  color: #6b7280;
+  font-size: 13px;
 }
 </style>

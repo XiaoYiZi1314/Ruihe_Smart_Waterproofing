@@ -6,11 +6,20 @@
       <view class="status-desc">{{statusMeta.desc}}</view>
     </view>
 
+    <view class="detail-block" wx:if="{{correctionNotice}}">
+      <view class="notice-corrected">
+        <text class="notice-corrected__title">费用已更正</text>
+        <text class="notice-corrected__desc">{{correctionNotice}}</text>
+      </view>
+    </view>
+
     <view class="detail-block">
       <rh-card>
         <rh-section-title title="服务信息" />
         <rh-info-row label="工单号" value="{{order.order_no}}" />
         <rh-info-row label="服务项目" value="{{order.service_name}}" />
+        <rh-info-row wx:if="{{appointmentText}}" label="预约时间" value="{{appointmentText}}" />
+        <rh-info-row wx:if="{{estimatedTimeText}}" label="预计上门" value="{{estimatedTimeText}}" />
         <rh-info-row wx:if="{{order.expected_price}}" label="期望价格" value="{{expectedPriceText}}" emphasize />
         <rh-info-row wx:if="{{order.final_price}}" label="最终价格" value="{{finalPriceText}}" emphasize />
       </rh-card>
@@ -108,13 +117,8 @@
 
     <view class="detail-block">
       <rh-card>
-        <rh-section-title title="时间记录" />
-        <rh-info-row label="创建时间" value="{{createdAt}}" />
-        <rh-info-row wx:if="{{confirmedAt}}" label="确认时间" value="{{confirmedAt}}" />
-        <rh-info-row wx:if="{{startedAt}}" label="开始时间" value="{{startedAt}}" />
-        <rh-info-row wx:if="{{completedAt}}" label="完成时间" value="{{completedAt}}" />
-        <rh-info-row wx:if="{{finishedAt}}" label="订单完成" value="{{finishedAt}}" />
-        <rh-info-row wx:if="{{cancelledAt}}" label="取消时间" value="{{cancelledAt}}" />
+        <rh-section-title title="订单进度" />
+        <rh-timeline items="{{timelineItems}}" />
       </rh-card>
     </view>
   </view>

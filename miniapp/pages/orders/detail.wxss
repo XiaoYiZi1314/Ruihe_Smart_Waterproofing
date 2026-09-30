@@ -12,6 +12,26 @@
   padding: 12rpx 24rpx;
 }
 
+.notice-corrected {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--color-pending-bg);
+}
+
+.notice-corrected__title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--color-orange);
+}
+
+.notice-corrected__desc {
+  font-size: 24rpx;
+  color: var(--color-text-body);
+}
+
 .master-box {
   margin-top: 16rpx;
   background: var(--color-master-bg);

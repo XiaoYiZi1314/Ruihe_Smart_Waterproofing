@@ -1,6 +1,7 @@
 const api = require('../../utils/api');
 const statusUtil = require('../../utils/status');
 const theme = require('../../utils/theme');
+const { buildTimeline, correctionNotice, appointmentText } = require('../../utils/order-timeline');
 
 Page({
   data: {
@@ -111,6 +112,10 @@ Page({
           completedAt: theme.formatTime(order.completed_at),
           finishedAt: theme.formatTime(order.finished_at),
           cancelledAt: theme.formatTime(order.cancelled_at),
+          timelineItems: buildTimeline(order, theme.formatTime),
+          correctionNotice: correctionNotice(order, theme.formatTime),
+          appointmentText: appointmentText(order),
+          estimatedTimeText: order.estimated_time ? theme.formatTime(order.estimated_time) : '',
           doorFeeText: order.door_fee !== null && order.door_fee !== undefined ? `¥${order.door_fee}` : '',
           materialFeeText: order.material_fee !== null && order.material_fee !== undefined ? `¥${order.material_fee}` : '',
           laborFeeText: order.labor_fee !== null && order.labor_fee !== undefined ? `¥${order.labor_fee}` : ''

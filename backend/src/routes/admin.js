@@ -7,6 +7,7 @@ const router = express.Router();
 const { uploadHandler } = require('../middlewares/uploads');
 const AdminController = require('../controllers/adminController');
 const ContentController = require('../controllers/contentController');
+const OrderAdmin = require('../controllers/orderAdminController');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
 
 // 所有管理员路由都需要认证且角色为 admin
@@ -18,10 +19,24 @@ router.post('/upload', ...uploadHandler('image', true));
 // ============ 工单管理 ============
 router.get('/orders', AdminController.getOrders);
 router.get('/orders/export', AdminController.exportOrders);
+router.get('/orders/edit-meta', OrderAdmin.getEditMeta);
 router.get('/orders/:id', AdminController.getOrderDetail);
 router.put('/orders/:id/assign', AdminController.assignOrder);
 router.put('/orders/:id/adjust-price', AdminController.adjustPrice);
 router.put('/orders/:id/cancel', AdminController.cancelOrder);
+// 工单更正（所有修改都会写入变更日志）
+router.put('/orders/:id', OrderAdmin.editOrder);
+router.put('/orders/:id/reassign', OrderAdmin.reassignOrder);
+router.put('/orders/:id/correct-status', OrderAdmin.correctStatus);
+router.post('/orders/:id/images', OrderAdmin.addImage);
+router.delete('/orders/:id/images/:imageId', OrderAdmin.removeImage);
+router.get('/orders/:id/timeline', OrderAdmin.getTimeline);
+router.post('/orders/:id/followups', OrderAdmin.addFollowup);
+router.get('/change-requests', OrderAdmin.listChangeRequests);
+router.put('/change-requests/:id', OrderAdmin.handleChangeRequest);
+router.get('/corrections/stats', OrderAdmin.getCorrectionStats);
+router.get('/corrections/logs', OrderAdmin.getCorrectionLogs);
+router.get('/corrections/export', OrderAdmin.exportCorrectionLogs);
 
 // ============ 师傅管理 ============
 router.get('/workers', AdminController.getWorkers);

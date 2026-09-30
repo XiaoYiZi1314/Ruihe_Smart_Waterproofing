@@ -110,7 +110,7 @@ class WorkerController {
 
       // 查询工单图片
       const [images] = await db.query(
-        'SELECT * FROM work_order_images WHERE order_id = ? ORDER BY sort_order',
+        'SELECT * FROM work_order_images WHERE order_id = ? AND deleted_at IS NULL ORDER BY sort_order',
         [id]
       );
 
@@ -137,7 +137,7 @@ class WorkerController {
   static async acceptOrder(req, res) {
     try {
       const id = req.params.id;
-      const result = await Workflow.transition(id, req.user, 'accept', req.body || {});
+      const result = await Workflow.transition(id, req.user, 'accept', req.body || {}, { ip: req.ip });
 
       logOperation({ user_id: req.user.id, order_id: id, action: 'accept', detail: '已接受工单', ip: req.ip });
       res.json({ success: true, message: '已接受工单', data: { final_price: result.final_price } });
@@ -153,7 +153,7 @@ class WorkerController {
   static async rejectOrder(req, res) {
     try {
       const id = req.params.id;
-      const result = await Workflow.transition(id, req.user, 'reject', req.body || {});
+      const result = await Workflow.transition(id, req.user, 'reject', req.body || {}, { ip: req.ip });
       NotificationService.notifyAdminOrderRejected(id, req.body.reason, req.user.nickname).catch(() => {});
       logOperation({ user_id: req.user.id, order_id: id, action: 'reject', detail: '已拒绝工单', ip: req.ip });
       res.json({ success: true, message: '已拒绝工单', data: { final_price: result.final_price } });
@@ -169,7 +169,7 @@ class WorkerController {
   static async startOrder(req, res) {
     try {
       const id = req.params.id;
-      const result = await Workflow.transition(id, req.user, 'start', req.body || {});
+      const result = await Workflow.transition(id, req.user, 'start', req.body || {}, { ip: req.ip });
       NotificationService.notifyCustomerWorkStarted(id).catch(() => {});
       logOperation({ user_id: req.user.id, order_id: id, action: 'start', detail: '已开始施工', ip: req.ip });
       res.json({ success: true, message: '已开始施工', data: { final_price: result.final_price } });
@@ -185,7 +185,7 @@ class WorkerController {
   static async completeOrder(req, res) {
     try {
       const id = req.params.id;
-      const result = await Workflow.transition(id, req.user, 'complete', req.body || {});
+      const result = await Workflow.transition(id, req.user, 'complete', req.body || {}, { ip: req.ip });
       NotificationService.notifyCustomerWorkCompleted(id).catch(() => {});
       logOperation({ user_id: req.user.id, order_id: id, action: 'complete', detail: '已完工，等待验收', ip: req.ip });
       res.json({ success: true, message: '已完工，等待验收', data: { final_price: result.final_price } });
@@ -296,5 +296,28 @@ class WorkerController {
     }
   }
 }
+
+// 现场变更申请：师傅提交，后台审核
+WorkerController.createChangeRequest = async (req, res) => {
+  try {
+    const result = await require('../utils/orderEdit').createChangeRequest(req.user.id, req.params.id, req.body || {});
+    logOperation({ user_id: req.user.id, order_id: req.params.id, action: 'change_request', detail: '提交现场变更申请', ip: req.ip });
+    res.json({ success: true, message: '申请已提交，请等待客服处理', data: result });
+  } catch (error) {
+    if (!error.status) console.error('提交变更申请失败:', error);
+    res.status(error.status || 500).json({ success: false, message: error.status ? error.message : '提交失败，请重试' });
+  }
+};
+WorkerController.getChangeRequests = async (req, res) => {
+  try {
+    const [rows] = await db.query(`SELECT r.id, r.request_type, r.content, r.proposed_door_fee, r.proposed_material_fee, r.proposed_labor_fee, r.proposed_time,
+      r.status, r.applied, r.handle_note, r.handled_at, r.created_at FROM order_change_requests r JOIN work_orders wo ON wo.id = r.order_id
+      WHERE r.order_id = ? AND wo.worker_id = ? ORDER BY r.id DESC LIMIT 20`, [req.params.id, req.user.id]);
+    res.json({ success: true, data: rows });
+  } catch (error) {
+    console.error('获取变更申请失败:', error);
+    res.status(500).json({ success: false, message: '获取变更申请失败' });
+  }
+};
 
 module.exports = WorkerController;

@@ -1,6 +1,7 @@
 const db = require('../config/database');
 const State = require('./orderStateMachine');
 const Realtime = require('./realtime');
+const ChangeLog = require('./orderChangeLog');
 
 function fail(message, status = 409) {
   const error = new Error(message);
@@ -23,7 +24,7 @@ function fees(data) {
   return result;
 }
 
-async function transition(id, actor, action, data = {}) {
+async function transition(id, actor, action, data = {}, meta = {}) {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
@@ -95,6 +96,9 @@ async function transition(id, actor, action, data = {}) {
     }
     raw('updated_at = NOW()');
     await connection.query(`UPDATE work_orders SET ${updates.join(', ')} WHERE id = ?`, [...params, id]);
+    // 审计：变更日志和业务修改在同一个事务里，写不进去就整体回滚
+    const feeResult = action === 'complete' || action === 'adjust_price' ? fees(data) : undefined;
+    await ChangeLog.recordFlow(connection, { order, nextStatus, action, actor, data, worker, fees: feeResult, meta });
     await connection.commit();
     // Broadcast only committed state. A socket outage must not fail a saved operation.
     Promise.resolve().then(() => Realtime.notifyOrderChange(order.id, nextStatus, { action }))

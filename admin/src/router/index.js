@@ -32,6 +32,12 @@ const routes = [
         meta: { title: '师傅管理' }
       },
       {
+        path: 'corrections',
+        name: 'Corrections',
+        component: () => import('../views/Corrections.vue'),
+        meta: { title: '更正复盘' }
+      },
+      {
         path: 'categories',
         name: 'Categories',
         component: () => import('../views/Categories.vue'),

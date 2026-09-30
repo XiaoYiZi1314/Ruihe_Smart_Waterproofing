@@ -58,4 +58,11 @@ function extractSlot(remark) {
   return match ? match[1].trim() : '';
 }
 
-module.exports = { SLOTS, formatDate, availableSlots, isSlotAvailable, buildDateOptions, pickTime, extractSlot };
+// 预约展示文本：优先用后端的结构化预约字段（后台更正后以它为准），旧订单回退到备注里的那一行
+function appointmentText(order) {
+  const source = order || {};
+  if (source.appointment_date) return `${String(source.appointment_date).slice(0, 10)} ${source.appointment_slot || ''}`.trim();
+  return extractSlot(source.remark);
+}
+
+module.exports = { SLOTS, formatDate, availableSlots, isSlotAvailable, buildDateOptions, pickTime, extractSlot, appointmentText };

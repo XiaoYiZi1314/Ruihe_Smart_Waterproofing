@@ -17,7 +17,24 @@ Page({
     doorFee: '',
     materialFee: '',
     laborFee: '',
-    totalFee: '0.00'
+    totalFee: '0.00',
+
+    // 现场变更申请
+    showChangeModal: false,
+    changeTypes: [
+      { value: 'price', label: '费用调整' },
+      { value: 'time', label: '上门时间调整' },
+      { value: 'scope', label: '施工范围变更' },
+      { value: 'other', label: '其他' }
+    ],
+    changeTypeIndex: 0,
+    changeContent: '',
+    changeDoorFee: '',
+    changeMaterialFee: '',
+    changeLaborFee: '',
+    changeTotalFee: '0.00',
+    changeRequests: [],
+    hasPendingRequest: false
   },
 
   onLoad(options) {
@@ -60,8 +77,12 @@ Page({
       order.canReject = order.status === STATUS.CONFIRMED && !order.confirmed_at;
       order.canStart = order.status === STATUS.CONFIRMED && !!order.confirmed_at;
       order.canComplete = order.status === STATUS.IN_PROGRESS;
+      order.canRequestChange = [STATUS.CONFIRMED, STATUS.IN_PROGRESS, 'pending_review'].includes(order.status);
+      order.appointmentText = order.appointment_date ? `${String(order.appointment_date).slice(0, 10)} ${order.appointment_slot || ''}`.trim() : '';
+      order.correctionText = order.price_corrected_at && order.price_before_correction != null ? `已由客服更正（原 ¥${Number(order.price_before_correction).toFixed(2)}）` : '';
 
       this.setData({ order });
+      this.loadChangeRequests();
     } catch (error) {
       console.error('加载工单详情失败:', error);
     } finally {
@@ -279,6 +300,90 @@ Page({
       this.loadOrder();
     } catch (error) {
       console.error('完工失败:', error);
+    } finally {
+      this.setData({ submitting: false });
+    }
+  },
+
+  // ============ 现场变更申请（提交后由客服审核） ============
+  async loadChangeRequests() {
+    try {
+      const res = await api.get(`/api/worker/orders/${this.data.id}/change-requests`);
+      const list = ((res && res.data) || []).map((item) => {
+        const type = this.data.changeTypes.filter((t) => t.value === item.request_type)[0];
+        let statusText = '已驳回';
+        if (item.status === 'pending') statusText = '待客服处理';
+        else if (item.status === 'approved') statusText = item.applied ? '已同意并更新工单' : '已同意';
+        return { ...item, typeText: type ? type.label : '变更申请', statusText };
+      });
+      this.setData({ changeRequests: list, hasPendingRequest: list.some((item) => item.status === 'pending') });
+    } catch (error) {
+      console.error('加载变更申请失败:', error);
+    }
+  },
+
+  openChangeModal() {
+    if (this.data.hasPendingRequest) return;
+    this.setData({
+      showChangeModal: true,
+      changeTypeIndex: 0,
+      changeContent: '',
+      changeDoorFee: '',
+      changeMaterialFee: '',
+      changeLaborFee: '',
+      changeTotalFee: '0.00'
+    });
+  },
+
+  closeChangeModal() {
+    this.setData({ showChangeModal: false });
+  },
+
+  onChangeTypeChange(e) {
+    this.setData({ changeTypeIndex: Number(e.detail.value) });
+  },
+
+  onChangeContentInput(e) {
+    this.setData({ changeContent: e.detail.value });
+  },
+
+  onChangeFeeInput(e) {
+    const key = e.currentTarget.dataset.key;
+    this.setData({ [key]: e.detail.value });
+    const d = parseFloat(this.data.changeDoorFee) || 0;
+    const m = parseFloat(this.data.changeMaterialFee) || 0;
+    const l = parseFloat(this.data.changeLaborFee) || 0;
+    this.setData({ changeTotalFee: (d + m + l).toFixed(2) });
+  },
+
+  async handleChangeRequest() {
+    if (this.data.submitting) return;
+    const type = this.data.changeTypes[this.data.changeTypeIndex];
+    const content = this.data.changeContent.trim();
+    if (content.length < 5) {
+      wx.showToast({ title: '请至少用 5 个字说明现场情况', icon: 'none' });
+      return;
+    }
+    const body = { request_type: type.value, content };
+    if (type.value === 'price') {
+      const { changeDoorFee, changeMaterialFee, changeLaborFee } = this.data;
+      const values = [changeDoorFee, changeMaterialFee, changeLaborFee].map((value) => (value === '' ? NaN : parseFloat(value)));
+      if (values.some((value) => isNaN(value) || value < 0)) {
+        wx.showToast({ title: '请填写完整且非负的建议费用', icon: 'none' });
+        return;
+      }
+      body.proposed_door_fee = values[0];
+      body.proposed_material_fee = values[1];
+      body.proposed_labor_fee = values[2];
+    }
+    this.setData({ submitting: true });
+    try {
+      await api.post(`/api/worker/orders/${this.data.id}/change-requests`, body);
+      wx.showToast({ title: '申请已提交', icon: 'success' });
+      this.setData({ showChangeModal: false });
+      this.loadChangeRequests();
+    } catch (error) {
+      console.error('提交变更申请失败:', error);
     } finally {
       this.setData({ submitting: false });
     }

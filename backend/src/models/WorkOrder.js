@@ -1,8 +1,9 @@
 const { nextOrderNo } = require('../utils/orderNumber');
 const Workflow = require('../utils/orderWorkflow');
 const db = require('../config/database');
+const ChangeLog = require('../utils/orderChangeLog');
 const { presentOrder, assertOwned, loadReviewImages, purgeUnreferenced } = require('../utils/attachments');
-const CUSTOMER_FIELDS = ['id','order_no','service_id','contact_name','contact_phone','full_address','expected_price','final_price','door_fee','material_fee','labor_fee','remark','status','worker_id','estimated_time','assigned_at','confirmed_at','started_at','completed_at','finished_at','cancelled_at','created_at','updated_at','urge_count','price_dispute_reason','price_adjusted_at','review_submitted_at'].map(key => `wo.${key}`).join(', ');
+const CUSTOMER_FIELDS = ['id','order_no','service_id','contact_name','contact_phone','full_address','expected_price','final_price','door_fee','material_fee','labor_fee','remark','status','worker_id','estimated_time','assigned_at','confirmed_at','started_at','completed_at','finished_at','cancelled_at','created_at','updated_at','urge_count','price_dispute_reason','price_adjusted_at','review_submitted_at','appointment_date','appointment_slot','price_corrected_at','price_before_correction'].map(key => `wo.${key}`).join(', ');
 
 // 每条评价最多附带的图片数量（视频另算，最多 1 个，两者可同时提交）
 const MAX_REVIEW_IMAGES = 3;
@@ -21,7 +22,7 @@ class WorkOrder {
   static async create(userId, data) {
     const {
       service_id, address_id, expected_price, remark, images,
-      contact_name, contact_phone
+      contact_name, contact_phone, appointment_date, appointment_slot
     } = data;
 
     // 获取地址信息
@@ -54,13 +55,14 @@ class WorkOrder {
       const [result] = await connection.query(
         `INSERT INTO work_orders
          (order_no, user_id, service_id, address_id, contact_name, contact_phone,
-          full_address, expected_price, remark, status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+          full_address, expected_price, remark, appointment_date, appointment_slot, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
         [orderNo, userId, service_id, address_id, finalContactName,
-         finalContactPhone, fullAddress, expected_price, remark]
+         finalContactPhone, fullAddress, expected_price, remark, appointment_date || null, appointment_slot || null]
       );
 
       const orderId = result.insertId;
+      await ChangeLog.record(connection, { orderId, actor: { id: userId, role: 'customer' }, source: 'flow', action: 'create', entries: [] });
 
       // 插入工单图片
       if (images && Array.isArray(images) && images.length > 0) {
@@ -183,7 +185,7 @@ class WorkOrder {
 
     // 获取工单图片
     const [images] = await db.query(
-      'SELECT image_url, image_type FROM work_order_images WHERE order_id = ? ORDER BY sort_order ASC',
+      'SELECT image_url, image_type FROM work_order_images WHERE order_id = ? AND deleted_at IS NULL ORDER BY sort_order ASC',
       [id]
     );
 

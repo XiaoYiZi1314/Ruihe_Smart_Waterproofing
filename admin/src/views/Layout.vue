@@ -27,6 +27,10 @@
           <el-icon><User /></el-icon>
           <span>师傅管理</span>
         </el-menu-item>
+        <el-menu-item index="/corrections">
+          <el-icon><EditPen /></el-icon>
+          <span>更正复盘</span>
+        </el-menu-item>
         <el-sub-menu index="content">
           <template #title>
             <el-icon><Goods /></el-icon>

@@ -41,7 +41,8 @@ class AdminController {
           c.phone as customer_phone,
           w.nickname as worker_name,
           w.phone as worker_phone,
-          s.name as service_name
+          s.name as service_name,
+          (SELECT COUNT(*) FROM order_change_requests r WHERE r.order_id = wo.id AND r.status = 'pending') as pending_requests
          FROM work_orders wo
          LEFT JOIN users c ON wo.user_id = c.id
          LEFT JOIN users w ON wo.worker_id = w.id
@@ -118,10 +119,11 @@ class AdminController {
 
       // 查询工单图片
       const [images] = await db.query(
-        'SELECT * FROM work_order_images WHERE order_id = ? ORDER BY sort_order',
+        'SELECT * FROM work_order_images WHERE order_id = ? AND deleted_at IS NULL ORDER BY sort_order',
         [id]
       );
       order.images = images;
+      order.allowed_corrections = require('../utils/orderEdit').allowedCorrections(order.status);
 
       // 查询评价（如果有）
       const [reviews] = await db.query(
@@ -155,7 +157,7 @@ class AdminController {
   static async assignOrder(req, res) {
     try {
       const id = req.params.id;
-      const result = await Workflow.transition(id, req.user, 'assign', req.body || {});
+      const result = await Workflow.transition(id, req.user, 'assign', req.body || {}, { ip: req.ip });
       NotificationService.notifyOrderAssigned(id).catch(() => {});
       logOperation({ user_id: req.user.id, order_id: id, action: 'assign', detail: '工单已指派', ip: req.ip });
       res.json({ success: true, message: '工单已指派', data: { final_price: result.final_price } });
@@ -171,7 +173,7 @@ class AdminController {
   static async adjustPrice(req, res) {
     try {
       const id = req.params.id;
-      const result = await Workflow.transition(id, req.user, 'adjust_price', req.body || {});
+      const result = await Workflow.transition(id, req.user, 'adjust_price', req.body || {}, { ip: req.ip });
       NotificationService.notifyCustomerPriceAdjusted(id).catch(() => {});
       logOperation({ user_id: req.user.id, order_id: id, action: 'adjust_price', detail: '价格已调整', ip: req.ip });
       res.json({ success: true, message: '价格已调整', data: { final_price: result.final_price } });
@@ -187,7 +189,7 @@ class AdminController {
   static async cancelOrder(req, res) {
     try {
       const id = req.params.id;
-      const result = await Workflow.transition(id, req.user, 'cancel', req.body || {});
+      const result = await Workflow.transition(id, req.user, 'cancel', req.body || {}, { ip: req.ip });
       NotificationService.notifyWorkerOrderCancelled(id, req.body.reason).catch(() => {});
       logOperation({ user_id: req.user.id, order_id: id, action: 'cancel', detail: '工单已取消', ip: req.ip });
       res.json({ success: true, message: '工单已取消', data: { final_price: result.final_price } });
@@ -420,6 +422,21 @@ class AdminController {
           wo.finished_at,
           w.nickname as worker_name,
           wo.final_price,
+          wo.appointment_date,
+          wo.appointment_slot,
+          wo.estimated_time,
+          wo.expected_price,
+          wo.door_fee,
+          wo.material_fee,
+          wo.labor_fee,
+          wo.remark,
+          w.phone as worker_phone,
+          wo.confirmed_at,
+          wo.started_at,
+          wo.completed_at,
+          wo.cancel_reason,
+          wo.urge_count,
+          wo.correction_count,
           r.comment as review_comment,
           ROUND((IFNULL(r.service_attitude_score, 0) + 
                  IFNULL(r.quality_score, 0) + 
@@ -450,6 +467,21 @@ class AdminController {
         { header: '完成时间', key: 'finished_at', width: 20 },
         { header: '师傅姓名', key: 'worker_name', width: 15 },
         { header: '最终价格', key: 'final_price', width: 12 },
+        { header: '预约日期', key: 'appointment_date', width: 12 },
+        { header: '预约时段', key: 'appointment_slot', width: 14 },
+        { header: '上门时间', key: 'estimated_time', width: 20 },
+        { header: '期望价格', key: 'expected_price', width: 12 },
+        { header: '上门费', key: 'door_fee', width: 10 },
+        { header: '材料费', key: 'material_fee', width: 10 },
+        { header: '人工费', key: 'labor_fee', width: 10 },
+        { header: '备注', key: 'remark', width: 30 },
+        { header: '师傅电话', key: 'worker_phone', width: 15 },
+        { header: '接单时间', key: 'confirmed_at', width: 20 },
+        { header: '开工时间', key: 'started_at', width: 20 },
+        { header: '完工提交时间', key: 'completed_at', width: 20 },
+        { header: '取消原因', key: 'cancel_reason', width: 24 },
+        { header: '催单次数', key: 'urge_count', width: 10 },
+        { header: '更正次数', key: 'correction_count', width: 10 },
         { header: '评价内容', key: 'review_comment', width: 30 },
         { header: '平均评分', key: 'avg_score', width: 12 }
       ];

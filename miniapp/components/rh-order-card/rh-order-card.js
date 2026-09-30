@@ -1,12 +1,12 @@
 const statusUtil = require('../../utils/status');
 const theme = require('../../utils/theme');
-const { extractSlot } = require('../../utils/booking-slots');
+const { appointmentText } = require('../../utils/booking-slots');
 
 // 卡片时间行：师傅上门时间 > 客户预约时段 > 下单时间，并按实际含义命名
 function pickTime(item) {
   const visit = item.estimated_time || item.appointment_time || item.expected_visit_time;
   if (visit) return { label: '预计上门', text: theme.formatTime(visit) };
-  const slot = extractSlot(item.remark);
+  const slot = appointmentText(item);
   if (slot) return { label: '预约时间', text: slot };
   return { label: '下单时间', text: theme.formatTime(item.created_at) };
 }

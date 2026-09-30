@@ -18,6 +18,8 @@ router.put('/orders/:id/accept', WorkerController.acceptOrder);
 router.put('/orders/:id/reject', WorkerController.rejectOrder);
 router.put('/orders/:id/start', WorkerController.startOrder);
 router.put('/orders/:id/complete', WorkerController.completeOrder);
+router.get('/orders/:id/change-requests', WorkerController.getChangeRequests);
+router.post('/orders/:id/change-requests', WorkerController.createChangeRequest);
 
 // 状态管理
 router.put('/status', WorkerController.updateStatus);

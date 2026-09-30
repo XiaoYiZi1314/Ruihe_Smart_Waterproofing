@@ -24,7 +24,7 @@ function fixture({ status = 'confirmed', commitFails = false, deliveryFails = fa
     }
   };
   const deps = {
-    '../config/database': { getConnection: async () => connection },
+    './orderChangeLog': require('../src/utils/orderChangeLog'), '../config/database': { getConnection: async () => connection },
     './orderStateMachine': State,
     './realtime': { async notifyOrderChange(id, nextStatus, extra) {
       assert(calls.includes('commit'), 'must not broadcast uncommitted state');

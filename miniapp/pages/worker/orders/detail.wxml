@@ -10,6 +10,7 @@
     <view class="detail-section"><rh-section-title title="预约信息" /></view>
     <rh-info-row label="期望价格" value="{{order.expected_price}}" />
     <rh-info-row label="预计上门" value="{{order.estimatedTimeText}}" />
+    <rh-info-row wx:if="{{order.appointmentText}}" label="客户预约" value="{{order.appointmentText}}" />
     <view class="rh-form-value">{{order.remark || '无备注'}}</view>
     <view class="image-grid"><rh-image wx:for="{{order.images}}" wx:key="key" class="grid-img" src="{{item.image_url}}" data-url="{{item.image_url}}" bindtap="previewImage" bind:retry="loadOrder" /></view>
     <view class="detail-section"><rh-section-title title="费用明细" /></view>
@@ -24,6 +25,11 @@
     <rh-info-row label="开始施工" value="{{order.startedTimeText}}" />
     <rh-info-row label="完工时间" value="{{order.completedTimeText}}" />
     <rh-info-row label="验收完成" value="{{order.finishedTimeText}}" />
+    <view class="detail-section" wx:if="{{changeRequests.length}}"><rh-section-title title="现场变更申请" /></view>
+    <block wx:for="{{changeRequests}}" wx:key="id">
+      <rh-info-row label="{{item.typeText}}" value="{{item.statusText}}" />
+      <rh-info-row wx:if="{{item.handle_note}}" label="客服回复" value="{{item.handle_note}}" />
+    </block>
   </block>
   <rh-empty wx:else text="工单不存在或暂时无法加载" action-text="重新加载" bind:action="onRetryLoad" />
   <rh-sticky-bar wx:if="{{order}}">
@@ -31,10 +37,25 @@
     <rh-button wx:if="{{order.canAccept}}" text="接受工单" bind:tap="handleAccept" loading="{{submitting}}" />
     <rh-button wx:if="{{order.canStart}}" text="开始施工" bind:tap="handleStart" loading="{{submitting}}" />
     <rh-button wx:if="{{order.canComplete}}" text="完工填价" bind:tap="openCompleteModal" disabled="{{submitting}}" />
+    <rh-button wx:if="{{order.canRequestChange}}" variant="line" text="{{hasPendingRequest ? '申请处理中' : '申请变更'}}" bind:tap="openChangeModal" disabled="{{submitting || hasPendingRequest}}" />
   </rh-sticky-bar>
-  <view class="modal-mask" wx:if="{{showRejectModal || showCompleteModal}}">
+  <view class="modal-mask" wx:if="{{showRejectModal || showCompleteModal || showChangeModal}}">
     <view class="modal-content"><rh-card>
-      <block wx:if="{{showRejectModal}}">
+      <block wx:if="{{showChangeModal}}">
+        <rh-section-title title="现场变更申请" />
+        <rh-form-field label="申请类型" required>
+          <picker range="{{changeTypes}}" range-key="label" value="{{changeTypeIndex}}" bindchange="onChangeTypeChange"><view class="rh-input">{{changeTypes[changeTypeIndex].label}}</view></picker>
+        </rh-form-field>
+        <rh-form-field label="现场说明" required><textarea class="rh-input rh-input--area" value="{{changeContent}}" maxlength="500" placeholder="请描述现场情况与申请原因" bindinput="onChangeContentInput" /></rh-form-field>
+        <block wx:if="{{changeTypes[changeTypeIndex].value === 'price'}}">
+          <rh-form-field label="建议上门费" required><input class="rh-input" type="digit" value="{{changeDoorFee}}" data-key="changeDoorFee" bindinput="onChangeFeeInput" /></rh-form-field>
+          <rh-form-field label="建议材料费" required><input class="rh-input" type="digit" value="{{changeMaterialFee}}" data-key="changeMaterialFee" bindinput="onChangeFeeInput" /></rh-form-field>
+          <rh-form-field label="建议工时费" required><input class="rh-input" type="digit" value="{{changeLaborFee}}" data-key="changeLaborFee" bindinput="onChangeFeeInput" /></rh-form-field>
+          <rh-info-row label="建议合计" value="{{changeTotalFee}}" emphasize />
+        </block>
+        <view class="worker-actions"><rh-button variant="ghost" text="取消" bind:tap="closeChangeModal" /><rh-button text="提交申请" bind:tap="handleChangeRequest" loading="{{submitting}}" /></view>
+      </block>
+      <block wx:elif="{{showRejectModal}}">
         <rh-section-title title="拒单理由" />
         <rh-form-field label="理由" required><textarea class="rh-input rh-input--area" value="{{rejectReason}}" maxlength="1000" bindinput="onRejectReasonInput" /></rh-form-field>
         <view class="worker-actions"><rh-button variant="ghost" text="取消" bind:tap="closeRejectModal" /><rh-button text="确认拒单" bind:tap="handleReject" loading="{{submitting}}" /></view>

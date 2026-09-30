@@ -15,7 +15,7 @@ function fixture(order, worker = { id: 8, role: 'worker', status: 'active', work
   const sql = []; const calls = [];
   const connection = { async beginTransaction() { calls.push('begin'); }, async commit() {calls.push('commit');}, async rollback(){calls.push('rollback');}, release(){calls.push('release');},
     async query(query, params) { sql.push({query,params}); if(query.startsWith('SELECT * FROM users'))return [[worker]];if(query.startsWith('SELECT * FROM work_orders'))return [[order]]; return [{affectedRows:1}]; } };
-  const workflow = load('utils/orderWorkflow.js', { '../config/database': {async getConnection(){return connection;}}, './orderStateMachine':State, './realtime':{notifyOrderChange:async()=>{}} });
+  const workflow = load('utils/orderWorkflow.js', { './orderChangeLog': require('../src/utils/orderChangeLog'), '../config/database': {async getConnection(){return connection;}}, './orderStateMachine':State, './realtime':{notifyOrderChange:async()=>{}} });
   return { workflow, sql, calls };
 }
 test('cancelled order cannot be started and transaction rolls back', async()=>{
@@ -60,7 +60,7 @@ test('site configuration maps old and new schema',async()=>{
  const c=await Config.getPublicConfigs();assert.equal(c.contact_info.phone,'13900000000');assert.equal(c.join_info.phone,'13800000000');assert.equal(c.join_info.description,'test');
 });
 test('customer SQL uses explicit safe fields',async()=>{
- const queries=[];const Model=load('models/WorkOrder.js',{'../utils/orderNumber':{},'../utils/orderWorkflow':{},'../utils/attachments':{presentOrder:o=>o,loadReviewImages:async()=>({})},'../config/database':{async query(q){queries.push(q);return [[{id:42}]];}}});
+ const queries=[];const Model=load('models/WorkOrder.js',{'../utils/orderChangeLog':require('../src/utils/orderChangeLog'),'../utils/orderNumber':{},'../utils/orderWorkflow':{},'../utils/attachments':{presentOrder:o=>o,loadReviewImages:async()=>({})},'../config/database':{async query(q){queries.push(q);return [[{id:42}]];}}});
  await Model.getById(42);assert.doesNotMatch(queries[0],/wo\.\*|reject_reason/);assert.match(queries[0],/wo\.contact_name/);
 });
 test('service search passes keyword to the model',async()=>{

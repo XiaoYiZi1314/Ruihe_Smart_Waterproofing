@@ -1,0 +1,12 @@
+<view class="rh-timeline">
+  <view wx:for="{{items}}" wx:key="key" class="rh-timeline__item {{item.current ? 'rh-timeline__item--current' : ''}}">
+    <view class="rh-timeline__rail">
+      <view class="rh-timeline__dot"></view>
+      <view wx:if="{{index < items.length - 1}}" class="rh-timeline__line"></view>
+    </view>
+    <view class="rh-timeline__body">
+      <view class="rh-timeline__label">{{item.label}}</view>
+      <view class="rh-timeline__time">{{item.time}}</view>
+    </view>
+  </view>
+</view>

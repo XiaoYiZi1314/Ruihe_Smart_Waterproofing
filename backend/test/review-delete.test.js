@@ -34,7 +34,7 @@ function modelFixture({ reviews = [{ id: 7, video_url: FILE(9) }], images = [{ i
   };
   const purged = [];
   const errors = [];
-  const WorkOrder = load('models/WorkOrder.js', {
+  const WorkOrder = load('models/WorkOrder.js', { '../utils/orderChangeLog': require('../src/utils/orderChangeLog'),
     '../utils/orderNumber': {}, '../utils/orderWorkflow': {},
     '../utils/attachments': { presentOrder: o => o, assertOwned: async () => {}, loadReviewImages: async () => ({}), purgeUnreferenced: purge || (async urls => { events.push('purge'); purged.push(...urls); return urls.length; }) },
     '../config/database': { async getConnection() { return connection; } }

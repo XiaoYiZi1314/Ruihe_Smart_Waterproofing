@@ -1,6 +1,7 @@
 const WorkOrder = require('../models/WorkOrder');
 const Service = require('../models/Service');
 const Address = require('../models/Address');
+const OrderEdit = require('../utils/orderEdit');
 const NotificationService = require('../utils/notification');
 const { logOperation } = require('../utils/operationLog');
 
@@ -17,7 +18,9 @@ exports.createOrder = async (req, res) => {
       remark,
       images,
       contact_name,
-      contact_phone
+      contact_phone,
+      appointment_date,
+      appointment_slot
     } = req.body;
 
     // 表单验证
@@ -68,6 +71,10 @@ exports.createOrder = async (req, res) => {
     }
 
     // 创建工单
+    if (Boolean(appointment_date) !== Boolean(appointment_slot) ||
+        (appointment_date && (!/^\d{4}-\d{2}-\d{2}$/.test(String(appointment_date)) || !OrderEdit.SLOTS.includes(appointment_slot)))) {
+      return res.status(400).json({ success: false, message: '预约日期或时段无效' });
+    }
     const result = await WorkOrder.create(userId, {
       service_id,
       address_id,
@@ -75,7 +82,9 @@ exports.createOrder = async (req, res) => {
       remark,
       images,
       contact_name,
-      contact_phone
+      contact_phone,
+      appointment_date,
+      appointment_slot
     });
 
     // 异步：通知管理员新工单 + 记录日志

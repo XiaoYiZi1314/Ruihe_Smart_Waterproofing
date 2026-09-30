@@ -250,6 +250,8 @@ Page({
         contact_name: this.data.contactName.trim(),
         contact_phone: this.data.contactPhone.trim(),
         remark: remarkParts.join('\n'),
+        appointment_date: this.data.dateValue,
+        appointment_slot: this.data.timeValue,
         images: uploadedUrls
       };
 

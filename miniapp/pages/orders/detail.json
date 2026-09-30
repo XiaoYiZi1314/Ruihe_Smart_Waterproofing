@@ -10,6 +10,7 @@
     "rh-info-row": "/components/rh-info-row/rh-info-row",
     "rh-section-title": "/components/rh-section-title/rh-section-title",
     "rh-status-tag": "/components/rh-status-tag/rh-status-tag",
-    "rh-sticky-bar": "/components/rh-sticky-bar/rh-sticky-bar"
+    "rh-sticky-bar": "/components/rh-sticky-bar/rh-sticky-bar",
+    "rh-timeline": "/components/rh-timeline/rh-timeline"
   }
 }
