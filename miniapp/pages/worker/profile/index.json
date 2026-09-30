@@ -2,10 +2,12 @@
   "navigationBarTitleText": "我的",
   "usingComponents": {
     "rh-button": "/components/rh-button/rh-button",
+    "rh-card": "/components/rh-card/rh-card",
     "rh-form-field": "/components/rh-form-field/rh-form-field",
     "rh-icon": "/components/rh-icon/rh-icon",
     "rh-image": "/components/rh-image/rh-image",
     "rh-info-row": "/components/rh-info-row/rh-info-row",
+    "rh-menu-item": "/components/rh-menu-item/rh-menu-item",
     "rh-section-title": "/components/rh-section-title/rh-section-title"
   }
 }

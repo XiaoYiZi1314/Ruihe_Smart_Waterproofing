@@ -1,27 +1,93 @@
 <view class="page-wrap page-pad">
-  <rh-section-title title="{{userInfo.nickname || '师傅个人中心'}}" />
-  <view wx:if="{{userInfo && !userInfo.must_change_password}}" class="worker-head">
-    <rh-image wx:if="{{userInfo.avatar_url}}" class="worker-head__avatar" src="{{userInfo.avatar_url}}" />
-    <view wx:else class="worker-head__avatar worker-head__avatar--placeholder">
-      <rh-icon name="user" tone="white" size="48" />
+  <!-- 首次登录：只允许改密，改完才能进工作台 -->
+  <block wx:if="{{userInfo.must_change_password}}">
+    <view class="worker-block">
+      <rh-card>
+        <rh-section-title title="首次登录修改密码" />
+        <view class="worker-hint">管理员提供的是初始密码。请先改成自己的密码，之后才能接单和工作。</view>
+        <rh-form-field label="原密码" required>
+          <input class="rh-input" password placeholder="请输入初始密码" value="{{currentPassword}}" bindinput="onCurrentPassword" />
+        </rh-form-field>
+        <rh-form-field label="新密码" required>
+          <input class="rh-input" password placeholder="至少12位，包含字母和数字" value="{{newPassword}}" bindinput="onNewPassword" />
+        </rh-form-field>
+        <view class="profile-action">
+          <rh-button block text="确认修改" loading="{{submitting}}" bind:tap="changePassword" />
+        </view>
+      </rh-card>
     </view>
-    <view class="worker-head__name">头像</view>
-    <view><rh-button variant="line" size="sm" text="修改头像" bind:tap="goEditProfile" /></view>
-  </view>
-  <rh-info-row label="手机号" value="{{userInfo.phone}}" />
-  <rh-info-row label="微信" value="{{userInfo.wechat_bound ? '已绑定' : '未绑定'}}" />
-  <view class="section"><rh-section-title title="{{userInfo.must_change_password ? '首次登录修改密码' : '修改密码'}}" /></view>
-  <rh-form-field label="原密码" required><input class="rh-input" password value="{{currentPassword}}" bindinput="onCurrentPassword" /></rh-form-field>
-  <rh-form-field label="新密码" required><input class="rh-input" password placeholder="至少12位，包含字母和数字" value="{{newPassword}}" bindinput="onNewPassword" /></rh-form-field>
-  <view class="section"><rh-button text="修改密码" loading="{{submitting}}" bind:tap="changePassword" /></view>
-  <block wx:if="{{!userInfo.must_change_password}}">
-    <view class="actions"><rh-button wx:if="{{!userInfo.wechat_bound}}" variant="line" text="绑定微信" bind:tap="bindWechat" /><rh-button variant="line" text="订阅通知" bind:tap="subscribe" /><rh-button variant="line" text="站内消息" bind:tap="goMessages" /></view>
-    <view class="section"><rh-section-title title="我的业绩" /></view>
-    <rh-info-row label="工作状态" value="{{stats.worker_status === 'working' ? '上班中' : '休息中'}}" />
-    <rh-info-row label="本月完成" value="{{stats.month_completed}}" />
-    <rh-info-row label="累计完成" value="{{stats.total_completed}}" />
-    <rh-info-row label="拒单率" value="{{stats.reject_rate}}%" />
-    <view class="actions"><rh-button variant="line" text="{{stats.worker_status === 'working' ? '切换休息' : '切换上班'}}" bind:tap="toggleStatus" loading="{{submitting}}" /><rh-button text="工单工作台" bind:tap="goOrders" /></view>
+    <view class="logout-wrap">
+      <rh-button variant="ghost" size="lg" block text="退出登录" bind:tap="handleLogout" />
+    </view>
   </block>
-  <view class="section"><rh-button variant="ghost" text="退出登录" bind:tap="handleLogout" /></view>
+
+  <!-- 日常个人中心：改密只留入口，表单不常驻 -->
+  <block wx:else>
+    <view class="worker-block">
+      <rh-card>
+        <view class="worker-head" bindtap="goEditProfile">
+          <rh-image wx:if="{{userInfo.avatar_url}}" class="worker-head__avatar" src="{{userInfo.avatar_url}}" />
+          <view wx:else class="worker-head__avatar worker-head__avatar--placeholder">
+            <rh-icon name="user" tone="white" size="48" />
+          </view>
+          <view class="worker-head__meta">
+            <view class="worker-head__name">{{userInfo.nickname || '师傅'}}</view>
+            <view class="worker-head__sub">{{userInfo.phone || '未绑定手机号'}}</view>
+          </view>
+          <text class="worker-head__edit">编辑 ›</text>
+        </view>
+      </rh-card>
+    </view>
+
+    <view class="worker-block">
+      <rh-card padding="{{false}}">
+        <rh-info-row label="微信" value="{{userInfo.wechat_bound ? '已绑定' : '未绑定'}}" />
+      </rh-card>
+    </view>
+
+    <view class="worker-block">
+      <rh-card padding="{{false}}">
+        <rh-menu-item icon="shield" title="修改密码" bind:tap="openPasswordModal" />
+        <rh-menu-item wx:if="{{!userInfo.wechat_bound}}" icon="chat" title="绑定微信" bind:tap="bindWechat" />
+        <rh-menu-item icon="info" title="订阅通知" bind:tap="subscribe" />
+        <rh-menu-item icon="document" title="站内消息" bind:tap="goMessages" />
+      </rh-card>
+    </view>
+
+    <view class="worker-block">
+      <rh-card>
+        <rh-section-title title="我的业绩" />
+        <rh-info-row label="工作状态" value="{{stats.worker_status === 'working' ? '上班中' : '休息中'}}" />
+        <rh-info-row label="本月完成" value="{{stats.month_completed}}" />
+        <rh-info-row label="累计完成" value="{{stats.total_completed}}" />
+        <rh-info-row label="拒单率" value="{{stats.reject_rate}}%" />
+      </rh-card>
+    </view>
+
+    <view class="worker-actions">
+      <rh-button variant="line" text="{{stats.worker_status === 'working' ? '切换休息' : '切换上班'}}" bind:tap="toggleStatus" loading="{{submitting}}" />
+      <rh-button text="工单工作台" bind:tap="goOrders" />
+    </view>
+    <view class="logout-wrap">
+      <rh-button variant="danger" size="lg" block text="退出登录" bind:tap="handleLogout" />
+    </view>
+  </block>
+
+  <view class="modal-mask" wx:if="{{showPasswordModal}}" catchtouchmove="preventMove">
+    <view class="modal-content">
+      <rh-card>
+        <rh-section-title title="修改密码" />
+        <rh-form-field label="原密码" required>
+          <input class="rh-input" password placeholder="请输入当前密码" value="{{currentPassword}}" bindinput="onCurrentPassword" />
+        </rh-form-field>
+        <rh-form-field label="新密码" required>
+          <input class="rh-input" password placeholder="至少12位，包含字母和数字" value="{{newPassword}}" bindinput="onNewPassword" />
+        </rh-form-field>
+        <view class="worker-actions">
+          <rh-button variant="ghost" text="取消" bind:tap="closePasswordModal" />
+          <rh-button text="确认修改" loading="{{submitting}}" bind:tap="changePassword" />
+        </view>
+      </rh-card>
+    </view>
+  </view>
 </view>

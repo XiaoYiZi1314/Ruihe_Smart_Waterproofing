@@ -201,8 +201,18 @@ test('a second tap while saving is ignored', async () => {
 test('customer and worker profile pages link to the edit page', () => {
   assert.match(read('pages/profile/index.wxml'), /bindtap="onEditProfile"/);
   assert.match(read('pages/profile/index.js'), /\/pages\/profile\/edit/);
-  assert.match(read('pages/worker/profile/index.wxml'), /bind:tap="goEditProfile"/);
+  assert.match(read('pages/worker/profile/index.wxml'), /bindtap="goEditProfile"/);
   assert.match(read('pages/worker/profile/index.js'), /goEditProfile\(\)\s*\{\s*wx\.navigateTo\(\{ url: '\/pages\/profile\/edit' \}\)/);
+});
+test('worker profile forces password change only on first login', () => {
+  const wxml = read('pages/worker/profile/index.wxml');
+  const js = read('pages/worker/profile/index.js');
+  assert.match(wxml, /wx:if="\{\{userInfo\.must_change_password\}\}"/);
+  assert.match(wxml, /首次登录修改密码/);
+  assert.match(wxml, /bind:tap="openPasswordModal"/);
+  assert.match(wxml, /wx:if="\{\{showPasswordModal\}\}"/);
+  assert.match(js, /firstLogin/);
+  assert.match(js, /\/pages\/worker\/orders\/list/);
 });
 
 test('startup refresh completes relative avatar addresses like request.js does', async () => {
