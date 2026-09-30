@@ -9,6 +9,8 @@
     "migrate": "node scripts/migrate.js",
     "migrate:acceptance": "node scripts/migrate-acceptance.js",
     "migrate:phase3": "node scripts/migrate-phase3.js",
+    "migrate:review": "node scripts/migrate-review.js",
+    "migrate:order-edit": "node scripts/migrate-order-edit.js",
     "seed": "node scripts/seed.js",
     "init-admin": "node scripts/init-admin.js",
     "test:phase3": "node scripts/test-phase3-api.js",

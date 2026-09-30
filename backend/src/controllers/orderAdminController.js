@@ -93,7 +93,7 @@ exports.listChangeRequests = async (req, res) => {
 exports.handleChangeRequest = async (req, res) => {
   try {
     const result = await OrderEdit.handleChangeRequest(req.params.id, req.user, req.body || {}, meta(req));
-    logOperation({ user_id: req.user.id, order_id: null, action: 'handle_change_request', detail: `处理师傅变更申请 #${req.params.id}`, ip: req.ip });
+    logOperation({ user_id: req.user.id, order_id: result.order_id, action: 'handle_change_request', detail: `处理师傅变更申请 #${req.params.id}`, ip: req.ip });
     res.json({ success: true, message: req.body.decision === 'approve' ? '已同意' : '已驳回', data: result });
   } catch (error) { send(res, error, '处理申请失败'); }
 };

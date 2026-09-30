@@ -52,7 +52,12 @@ Page({
     ],
     slotValue: 'am',
     demoService: DEMO_SERVICE,
-    demoOrder: DEMO_ORDER
+    demoOrder: DEMO_ORDER,
+    demoTimeline: [
+      { key: 'created_at', label: '提交预约', time: '08-09 10:00', current: false },
+      { key: 'assigned_at', label: '已指派师傅', time: '08-09 10:20', current: false },
+      { key: 'confirmed_at', label: '师傅已接单', time: '08-09 11:00', current: true }
+    ]
   },
 
   onLoad() {

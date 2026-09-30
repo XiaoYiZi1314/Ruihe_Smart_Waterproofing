@@ -78,6 +78,9 @@ test('appointment needs both parts and keeps the remark line in sync', () => {
   assert.equal(plan.remark, '预约时间：2026-10-03 下午 13-18\n漏水');
   assert.equal(edit.withAppointmentLine('漏水', '2026-10-03', '下午 13-18'), '预约时间：2026-10-03 下午 13-18\n漏水');
   assert.equal(edit.withAppointmentLine('预约时间：x\n漏水', null, null), '漏水');
+  const remarkOnly = JSON.parse(JSON.stringify(edit.planEdit(baseOrder(), { remark: '预约时间：2099-01-01 上午 08-12\n漏水严重' })));
+  assert.equal(remarkOnly.remark, '预约时间：2026-10-01 上午 08-12\n漏水严重');
+  assert.equal(remarkOnly.appointment_date, undefined);
 });
 test('time fields must fit the status and stay chronological', () => {
   const { edit } = fixture(baseOrder());
@@ -146,6 +149,9 @@ test('status correction only follows the allowed map and needs a note', async ()
   f = fixture(baseOrder({ status: 'cancelled', cancelled_at: new Date(), cancel_reason: '客户取消' }));
   await f.edit.correctStatus(42, admin, { revision: 2, to_status: 'pending', reason_type: 'customer_request', reason_note: '客户要求恢复' });
   assert.match(f.sql.find(s => s.query.startsWith('UPDATE work_orders')).query, /cancel_reason = \?/);
+  f = fixture(baseOrder({ status: 'price_negotiating', price_adjusted_at: null }));
+  await f.edit.correctStatus(42, admin, { revision: 2, to_status: 'pending_review', reason_type: 'price_negotiation', reason_note: '协商结束，维持原价' });
+  assert.match(f.sql.find(s => s.query.startsWith('UPDATE work_orders')).query, /price_adjusted_at = \?/);
 });
 
 test('reassign checks status, worker and records both workers', async () => {
@@ -162,6 +168,12 @@ test('reassign checks status, worker and records both workers', async () => {
   assert.ok(f.sql.some(s => /assign_count = GREATEST/.test(s.query)));
   await tick();
   assert.deepEqual(f.notes.map(n => n[0]).sort(), [7, 8, 9]);
+  f = fixture(baseOrder({ status: 'in_progress' }));
+  await f.edit.reassignOrder(42, admin, { revision: 2, worker_id: 9, reason_type: 'worker_onsite', reason_note: '原师傅临时有事' });
+  const inProgressUpdate = f.sql.find(s => s.query.startsWith('UPDATE work_orders'));
+  assert.match(inProgressUpdate.query, /status = 'confirmed'/);
+  assert.match(inProgressUpdate.query, /started_at = NULL/);
+  assert.match(inProgressUpdate.query, /confirmed_at = NULL/);
 });
 
 test('every workflow transition writes a change log inside the transaction', async () => {
@@ -196,13 +208,18 @@ test('worker change requests: ownership, status, one pending at a time', async (
   await assert.rejects(f.edit.createChangeRequest(8, 42, { ...body, content: '短' }), e => e.status === 400);
   await assert.rejects(f.edit.createChangeRequest(8, 42, { ...body, proposed_labor_fee: '' }), /三项费用/);
   assert.deepEqual(JSON.parse(JSON.stringify(await f.edit.createChangeRequest(8, 42, body))), { id: 11 });
+  await assert.rejects(f.edit.createChangeRequest(8, 42, { request_type: 'time', content: '客户要求改到下午上门' }), /建议上门时间/);
+  assert.deepEqual(JSON.parse(JSON.stringify(await f.edit.createChangeRequest(8, 42, { request_type: 'time', content: '客户要求改到下午上门', proposed_time: '2026-10-03 14:00:00' }))), { id: 11 });
 });
 test('approving a request with apply updates the order and logs it; reject needs a note', async () => {
   const request = { id: 3, order_id: 42, worker_id: 8, request_type: 'price', content: '需增加材料', status: 'pending', proposed_door_fee: '50.00', proposed_material_fee: '300.00', proposed_labor_fee: '200.00', proposed_time: null };
   let f = fixture(baseOrder({ status: 'in_progress', door_fee: null, material_fee: null, labor_fee: null, final_price: null }), { request });
   await assert.rejects(f.edit.handleChangeRequest(3, admin, { decision: 'reject', note: '' }), /原因/);
+  await assert.rejects(f.edit.handleChangeRequest(3, admin, { decision: 'approve', apply: true, note: '同意' }), /待客户确认/);
+  f = fixture(baseOrder({ status: 'pending_review' }), { request });
   const result = await f.edit.handleChangeRequest(3, admin, { decision: 'approve', apply: true, note: '同意' });
   assert.equal(result.applied, true);
+  assert.equal(result.order_id, 42);
   assert.ok(f.sql.some(s => s.query.startsWith('UPDATE work_orders') && s.query.includes('final_price = ?')));
   assert.ok(f.sql.some(s => s.query.startsWith('UPDATE order_change_requests') && s.params[0] === 'approved' && s.params[1] === 1));
   assert.ok(rowsOf(f).some(r => r[6] === 'edit' && r[11] === 'worker_onsite'));

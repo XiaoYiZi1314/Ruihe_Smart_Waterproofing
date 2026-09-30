@@ -12,7 +12,8 @@ const FIELD_LABELS = {
   door_fee: '上门费', material_fee: '材料费', labor_fee: '人工费', final_price: '最终价格',
   confirmed_at: '接单时间', started_at: '开工时间', completed_at: '完工提交时间', finished_at: '订单完成时间',
   cancelled_at: '取消时间', assigned_at: '指派时间', auto_complete_at: '自动确认时间',
-  cancel_reason: '取消原因', reject_reason: '拒单原因', price_dispute_reason: '价格异议原因', images: '现场图片'
+  cancel_reason: '取消原因', reject_reason: '拒单原因', price_dispute_reason: '价格异议原因',
+  price_adjusted_at: '价格调整时间', images: '现场图片'
 };
 const ACTION_LABELS = {
   create: '提交预约', assign: '指派师傅', accept: '师傅接单', reject: '师傅拒单', start: '开始施工', complete: '提交完工',
@@ -25,7 +26,7 @@ const REASON_TYPES = {
   price_negotiation: '价格协商', customer_complaint: '客户投诉', data_fix: '数据修正', other: '其他'
 };
 const MONEY_FIELDS = ['expected_price', 'door_fee', 'material_fee', 'labor_fee', 'final_price'];
-const DATETIME_FIELDS = ['estimated_time', 'confirmed_at', 'started_at', 'completed_at', 'finished_at', 'cancelled_at', 'assigned_at', 'auto_complete_at'];
+const DATETIME_FIELDS = ['estimated_time', 'confirmed_at', 'started_at', 'completed_at', 'finished_at', 'cancelled_at', 'assigned_at', 'auto_complete_at', 'price_adjusted_at'];
 
 const pad = n => String(n).padStart(2, '0');
 function fmtDate(value) {

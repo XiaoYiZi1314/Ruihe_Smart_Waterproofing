@@ -33,6 +33,8 @@ Page({
     changeMaterialFee: '',
     changeLaborFee: '',
     changeTotalFee: '0.00',
+    changeProposedDate: '',
+    changeProposedTime: '09:00',
     changeRequests: [],
     hasPendingRequest: false
   },
@@ -324,6 +326,8 @@ Page({
 
   openChangeModal() {
     if (this.data.hasPendingRequest) return;
+    const order = this.data.order || {};
+    const date = order.appointment_date ? String(order.appointment_date).slice(0, 10) : '';
     this.setData({
       showChangeModal: true,
       changeTypeIndex: 0,
@@ -331,7 +335,9 @@ Page({
       changeDoorFee: '',
       changeMaterialFee: '',
       changeLaborFee: '',
-      changeTotalFee: '0.00'
+      changeTotalFee: '0.00',
+      changeProposedDate: date,
+      changeProposedTime: '09:00'
     });
   },
 
@@ -341,6 +347,14 @@ Page({
 
   onChangeTypeChange(e) {
     this.setData({ changeTypeIndex: Number(e.detail.value) });
+  },
+
+  onChangeProposedDateChange(e) {
+    this.setData({ changeProposedDate: e.detail.value });
+  },
+
+  onChangeProposedTimeChange(e) {
+    this.setData({ changeProposedTime: e.detail.value });
   },
 
   onChangeContentInput(e) {
@@ -375,6 +389,14 @@ Page({
       body.proposed_door_fee = values[0];
       body.proposed_material_fee = values[1];
       body.proposed_labor_fee = values[2];
+    }
+    if (type.value === 'time') {
+      const { changeProposedDate, changeProposedTime } = this.data;
+      if (!changeProposedDate || !changeProposedTime) {
+        wx.showToast({ title: '请选择建议上门时间', icon: 'none' });
+        return;
+      }
+      body.proposed_time = `${changeProposedDate} ${changeProposedTime}:00`;
     }
     this.setData({ submitting: true });
     try {

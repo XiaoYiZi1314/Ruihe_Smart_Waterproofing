@@ -64,7 +64,7 @@
               {{ item.handled_by_name }} 于 {{ formatTime(item.handled_at) }} 处理{{ item.handle_note ? '：' + item.handle_note : '' }}
             </div>
             <div v-else class="tl-actions">
-              <el-button v-if="hasProposal(item)" size="small" type="primary" @click="handleRequest(item, 'approve', true)">同意并更新工单</el-button>
+              <el-button v-if="canApply(item)" size="small" type="primary" @click="handleRequest(item, 'approve', true)">同意并更新工单</el-button>
               <el-button size="small" @click="handleRequest(item, 'approve', false)">仅同意（手动更正）</el-button>
               <el-button size="small" type="danger" plain @click="handleRequest(item, 'reject', false)">驳回</el-button>
             </div>
@@ -153,7 +153,7 @@
           <el-select v-model="reason.type" style="width: 100%"><el-option v-for="r in reasonTypes" :key="r.value" :label="r.label" :value="r.value" /></el-select>
         </el-form-item>
         <el-form-item label="原因说明"><el-input v-model="reason.note" type="textarea" :rows="2" maxlength="500" /></el-form-item>
-        <el-alert type="info" :closable="false" title="已指派未开工的工单，新师傅需要重新接单；原师傅、新师傅和客户都会收到站内通知。" />
+        <el-alert type="info" :closable="false" title="未完工改派后，新师傅需要重新接单；施工中改派还会退回已指派并清空开工时间。原师傅、新师傅和客户都会收到站内通知。" />
       </el-form>
       <template #footer>
         <el-button @click="reassignVisible = false">取消</el-button>
@@ -478,7 +478,11 @@ function requestTag(item) {
   if (item.status === 'approved') return { type: 'success', text: item.applied ? '已同意并更新' : '已同意' };
   return { type: 'info', text: '已驳回' };
 }
-function hasProposal(item) { return item.proposed_door_fee != null || Boolean(item.proposed_time); }
+function canApply(item) {
+  if (item.proposed_time) return true;
+  if (item.proposed_door_fee != null) return props.order.status === 'pending_review';
+  return false;
+}
 function proposedTotal(item) { return (Number(item.proposed_door_fee) + Number(item.proposed_material_fee) + Number(item.proposed_labor_fee)).toFixed(2); }
 async function handleRequest(item, decision, apply) {
   let note = '';

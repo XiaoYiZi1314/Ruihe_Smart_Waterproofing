@@ -50,10 +50,17 @@ test('order detail uses the timeline component and the correction banner', () =>
 test('worker change request form is wired to existing handlers and the backend routes', () => {
   const wxml = read('pages/worker/orders/detail.wxml');
   const js = read('pages/worker/orders/detail.js');
-  for (const handler of ['openChangeModal', 'closeChangeModal', 'handleChangeRequest', 'onChangeTypeChange', 'onChangeContentInput', 'onChangeFeeInput']) {
+  for (const handler of ['openChangeModal', 'closeChangeModal', 'handleChangeRequest', 'onChangeTypeChange', 'onChangeContentInput', 'onChangeFeeInput', 'onChangeProposedDateChange', 'onChangeProposedTimeChange']) {
     assert.match(wxml, new RegExp(`=\\"${handler}\\"`), `${handler} is not bound in wxml`);
     assert.match(js, new RegExp(`\\n  (async )?${handler}\\(`), `${handler} is not defined in js`);
   }
   assert.match(js, /\/api\/worker\/orders\/\$\{this\.data\.id\}\/change-requests/);
+  assert.match(js, /proposed_time/);
   assert.match(wxml, /disabled="\{\{submitting \|\| hasPendingRequest\}\}"/);
+  assert.match(wxml, /changeTypes\[changeTypeIndex\]\.value === 'time'/);
+});
+test('design system preview includes rh-timeline', () => {
+  const json = JSON.parse(read('pages/dev/design-system.json'));
+  assert.equal(json.usingComponents['rh-timeline'], '/components/rh-timeline/rh-timeline');
+  assert.match(read('pages/dev/design-system.wxml'), /<rh-timeline items="\{\{demoTimeline\}\}"/);
 });

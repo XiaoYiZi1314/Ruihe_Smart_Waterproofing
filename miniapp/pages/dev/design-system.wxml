@@ -79,6 +79,13 @@
   </view>
 
   <view class="ds-sec">
+    <rh-section-title title="订单进度" />
+    <rh-card>
+      <rh-timeline items="{{demoTimeline}}" />
+    </rh-card>
+  </view>
+
+  <view class="ds-sec">
     <rh-section-title title="状态 / 空态 / 加载" />
     <view class="ds-row">
       <rh-status-tag status="pending" text="待确认" />

@@ -125,12 +125,16 @@ function planEdit(order, changes) {
     if (total > 99999999.99) fail('总费用超出支持范围');
     if (!Log.sameValue('final_price', order.final_price, total)) updates.final_price = total;
   }
+  const date = 'appointment_date' in updates ? updates.appointment_date : Log.fmtDate(order.appointment_date);
+  const slot = 'appointment_slot' in updates ? updates.appointment_slot : order.appointment_slot;
   if ('appointment_date' in updates || 'appointment_slot' in updates) {
-    const date = 'appointment_date' in updates ? updates.appointment_date : Log.fmtDate(order.appointment_date);
-    const slot = 'appointment_slot' in updates ? updates.appointment_slot : order.appointment_slot;
     if (Boolean(date) !== Boolean(slot)) fail('预约日期和时段需要同时填写或同时清空');
+  }
+  // 备注第一行始终跟结构化预约对齐，避免只改备注把两边改乱
+  if ('appointment_date' in updates || 'appointment_slot' in updates || 'remark' in updates) {
     const remark = withAppointmentLine('remark' in updates ? updates.remark : order.remark, date, slot);
     if (!Log.sameValue('remark', order.remark, remark)) updates.remark = remark || null;
+    else delete updates.remark;
   }
   for (const [field, statuses] of Object.entries(TIME_RULES)) {
     if (field in updates && updates[field] != null && !statuses.includes(order.status)) fail(`当前状态（${Log.STATUS_LABELS[order.status]}）不能设置${Log.FIELD_LABELS[field]}`);
@@ -239,19 +243,27 @@ async function reassignOrder(id, actor, payload = {}, meta = {}) {
     if (Number(order.worker_id) === workerId) fail('新师傅与当前师傅相同');
     const sets = ['worker_id = ?', 'assigned_at = NOW()', 'is_exception = 0', 'revision = revision + 1', 'correction_count = correction_count + 1', 'updated_at = NOW()'];
     const params = [workerId];
-    const after = { confirmed_at: order.confirmed_at };
-    // 已指派未开工：新师傅需要重新接单
-    if (order.status === 'confirmed') { sets.push('confirmed_at = NULL'); after.confirmed_at = null; }
+    const after = { confirmed_at: order.confirmed_at, started_at: order.started_at, status: order.status };
+    // 未完工：新师傅必须重新接单；施工中改派还要退回已指派，避免直接继承「施工中」
+    if (order.status === 'confirmed' || order.status === 'in_progress') {
+      sets.push('confirmed_at = NULL');
+      after.confirmed_at = null;
+    }
+    if (order.status === 'in_progress') {
+      sets.push("status = 'confirmed'", 'started_at = NULL');
+      after.status = 'confirmed';
+      after.started_at = null;
+    }
     if (estimated) { sets.push('estimated_time = ?'); params.push(estimated); after.estimated_time = estimated; }
     await connection.query(`UPDATE work_orders SET ${sets.join(', ')} WHERE id = ?`, [...params, order.id]);
     await connection.query('UPDATE users SET assign_count = assign_count + 1 WHERE id = ?', [workerId]);
     if (order.worker_id) await connection.query('UPDATE users SET assign_count = GREATEST(assign_count - 1, 0) WHERE id = ?', [order.worker_id]);
     const names = await Log.workerLabels(connection, [order.worker_id, workerId]);
     const entries = [{ field: 'worker_id', old_value: order.worker_id ? names[order.worker_id] : null, new_value: names[workerId] },
-      ...Log.diffEntries(order, after, ['estimated_time', 'confirmed_at'])];
+      ...Log.diffEntries(order, after, ['estimated_time', 'confirmed_at', 'started_at', 'status'])];
     const batchId = await Log.record(connection, { orderId: order.id, actor, source: 'admin_edit', action: 'reassign', entries, reasonType: payload.reason_type, reasonNote: note, ip: meta.ip });
     await connection.commit();
-    afterCommit(order, entries, { kind: 'reassign', oldWorkerId: order.worker_id, newWorkerId: workerId });
+    afterCommit(order, entries, { kind: 'reassign', oldWorkerId: order.worker_id, newWorkerId: workerId, toStatus: after.status });
     return { batchId, revision: Number(order.revision) + 1 };
   } catch (error) {
     await connection.rollback();
@@ -266,7 +278,7 @@ const STATUS_CORRECTIONS = {
   'completed>in_progress': { label: '退回施工中', effects: () => ({ completed_at: null, finished_at: null, auto_complete_at: null }) },
   'pending_review>in_progress': { label: '退回施工中（师傅需重新提交完工）', effects: () => ({ completed_at: null, auto_complete_at: null }) },
   'pending_review>completed': { label: '强制完成', effects: () => ({ finished_at: new Date(), auto_complete_at: null }) },
-  'price_negotiating>pending_review': { label: '结束协商，回到待客户确认', effects: () => ({ auto_complete_at: new Date(Date.now() + 3 * DAY) }) },
+  'price_negotiating>pending_review': { label: '结束协商，回到待客户确认', effects: () => ({ auto_complete_at: new Date(Date.now() + 3 * DAY), price_adjusted_at: new Date() }) },
   'price_negotiating>completed': { label: '强制完成', effects: () => ({ finished_at: new Date(), auto_complete_at: null }) },
   'in_progress>confirmed': { label: '退回已指派（未开工）', effects: () => ({ started_at: null }) },
   'confirmed>pending': { label: '退回待指派', effects: () => ({ ...CLEAR_ASSIGNMENT }) },
@@ -372,6 +384,7 @@ async function createChangeRequest(workerId, orderId, payload = {}) {
   const parsedFees = hasFees ? FEE_KEYS.map((key, index) => money(Log.FIELD_LABELS[key])(fees[index])) : [null, null, null];
   const proposedTime = payload.proposed_time ? datetime('建议上门时间')(payload.proposed_time) : null;
   if (payload.request_type === 'price' && !hasFees) fail('请填写建议的费用');
+  if (payload.request_type === 'time' && !proposedTime) fail('请填写建议上门时间');
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
@@ -411,7 +424,10 @@ async function handleChangeRequest(requestId, actor, payload = {}, meta = {}) {
     let applyResult = null;
     if (decision === 'approve' && payload.apply) {
       const changes = {};
-      if (request.proposed_door_fee != null) { changes.door_fee = request.proposed_door_fee; changes.material_fee = request.proposed_material_fee; changes.labor_fee = request.proposed_labor_fee; }
+      if (request.proposed_door_fee != null) {
+        if (order.status !== 'pending_review') fail('费用尚未进入待客户确认，不能直接改工单费用。请仅标记为已同意，或等师傅完工后再应用');
+        changes.door_fee = request.proposed_door_fee; changes.material_fee = request.proposed_material_fee; changes.labor_fee = request.proposed_labor_fee;
+      }
       if (request.proposed_time) changes.estimated_time = Log.fmtDateTime(request.proposed_time);
       if (!Object.keys(changes).length) fail('该申请没有可直接应用的费用或时间，请仅标记为已同意后手动更正');
       applyResult = await applyEdit(connection, order, { changes, reasonType: 'worker_onsite', reasonNote: `师傅现场申请 #${request.id}：${request.content}`.slice(0, 480), actor, meta, confirmFee: true });
@@ -425,7 +441,7 @@ async function handleChangeRequest(requestId, actor, payload = {}, meta = {}) {
     if (applyResult) afterCommit(order, applyResult.entries, { kind: 'edit' });
     notify(request.worker_id, order.id, 'change_request_result', decision === 'approve' ? '变更申请已同意' : '变更申请被驳回',
       `工单 ${order.order_no} 的${REQUEST_TYPES[request.request_type]}申请${decision === 'approve' ? (applied ? '已同意并已更新工单' : '已同意') : '已被驳回'}${note ? `：${note}` : ''}`);
-    return { applied: Boolean(applied) };
+    return { applied: Boolean(applied), order_id: order.id };
   } catch (error) {
     await connection.rollback();
     throw error;

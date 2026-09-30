@@ -2,7 +2,7 @@
   <div class="corrections-page">
     <el-card shadow="never" class="filter-card">
       <el-form inline>
-        <el-form-item label="工单创建时间">
+        <el-form-item label="日期范围">
           <el-date-picker v-model="range" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期"
             value-format="YYYY-MM-DD" style="width: 260px" :clearable="false" @change="reloadAll" />
         </el-form-item>
@@ -11,7 +11,7 @@
           <el-button type="success" @click="exportLogs"><el-icon><Download /></el-icon>导出变更记录</el-button>
         </el-form-item>
       </el-form>
-      <div class="hint">统计口径：所选期间内创建的工单中，被后台人工更正（修改信息 / 费用 / 改派 / 状态 / 图片）过的情况。</div>
+      <div class="hint">上方统计按工单创建日计算更正率；下方变更记录与导出按操作发生时间筛选同一区间。</div>
     </el-card>
 
     <el-row :gutter="16" class="stat-row" v-loading="statsLoading">
@@ -162,7 +162,7 @@ async function loadLogs(page = 1) {
   logPage.value = typeof page === 'number' ? page : 1;
   logsLoading.value = true;
   try {
-    const params = { page: logPage.value, limit: 20, source: logFilter.source };
+    const params = { page: logPage.value, limit: 20, source: logFilter.source, start_date: range.value[0], end_date: range.value[1] };
     if (logFilter.order_no) params.order_no = logFilter.order_no;
     if (logFilter.reason_type) params.reason_type = logFilter.reason_type;
     const res = await api.get('/admin/corrections/logs', { params });
@@ -181,7 +181,7 @@ function onTab(name) { if (name === 'requests') loadRequests(1); else loadLogs(1
 function reloadAll() { loadStats(); if (tab.value === 'logs') loadLogs(1); else loadRequests(1); }
 function openOrder(orderNo) { router.push({ path: '/orders', query: { keyword: orderNo } }); }
 async function exportLogs() {
-  const params = new URLSearchParams({ source: logFilter.source });
+  const params = new URLSearchParams({ source: logFilter.source, start_date: range.value[0], end_date: range.value[1] });
   if (logFilter.order_no) params.set('order_no', logFilter.order_no);
   if (logFilter.reason_type) params.set('reason_type', logFilter.reason_type);
   try {

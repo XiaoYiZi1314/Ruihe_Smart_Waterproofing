@@ -36,6 +36,10 @@ cp .env.example .env
 
 ```bash
 npm run migrate
+npm run migrate:phase3
+npm run migrate:review
+npm run migrate:acceptance
+npm run migrate:order-edit
 ```
 
 ### 4. 启动服务

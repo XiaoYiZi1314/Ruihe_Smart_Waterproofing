@@ -53,6 +53,14 @@
           <rh-form-field label="建议工时费" required><input class="rh-input" type="digit" value="{{changeLaborFee}}" data-key="changeLaborFee" bindinput="onChangeFeeInput" /></rh-form-field>
           <rh-info-row label="建议合计" value="{{changeTotalFee}}" emphasize />
         </block>
+        <block wx:if="{{changeTypes[changeTypeIndex].value === 'time'}}">
+          <rh-form-field label="建议上门日期" required>
+            <picker mode="date" value="{{changeProposedDate}}" bindchange="onChangeProposedDateChange"><view class="rh-input">{{changeProposedDate || '请选择日期'}}</view></picker>
+          </rh-form-field>
+          <rh-form-field label="建议上门时间" required>
+            <picker mode="time" value="{{changeProposedTime}}" bindchange="onChangeProposedTimeChange"><view class="rh-input">{{changeProposedTime || '请选择时间'}}</view></picker>
+          </rh-form-field>
+        </block>
         <view class="worker-actions"><rh-button variant="ghost" text="取消" bind:tap="closeChangeModal" /><rh-button text="提交申请" bind:tap="handleChangeRequest" loading="{{submitting}}" /></view>
       </block>
       <block wx:elif="{{showRejectModal}}">
