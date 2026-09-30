@@ -497,8 +497,8 @@ test('notifications show formatted times, update read state locally and can mark
   const puts = [];
   const request = {
     get: async () => ({ data: [
-      { id: 1, title: 'a', content: 'x', is_read: 0, created_at: '2026-09-30T03:02:11.000Z' },
-      { id: 2, title: 'b', content: 'y', is_read: 0, created_at: '2026-09-29T03:02:11.000Z' },
+      { id: 1, order_id: 11, order_no: 'WO1', service_name: '堵漏', title: 'a', content: 'x', is_read: 0, created_at: '2026-09-30T03:02:11.000Z' },
+      { id: 2, order_id: 12, order_no: 'WO2', title: 'b', content: 'y', is_read: 0, created_at: '2026-09-29T03:02:11.000Z' },
       { id: 3, title: 'c', content: 'z', is_read: 1, created_at: '2026-09-28T03:02:11.000Z' }
     ] }),
     put: async (url) => { puts.push(url); return { success: true }; }
@@ -508,16 +508,33 @@ test('notifications show formatted times, update read state locally and can mark
   await page.load();
   assert.equal(page.data.unreadCount, 2);
   assert.match(page.data.items[0].timeText, /^2026-09-\d\d \d\d:\d\d$/);
+  assert.equal(page.data.items[0].order_no, 'WO1');
   assert.doesNotMatch(read('miniapp/pages/notifications/list.wxml'), /item\.created_at/);
+  assert.match(read('miniapp/pages/notifications/list.wxml'), /item\.order_no/);
+  assert.match(read('miniapp/pages/notifications/list.wxml'), /bindtap="openMessage"/);
 
-  await page.markRead({ currentTarget: { dataset: { id: 1 } } });
+  await page.openMessage({ currentTarget: { dataset: { id: 1, orderId: 11 } } });
   assert.equal(page.data.items[0].is_read, 1);
   assert.equal(page.data.unreadCount, 1);
-  await page.markRead({ currentTarget: { dataset: { id: 3 } } });
+  assert.deepEqual(env.calls.navigateTo, ['/pages/orders/detail?id=11']);
+  await page.openMessage({ currentTarget: { dataset: { id: 3 } } });
   assert.deepEqual(puts, ['/api/notifications/1/read'], 'already-read messages do not hit the server');
+  assert.equal(env.calls.navigateTo.length, 1, 'messages without an order stay on the list');
 
   await page.markAllRead();
   assert.deepEqual(puts, ['/api/notifications/1/read', '/api/notifications/2/read']);
+});
+
+test('worker notifications open the worker order detail', async () => {
+  const request = {
+    get: async () => ({ data: [{ id: 8, order_id: 22, order_no: 'WO22', title: '指派', content: '新工单', is_read: 1, created_at: '2026-09-30T03:02:11.000Z' }] }),
+    put: async () => ({ success: true })
+  };
+  const env = createEnv({ user: { role: 'worker' }, deps: { '../../utils/request': request } });
+  const page = env.page('miniapp/pages/notifications/list.js');
+  await page.load();
+  await page.openMessage({ currentTarget: { dataset: { id: 8, orderId: 22 } } });
+  assert.deepEqual(env.calls.navigateTo, ['/pages/worker/orders/detail?id=22']);
 });
 
 test('address list loads once on entry, refreshes silently and offers retry', async () => {

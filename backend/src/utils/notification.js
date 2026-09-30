@@ -7,6 +7,13 @@ const axios = require('axios');
 const db = require('../config/database');
 const RealtimeService = require('./realtime');
 
+function withOrderNo(order, text) {
+  const no = order && order.order_no;
+  if (!no) return text;
+  if (String(text).includes(String(no))) return text;
+  return `工单 ${no}：${text}`;
+}
+
 class NotificationService {
   /**
    * 发送实时通知给管理员（WebSocket，管理后台页面内提醒）
@@ -150,7 +157,7 @@ class NotificationService {
           orderId,
           'admin_new_order',
           '新工单提醒',
-          `客户${order.customer_name}提交了新工单`,
+          withOrderNo(order, `客户${order.customer_name}提交了${order.service_name || '新工单'}`),
           templateId,
           result.success ? 'success' : 'failed',
           result.error
@@ -205,7 +212,7 @@ class NotificationService {
           orderId,
           'worker_assigned',
           '工单指派通知',
-          `您有新的工单：${order.service_name}`,
+          withOrderNo(order, `您有新的工单（${order.service_name}）`),
           templateId,
           workerResult.success ? 'success' : 'failed',
           workerResult.error
@@ -234,7 +241,7 @@ class NotificationService {
           orderId,
           'customer_assigned',
           '工单已指派',
-          `师傅${order.worker_name}将为您服务`,
+          withOrderNo(order, `师傅${order.worker_name}将为您服务`),
           templateId,
           customerResult.success ? 'success' : 'failed',
           customerResult.error
@@ -294,7 +301,7 @@ class NotificationService {
           orderId,
           'admin_order_rejected',
           '师傅拒单通知',
-          `师傅${workerName || order.worker_name || '未知'}拒绝了工单`,
+          withOrderNo(order, `师傅${workerName || order.worker_name || '未知'}拒绝了工单`),
           templateId,
           result.success ? 'success' : 'failed',
           result.error
@@ -342,7 +349,7 @@ class NotificationService {
         orderId,
         'customer_work_started',
         '师傅已开始施工',
-        `师傅${order.worker_name}已开始施工`,
+        withOrderNo(order, `师傅${order.worker_name}已开始施工`),
         templateId,
         result.success ? 'success' : 'failed',
         result.error
@@ -388,7 +395,7 @@ class NotificationService {
         orderId,
         'customer_work_completed',
         '施工已完成',
-        '工单施工已完成，请验收',
+        withOrderNo(order, '施工已完成，请验收'),
         templateId,
         result.success ? 'success' : 'failed',
         result.error
@@ -442,7 +449,7 @@ class NotificationService {
         orderId,
         'worker_order_urged',
         '客户催单提醒',
-        `客户进行了第${urgeCount}次催单`,
+        withOrderNo(order, `客户进行了第${urgeCount}次催单`),
         templateId,
         result.success ? 'success' : 'failed',
         result.error
@@ -488,7 +495,7 @@ class NotificationService {
         orderId,
         'worker_order_confirmed',
         '工单已完成',
-        '客户已确认工单完成',
+        withOrderNo(order, '客户已确认工单完成'),
         templateId,
         result.success ? 'success' : 'failed',
         result.error
@@ -532,7 +539,7 @@ class NotificationService {
         orderId,
         'worker_order_cancelled',
         '工单已取消',
-        '客户已取消工单',
+        withOrderNo(order, reason ? `客户已取消工单：${reason}` : '客户已取消工单'),
         templateId,
         result.success ? 'success' : 'failed',
         result.error
@@ -578,7 +585,7 @@ class NotificationService {
         orderId,
         'customer_price_adjusted',
         '价格已调整',
-        '管理员已调整工单价格',
+        withOrderNo(order, '管理员已调整工单价格，请确认'),
         templateId,
         result.success ? 'success' : 'failed',
         result.error
@@ -629,7 +636,7 @@ class NotificationService {
           orderId,
           'customer_auto_completed',
           '工单已自动完成',
-          '工单超时未确认，已自动完成',
+          withOrderNo(order, '超时未确认，已自动完成'),
           templateId,
           customerResult.success ? 'success' : 'failed',
           customerResult.error
@@ -656,7 +663,7 @@ class NotificationService {
           orderId,
           'worker_auto_completed',
           '工单已自动完成',
-          '工单超时未确认，已自动完成',
+          withOrderNo(order, '超时未确认，已自动完成'),
           templateId,
           workerResult.success ? 'success' : 'failed',
           workerResult.error

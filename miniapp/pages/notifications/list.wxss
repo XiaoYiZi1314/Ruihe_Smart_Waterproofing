@@ -25,5 +25,12 @@
   height: 16rpx;
   margin-right: 12rpx;
   border-radius: 50%;
-  background: #F5222D;
+  background: var(--color-red);
+}
+
+.msg-link {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: var(--color-brand);
+  text-align: right;
 }
