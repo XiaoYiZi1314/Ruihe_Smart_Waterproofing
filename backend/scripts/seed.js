@@ -1,5 +1,6 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
+const company = require('../data/confirmed-company-info.json');
 
 async function seed() {
   let connection;
@@ -98,19 +99,38 @@ async function seed() {
       {
         config_key: 'contact_info',
         config_value: JSON.stringify({
-          address: '',
-          phone: '',
-          mobile: '',
-          wechat: '',
-          business_hours: '',
+          address: company.contact_address,
+          phone: company.contact_phone,
+          mobile: company.contact_phone,
+          wechat: company.contact_wechat || '',
+          business_hours: company.contact_hours,
+          hours: company.contact_hours,
           email: ''
         }),
         config_type: 'json',
         description: '联系方式'
       },
       {
+        config_key: 'contact_phone',
+        config_value: company.contact_phone,
+        config_type: 'text',
+        description: '联系电话'
+      },
+      {
+        config_key: 'contact_address',
+        config_value: company.contact_address,
+        config_type: 'text',
+        description: '联系地址'
+      },
+      {
+        config_key: 'contact_hours',
+        config_value: company.contact_hours,
+        config_type: 'text',
+        description: '营业时间'
+      },
+      {
         config_key: 'about_us',
-        config_value: '',
+        config_value: company.about_us,
         config_type: 'text',
         description: '关于我们'
       },

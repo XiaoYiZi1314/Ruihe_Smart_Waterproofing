@@ -40,6 +40,7 @@ npm run migrate:phase3
 npm run migrate:review
 npm run migrate:acceptance
 npm run migrate:order-edit
+npm run migrate:company-info
 ```
 
 ### 4. 启动服务

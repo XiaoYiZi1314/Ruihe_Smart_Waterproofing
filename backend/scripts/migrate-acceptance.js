@@ -31,6 +31,7 @@ async function migrate() {
     } else {
       console.log('Existing custom join content preserved; compare it with acceptance-confirmed text');
     }
+    await require('./update-company-info')();
     console.log('Acceptance migration complete: daily order sequences ready');
   } finally { await db.end(); }
 }
