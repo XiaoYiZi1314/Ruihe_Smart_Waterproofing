@@ -25,7 +25,10 @@ const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || (process.env.NODE_ENV === 'production' ? '127.0.0.1' : '0.0.0.0');
 
 // 中间件
-app.use(helmet()); // 安全headers
+app.use(helmet({
+  // 小程序 <image> 与后台预览都不是本域文档，same-origin 会导致现场图一直 binderror
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
 app.use(cors({ origin: process.env.PUBLIC_ORIGIN || 'https://ruihezhihui.cn' }));
 app.use(express.json()); // 解析JSON请求体
 app.use(express.urlencoded({ extended: true })); // 解析URL编码请求体

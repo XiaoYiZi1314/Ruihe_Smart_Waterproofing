@@ -51,7 +51,8 @@ async function serve(req, res, next) {
     if (!rows.length) return res.sendStatus(404);
     const upload = rows[0];
     if (!upload.is_public && !validSignature(req)) return res.sendStatus(403);
-    res.set('Cache-Control', upload.is_public ? 'public, max-age=86400' : 'private, no-store');
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.set('Cache-Control', upload.is_public ? 'public, max-age=86400' : 'private, max-age=60');
     res.type(upload.mime_type);
     res.sendFile(path.join(upload.is_public ? publicDir : privateDir, upload.filename));
   } catch (error) { next(error); }
