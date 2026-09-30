@@ -47,9 +47,9 @@ async function main() {
     const parallelOrders=await Promise.all(Array.from({length:12},()=>makeOrder()));
     const [numberRows]=await db.query('SELECT order_no FROM work_orders WHERE id IN (?)',[[id,...parallelOrders]]);
     assert.equal(new Set(numberRows.map(row=>row.order_no)).size,13);
-    assert(numberRows.every(row=>/^RH\d{13}$/.test(row.order_no)));
-    const sequences=numberRows.map(row=>Number(row.order_no.slice(-5))).sort((a,b)=>a-b);
-    assert.equal(sequences[12]-sequences[0],12);ok('concurrent bookings use unique consecutive five-digit order numbers');
+    assert(numberRows.every(row=>/^RH\d{12}$/.test(row.order_no)));
+    const sequences=numberRows.map(row=>Number(row.order_no.slice(-4))).sort((a,b)=>a-b);
+    assert.equal(sequences[12]-sequences[0],12);ok('concurrent bookings use unique consecutive four-digit order numbers');
     await request('PUT',`/api/orders/${id}/urge`,{},customer);
     const notices=(await request('GET','/api/notifications',null,admin)).data;
     assert(notices.some(item=>Number(item.order_id)===id && /第1次/.test(item.content)));

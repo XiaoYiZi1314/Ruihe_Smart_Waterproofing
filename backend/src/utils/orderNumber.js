@@ -10,8 +10,8 @@ async function nextOrderNo(connection, now = new Date()) {
     ON DUPLICATE KEY UPDATE order_date = VALUES(order_date)`, [date]);
   const [rows] = await connection.query('SELECT `last_value` FROM order_sequences WHERE order_date = ? FOR UPDATE', [date]);
   const next = Number(rows[0].last_value) + 1;
-  if (next > 99999) throw Object.assign(new Error('当日预约数量已达上限，请稍后联系人工客服'), { status: 409 });
+  if (next > 9999) throw Object.assign(new Error('当日预约数量已达上限，请稍后联系人工客服'), { status: 409 });
   await connection.query('UPDATE order_sequences SET `last_value` = ? WHERE order_date = ?', [next, date]);
-  return `RH${date}${String(next).padStart(5, '0')}`;
+  return `RH${date}${String(next).padStart(4, '0')}`;
 }
 module.exports = { nextOrderNo, orderDate };

@@ -11,7 +11,7 @@ const DEMO_SERVICE = {
 
 const DEMO_ORDER = {
   id: 1,
-  order_no: 'RH2026080700001',
+  order_no: 'RH202608070001',
   status: 'confirmed',
   worker_name: '测试师傅',
   worker_phone: '13800138000',

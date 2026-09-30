@@ -8,9 +8,14 @@ async function migrate() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
     // Re-running this migration never decreases a used sequence or renumbers old orders.
     await db.query(`INSERT INTO order_sequences(order_date,\`last_value\`)
-      SELECT SUBSTRING(order_no,3,8), MAX(CAST(RIGHT(order_no,5) AS UNSIGNED))
-      FROM work_orders WHERE order_no REGEXP '^RH[0-9]{13}$'
-      GROUP BY SUBSTRING(order_no,3,8)
+      SELECT order_date, MAX(seq) FROM (
+        SELECT SUBSTRING(order_no,3,8) AS order_date, CAST(RIGHT(order_no,5) AS UNSIGNED) AS seq
+        FROM work_orders WHERE order_no REGEXP '^RH[0-9]{13}$'
+        UNION ALL
+        SELECT SUBSTRING(order_no,3,8), CAST(RIGHT(order_no,4) AS UNSIGNED)
+        FROM work_orders WHERE order_no REGEXP '^RH[0-9]{12}$'
+      ) numbered
+      GROUP BY order_date
       ON DUPLICATE KEY UPDATE \`last_value\`=GREATEST(\`last_value\`,VALUES(\`last_value\`))`);
     // Only replace the known demo join content; preserve any manually configured information.
     const [configs] = await db.query("SELECT config_value FROM site_config WHERE config_key='join_info'");
