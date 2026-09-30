@@ -1,5 +1,13 @@
 <view class="page-wrap page-pad">
   <rh-section-title title="{{userInfo.nickname || '师傅个人中心'}}" />
+  <view wx:if="{{userInfo && !userInfo.must_change_password}}" class="worker-head">
+    <rh-image wx:if="{{userInfo.avatar_url}}" class="worker-head__avatar" src="{{userInfo.avatar_url}}" />
+    <view wx:else class="worker-head__avatar worker-head__avatar--placeholder">
+      <rh-icon name="user" tone="white" size="48" />
+    </view>
+    <view class="worker-head__name">头像</view>
+    <view><rh-button variant="line" size="sm" text="修改头像" bind:tap="goEditProfile" /></view>
+  </view>
   <rh-info-row label="手机号" value="{{userInfo.phone}}" />
   <rh-info-row label="微信" value="{{userInfo.wechat_bound ? '已绑定' : '未绑定'}}" />
   <view class="section"><rh-section-title title="{{userInfo.must_change_password ? '首次登录修改密码' : '修改密码'}}" /></view>

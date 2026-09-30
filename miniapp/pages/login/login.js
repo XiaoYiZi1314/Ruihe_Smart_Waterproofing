@@ -2,6 +2,7 @@ const auth = require('../../utils/auth');
 const request = require('../../utils/request');
 const app = getApp();
 const session = require('../../utils/session');
+const profileGuide = require('../../utils/profile-guide');
 
 Page({
   data: {
@@ -34,12 +35,16 @@ Page({
   /**
    * 按角色路由
    */
-  routeByRole() {
+  routeByRole(guideProfile) {
     const userInfo = wx.getStorageSync('userInfo') || {};
     if (userInfo.role === 'worker') {
       wx.reLaunch({ url: userInfo.must_change_password ? '/pages/worker/profile/index' : '/pages/worker/orders/list' });
     } else {
-      wx.reLaunch({ url: '/pages/index/index' });
+      wx.reLaunch({
+        url: '/pages/index/index',
+        // 首次登录引导完善资料：先落到首页，再压入编辑页，用户可直接跳过/返回
+        success: guideProfile ? () => wx.navigateTo({ url: '/pages/profile/edit?guide=1' }) : undefined
+      });
     }
   },
 
@@ -99,47 +104,37 @@ Page({
 
   /**
    * 客户微信登录
+   * 微信已不再通过 wx.getUserProfile 返回真实头像昵称（只会得到灰色默认头像），
+   * 所以这里直接登录，头像昵称由用户在“编辑资料”页主动填写。
    */
-  onGetUserProfile() {
+  onLogin() {
     if (this.data.loading) return;
-    const that = this;
+    this.setData({ loading: true });
 
-    wx.getUserProfile({
-      desc: '用于完善用户资料',
-      success: (res) => {
-        that.setData({ loading: true });
+    Promise.resolve(app.sessionReady)
+      .then(() => {
+        if (this._unloaded) throw new Error('登录页面已关闭');
+        return auth.login();
+      })
+      .then((loginRes) => {
+        const snapshot = session.capture();
+        wx.showToast({ title: '登录成功', icon: 'success', duration: 1200 });
+        // worker 角色走师傅工作台，其余走客户端；新客户引导完善一次资料
+        const guideProfile = profileGuide.consume(loginRes.user);
 
-        Promise.resolve(app.sessionReady)
-          .then(() => {
-            if (that._unloaded) throw new Error('登录页面已关闭');
-            return auth.login(res.userInfo);
-          })
-          .then((loginRes) => {
-            // worker 角色走师傅工作台，其余走客户端
-            const snapshot = session.capture();
-            wx.showToast({ title: '登录成功', icon: 'success', duration: 1200 });
-
-            setTimeout(() => {
-              if (!that._unloaded && session.isCurrent(snapshot)) that.routeByRole();
-            }, 1200);
-          })
-          .catch((err) => {
-            wx.showToast({
-              title: err.message || '登录失败',
-              icon: 'none',
-              duration: 2000
-            });
-          })
-          .finally(() => {
-            that.setData({ loading: false });
-          });
-      },
-      fail: () => {
+        setTimeout(() => {
+          if (!this._unloaded && session.isCurrent(snapshot)) this.routeByRole(guideProfile);
+        }, 1200);
+      })
+      .catch((err) => {
         wx.showToast({
-          title: '需要授权才能使用',
-          icon: 'none'
+          title: err.message || '登录失败',
+          icon: 'none',
+          duration: 2000
         });
-      }
-    });
+      })
+      .finally(() => {
+        this.setData({ loading: false });
+      });
   }
 });

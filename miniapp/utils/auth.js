@@ -2,21 +2,16 @@ const request = require('./request');
 const session = require('./session');
 
 /**
- * 微信登录
- * @param {Object} userInfo 用户信息
+ * 微信登录（微信已不再下发真实头像昵称，资料由用户在“编辑资料”页主动填写）
  * @returns {Promise}
  */
-function login(userInfo) {
+function login() {
   return new Promise((resolve, reject) => {
     wx.login({
       success: (res) => {
         if (res.code) {
           // 调用后端登录接口
-          request.post('/api/auth/login', {
-            code: res.code,
-            nickname: userInfo.nickName,
-            avatar_url: userInfo.avatarUrl
-          })
+          request.post('/api/auth/login', { code: res.code })
           .then(response => {
             if (response.success) {
               // 保存token和用户信息

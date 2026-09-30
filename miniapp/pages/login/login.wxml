@@ -17,7 +17,7 @@
       block
       text="{{loading ? '登录中...' : '微信快捷登录'}}"
       disabled="{{loading}}"
-      bind:tap="onGetUserProfile"
+      bind:tap="onLogin"
     />
     <view class="login-switch" bindtap="switchMode">
       <text>我是师傅，使用工号登录</text>

@@ -24,7 +24,12 @@ App({
           // An old request must never overwrite or invalidate a newer session.
           if (!session.isCurrent(snapshot)) return resolve(false);
           if (res.statusCode === 200 && res.data.success) {
-            session.updateUser(res.data.data);
+            const profile = res.data.data;
+            // 与 request.js 保持一致：自有上传的相对地址补全为完整地址（头像）
+            if (profile && typeof profile.avatar_url === 'string' && profile.avatar_url.indexOf('/uploads/') === 0) {
+              profile.avatar_url = this.globalData.apiBaseUrl + profile.avatar_url;
+            }
+            session.updateUser(profile);
             const pages = getCurrentPages();
             const currentPath = pages.length ? pages[pages.length - 1].route : '';
             const user = res.data.data;

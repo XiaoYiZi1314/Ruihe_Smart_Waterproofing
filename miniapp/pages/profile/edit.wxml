@@ -1,0 +1,34 @@
+<view class="page-wrap page-wrap--footer">
+  <view class="edit-avatar">
+    <!-- 头像昵称填写能力：必须由用户主动点击，可直接选“使用微信头像” -->
+    <button class="edit-avatar__btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+      <rh-image wx:if="{{avatarUrl}}" class="edit-avatar__img" src="{{avatarUrl}}" />
+      <view wx:else class="edit-avatar__img edit-avatar__img--placeholder">
+        <rh-icon name="user" tone="white" size="72" />
+      </view>
+    </button>
+    <text class="edit-avatar__tip">点击头像，可使用微信头像或从相册选择</text>
+  </view>
+
+  <rh-form-field label="昵称">
+    <input
+      wx:if="{{!isWorker}}"
+      class="rh-input"
+      type="nickname"
+      maxlength="20"
+      placeholder="请输入昵称，可点键盘上的微信昵称"
+      value="{{nickname}}"
+      bindinput="onNicknameInput"
+      bindblur="onNicknameInput"
+    />
+    <view wx:else class="rh-form-value">
+      <text>{{nickname}}</text>
+      <text class="rh-form-value__ph">由管理员维护</text>
+    </view>
+  </rh-form-field>
+
+  <rh-sticky-bar>
+    <rh-button wx:if="{{guide}}" variant="ghost" size="lg" text="暂时跳过" bind:tap="onSkip" />
+    <rh-button variant="brand" size="lg" block text="{{saving ? '保存中...' : '保存'}}" disabled="{{saving}}" bind:tap="onSave" />
+  </rh-sticky-bar>
+</view>

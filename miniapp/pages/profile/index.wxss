@@ -36,6 +36,12 @@
   margin-top: 6rpx;
 }
 
+.profile-edit {
+  margin-left: auto;
+  font-size: 24rpx;
+  opacity: 0.85;
+}
+
 .profile-vip {
   margin-top: 28rpx;
   background: rgba(255, 255, 255, 0.16);

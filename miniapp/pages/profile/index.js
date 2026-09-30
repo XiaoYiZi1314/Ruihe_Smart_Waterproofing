@@ -32,6 +32,10 @@ Page({
     this.loadPendingOrders();
   },
 
+  onEditProfile() {
+    wx.navigateTo({ url: '/pages/profile/edit' });
+  },
+
   buildMenu() {
     const isDev = this.data.isDev;
     const items = [

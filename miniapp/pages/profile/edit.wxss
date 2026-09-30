@@ -1,0 +1,43 @@
+.edit-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48rpx 0 32rpx;
+  background: var(--color-surface);
+  border-bottom: 1rpx solid var(--color-divider);
+}
+
+.edit-avatar__btn {
+  width: 160rpx;
+  height: 160rpx;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  overflow: hidden;
+  line-height: normal;
+}
+
+.edit-avatar__btn::after {
+  border: none;
+}
+
+.edit-avatar__img {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: var(--radius-full);
+}
+
+.edit-avatar__img--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-brand);
+}
+
+.edit-avatar__tip {
+  margin-top: 20rpx;
+  font-size: 24rpx;
+  color: var(--color-text-muted);
+}

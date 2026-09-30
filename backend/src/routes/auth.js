@@ -18,4 +18,6 @@ router.get('/me', authenticateToken, authController.getCurrentUser);
 
 router.post('/bind-wechat', authenticateToken, requireRole(['worker']), authController.bindWechat);
 router.post('/change-password', authenticateToken, loginIpLimit, authController.changePassword);
+// 修改个人资料（客户：头像+昵称；师傅：仅头像）
+router.put('/profile', authenticateToken, requireRole(['customer', 'worker']), authController.updateProfile);
 module.exports = router;

@@ -5,6 +5,7 @@
     "pages/services/list",
     "pages/orders/list",
     "pages/profile/index",
+    "pages/profile/edit",
     "pages/services/detail",
     "pages/booking/create",
     "pages/address/list",

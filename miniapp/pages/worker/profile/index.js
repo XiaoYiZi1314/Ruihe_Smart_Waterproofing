@@ -51,6 +51,7 @@ Page({
     finally { this.setData({ submitting: false }); }
   },
   goOrders() { wx.reLaunch({ url: '/pages/worker/orders/list' }); },
+  goEditProfile() { wx.navigateTo({ url: '/pages/profile/edit' }); },
   goMessages() { wx.navigateTo({ url: '/pages/notifications/list' }); },
   handleLogout() {
     session.clear();

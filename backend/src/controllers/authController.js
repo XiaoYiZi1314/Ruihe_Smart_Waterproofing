@@ -5,6 +5,7 @@ const { generateToken } = require('../utils/jwt');
 const { buildWorkerLoginLookup } = require('../utils/workerLoginLookup');
 const { exchangeCode } = require('../utils/wechatIdentity');
 const { logOperation } = require('../utils/operationLog');
+const { purgePublicAvatar } = require('../utils/attachments');
 
 function publicUser(user) {
   return { id: user.id, nickname: user.nickname, avatar_url: user.avatar_url, phone: user.phone,
@@ -70,5 +71,40 @@ async function changePassword(req, res) {
     res.json({ success: true, data: session(user) });
   } catch (error) { handleError(res, error); }
 }
-module.exports = { login, getCurrentUser, bindWechat, changePassword,
+// 头像只能是当前用户通过 /api/upload/avatar 上传的公开图片
+const AVATAR_URL = /^\/uploads\/([a-f0-9-]{36})\.(?:jpg|png|gif|webp)$/;
+async function updateProfile(req, res) {
+  try {
+    const body = req.body || {};
+    const user = req.user;
+    const sets = []; const params = [];
+    if (body.nickname !== undefined) {
+      if (user.role === 'worker') return res.status(403).json({ success: false, message: '师傅昵称由管理员维护' });
+      const nickname = typeof body.nickname === 'string' ? body.nickname.trim() : '';
+      if (!nickname || Array.from(nickname).length > 20 || /[\u0000-\u001f\u007f]/.test(nickname)) {
+        return res.status(400).json({ success: false, message: '昵称需为1-20个字符' });
+      }
+      sets.push('nickname=?'); params.push(nickname);
+    }
+    let avatarChanged = false;
+    if (body.avatar_url !== undefined) {
+      const avatar = body.avatar_url;
+      if (avatar !== null) {
+        const match = typeof avatar === 'string' ? AVATAR_URL.exec(avatar) : null;
+        if (!match) return res.status(400).json({ success: false, message: '头像地址无效，请重新上传' });
+        const [rows] = await db.query("SELECT id FROM uploads WHERE id=? AND user_id=? AND is_public=1 AND mime_type LIKE 'image/%'", [match[1], user.id]);
+        if (!rows.length) return res.status(403).json({ success: false, message: '头像不属于当前用户或格式错误' });
+      }
+      sets.push('avatar_url=?'); params.push(avatar);
+      avatarChanged = avatar !== user.avatar_url;
+    }
+    if (!sets.length) return res.status(400).json({ success: false, message: '没有需要修改的内容' });
+    await db.query(`UPDATE users SET ${sets.join(', ')}, updated_at=CURRENT_TIMESTAMP WHERE id=?`, [...params, user.id]);
+    const fresh = await User.findById(user.id);
+    // 数据库已更新后再回收旧头像；失败只记日志
+    if (avatarChanged && user.avatar_url) purgePublicAvatar(user.avatar_url, user.id).catch(error => console.error('清理旧头像失败:', error.message));
+    res.json({ success: true, message: '资料已保存', data: publicUser(fresh) });
+  } catch (error) { handleError(res, error); }
+}
+module.exports = { login, getCurrentUser, bindWechat, changePassword, updateProfile,
   adminLogin: (req, res) => passwordLogin(req, res, 'admin'), workerLogin: (req, res) => passwordLogin(req, res, 'worker') };

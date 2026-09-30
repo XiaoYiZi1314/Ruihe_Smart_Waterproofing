@@ -1,6 +1,6 @@
 <view class="page-wrap">
   <view class="profile-head">
-    <view class="profile-top">
+    <view class="profile-top" bindtap="onEditProfile">
       <rh-image
         wx:if="{{userInfo.avatar_url}}"
         class="avatar"
@@ -13,6 +13,7 @@
         <view class="profile-name">{{userInfo.nickname || '微信用户'}}</view>
         <view class="profile-phone">{{displayPhone || '未绑定手机号'}}</view>
       </view>
+      <text class="profile-edit">编辑资料 ›</text>
     </view>
     <view class="profile-vip">
       <text>✓ 认证会员 · 享专属服务保障</text>

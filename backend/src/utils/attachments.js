@@ -91,4 +91,26 @@ async function purgeUnreferenced(urls) {
   }
   return removed;
 }
-module.exports = { signUrl, validSignature, assertOwned, presentOrder, loadReviewImages, purgeUnreferenced, serve, protectLegacy, cleanupOrphans, privateDir, publicDir };
+// 更换头像后回收旧头像：仅限该用户自己上传的公开图片，且已没有任何账号在使用
+async function purgePublicAvatar(url, userId) {
+  const match = /^\/uploads\/([a-f0-9-]{36})\.[a-z]+$/.exec(String(url || ''));
+  if (!match) return false;
+  const [rows] = await db.query(`SELECT u.id, u.filename FROM uploads u WHERE u.id=? AND u.user_id=? AND u.is_public=1
+    AND NOT EXISTS (SELECT 1 FROM users x WHERE x.avatar_url=CONCAT('/uploads/',u.filename))`, [match[1], userId]);
+  if (!rows.length) return false;
+  await fs.promises.rm(path.join(publicDir, rows[0].filename), { force: true });
+  await db.query('DELETE FROM uploads WHERE id=?', [rows[0].id]);
+  return true;
+}
+// 上传了头像却没有保存的公开文件：只处理客户/师傅上传的（管理员上传的服务封面、轮播图不在此列），超过 1 天且无人使用则回收
+async function cleanupAvatarOrphans() {
+  const [rows] = await db.query(`SELECT u.id, u.filename FROM uploads u JOIN users owner ON owner.id=u.user_id
+    WHERE u.is_public=1 AND owner.role IN ('customer','worker') AND u.created_at < DATE_SUB(NOW(), INTERVAL 1 DAY)
+    AND NOT EXISTS (SELECT 1 FROM users x WHERE x.avatar_url=CONCAT('/uploads/',u.filename))`);
+  for (const row of rows) {
+    await fs.promises.rm(path.join(publicDir, row.filename), { force: true });
+    await db.query('DELETE FROM uploads WHERE id=?', [row.id]);
+  }
+  return rows.length;
+}
+module.exports = { signUrl, validSignature, assertOwned, presentOrder, loadReviewImages, purgeUnreferenced, purgePublicAvatar, cleanupAvatarOrphans, serve, protectLegacy, cleanupOrphans, privateDir, publicDir };

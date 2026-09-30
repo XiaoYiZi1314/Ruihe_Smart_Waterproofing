@@ -9,12 +9,15 @@ const api = {
   /**
    * 微信登录
    */
-  login(code, userInfo) {
-    return request.post('/api/auth/login', {
-      code,
-      nickname: userInfo.nickName,
-      avatar_url: userInfo.avatarUrl
-    });
+  login(code) {
+    return request.post('/api/auth/login', { code });
+  },
+
+  /**
+   * 修改个人资料：{ nickname?, avatar_url? }（师傅仅可修改头像）
+   */
+  updateProfile(data) {
+    return request.put('/api/auth/profile', data);
   },
 
   /**

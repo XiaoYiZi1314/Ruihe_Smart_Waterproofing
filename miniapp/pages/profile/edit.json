@@ -1,11 +1,10 @@
 {
-  "navigationBarTitleText": "我的",
+  "navigationBarTitleText": "编辑资料",
   "usingComponents": {
     "rh-button": "/components/rh-button/rh-button",
     "rh-form-field": "/components/rh-form-field/rh-form-field",
     "rh-icon": "/components/rh-icon/rh-icon",
     "rh-image": "/components/rh-image/rh-image",
-    "rh-info-row": "/components/rh-info-row/rh-info-row",
-    "rh-section-title": "/components/rh-section-title/rh-section-title"
+    "rh-sticky-bar": "/components/rh-sticky-bar/rh-sticky-bar"
   }
 }
