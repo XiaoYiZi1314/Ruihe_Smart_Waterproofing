@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "关于我们",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "rh-card": "/components/rh-card/rh-card",
+    "rh-contact-line": "/components/rh-contact-line/rh-contact-line",
+    "rh-empty": "/components/rh-empty/rh-empty",
+    "rh-load-more": "/components/rh-load-more/rh-load-more",
+    "rh-section-title": "/components/rh-section-title/rh-section-title"
+  }
+}

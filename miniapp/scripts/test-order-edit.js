@@ -59,8 +59,3 @@ test('worker change request form is wired to existing handlers and the backend r
   assert.match(wxml, /disabled="\{\{submitting \|\| hasPendingRequest\}\}"/);
   assert.match(wxml, /changeTypes\[changeTypeIndex\]\.value === 'time'/);
 });
-test('design system preview includes rh-timeline', () => {
-  const json = JSON.parse(read('pages/dev/design-system.json'));
-  assert.equal(json.usingComponents['rh-timeline'], '/components/rh-timeline/rh-timeline');
-  assert.match(read('pages/dev/design-system.wxml'), /<rh-timeline items="\{\{demoTimeline\}\}"/);
-});

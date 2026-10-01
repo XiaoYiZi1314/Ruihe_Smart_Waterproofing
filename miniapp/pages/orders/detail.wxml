@@ -123,7 +123,7 @@
     </view>
   </view>
 
-  <rh-empty wx:if="{{loading}}" text="加载中..." />
+  <rh-load-more wx:if="{{loading}}" loading />
 
   <!-- 底部操作栏：根据状态渲染 -->
   <rh-sticky-bar wx:if="{{!loading && order}}">

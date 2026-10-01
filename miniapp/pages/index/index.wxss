@@ -56,6 +56,7 @@
   font-size: 25rpx;
   color: var(--color-text-secondary);
   line-height: 1.7;
+  white-space: pre-line;
 }
 
 .about-more {

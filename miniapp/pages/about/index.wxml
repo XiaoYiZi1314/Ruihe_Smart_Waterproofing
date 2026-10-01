@@ -1,0 +1,38 @@
+<view class="page-wrap page-pad">
+  <rh-load-more wx:if="{{loading}}" loading />
+  <rh-empty wx:elif="{{loadFailed}}" text="网络不佳，加载失败" action-text="重新加载" bind:action="onRetryLoad" />
+
+  <block wx:else>
+    <view class="about-block">
+      <rh-card>
+        <rh-section-title title="关于我们" />
+        <view class="about-text">{{aboutUs || '暂无公司介绍'}}</view>
+      </rh-card>
+    </view>
+
+    <view class="about-block" wx:if="{{contact.phone || contact.mobile || contact.address || contact.hours}}">
+      <rh-card>
+        <rh-section-title title="联系我们" />
+        <rh-contact-line
+          wx:if="{{contact.mobile || contact.phone}}"
+          icon="phone"
+          title="{{contact.mobile || contact.phone}}"
+          subtitle="点击拨打客服电话"
+          bind:tap="onCallPhone"
+        />
+        <rh-contact-line
+          wx:if="{{contact.address}}"
+          icon="location"
+          title="{{contact.address}}"
+          subtitle="服务联系地址"
+        />
+        <rh-contact-line
+          wx:if="{{contact.hours}}"
+          icon="clock"
+          title="{{contact.hours}}"
+          subtitle="营业时间"
+        />
+      </rh-card>
+    </view>
+  </block>
+</view>

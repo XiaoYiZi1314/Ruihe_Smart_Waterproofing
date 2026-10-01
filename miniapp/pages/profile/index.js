@@ -18,13 +18,10 @@ Page({
     userInfo: null,
     displayPhone: '',
     guest: false,
-    isDev: false,
     menuItems: []
   },
 
   onLoad() {
-    const isDev = theme.isDevEnv();
-    this.setData({ isDev });
     this.buildMenu();
   },
 
@@ -60,7 +57,6 @@ Page({
   },
 
   buildMenu() {
-    const isDev = this.data.isDev;
     const items = [
       {
         id: 'orders',
@@ -92,16 +88,6 @@ Page({
         gradient: 'var(--gradient-brand-wide)'
       }
     ];
-
-    if (isDev) {
-      items.push({
-        id: 'design',
-        icon: 'shield',
-        title: '设计系统预览',
-        url: '/pages/dev/design-system',
-        gradient: 'var(--gradient-brand-wide)'
-      });
-    }
 
     this.setData({ menuItems: items });
   },
@@ -157,20 +143,8 @@ Page({
     await notifications.callService();
   },
 
-  async showAbout() {
-    try {
-      const res = await api.getConfig();
-      const content = res.success && res.data.about_us
-        ? res.data.about_us
-        : '暂无公司介绍';
-      wx.showModal({ title: '关于我们', content, showCancel: false });
-    } catch (error) {
-      wx.showModal({
-        title: '关于我们',
-        content: '加载失败，请稍后重试。',
-        showCancel: false
-      });
-    }
+  showAbout() {
+    wx.navigateTo({ url: '/pages/about/index' });
   },
 
   onSwitchRole() {

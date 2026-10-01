@@ -60,11 +60,13 @@ Page({
   },
 
   async loadServiceDetail(id) {
+    const requestId = this._requestId = (this._requestId || 0) + 1;
     // 首次加载显示骨架屏；已有内容时静默刷新
     if (!this.data.service) this.setData({ loading: true, loadFailed: false });
     try {
       const res = await api.getServiceById(id);
-      if (res.success) {
+      if (requestId !== this._requestId && this.data.service) return;
+      if (res.success && res.data) {
         const service = res.data;
         const price = theme.formatPrice(service.price_min, service.price_max, service.price_unit);
         
@@ -103,10 +105,11 @@ Page({
           })),
           reviewStats: service.review_stats
         });
-      } else if (!this.data.service) {
-        this.setData({ loading: false, loadFailed: true });
+        return;
       }
+      if (requestId === this._requestId && !this.data.service) this.setData({ loading: false, loadFailed: true });
     } catch (error) {
+      if (requestId !== this._requestId) return;
       console.error('加载服务详情失败:', error);
       // 已有内容时保持页面不动（请求层已提示错误）；首次加载失败显示重试，不再自动退出页面
       if (!this.data.service) this.setData({ loading: false, loadFailed: true });

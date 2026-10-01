@@ -194,6 +194,34 @@ test('home page shows a retry state instead of an empty list when loading fails'
   assert.match(read('miniapp/pages/index/index.wxml'), /loadFailed[^"]*"[^>]*action-text="重新加载"/);
 });
 
+test('about us uses a readable page instead of a system modal', async () => {
+  assert.match(read('miniapp/app.json'), /pages\/about\/index/);
+  assert.match(read('miniapp/pages/about/index.wxss'), /white-space:\s*pre-line/);
+  assert.match(read('miniapp/pages/index/index.wxss'), /white-space:\s*pre-line/);
+  assert.doesNotMatch(read('miniapp/pages/index/index.js'), /showModal/);
+  assert.doesNotMatch(read('miniapp/pages/profile/index.js'), /showModal\(\{\s*title:\s*'关于我们'/);
+
+  const homeEnv = createEnv();
+  const homePage = homeEnv.page('miniapp/pages/index/index.js');
+  homePage.goAbout();
+  assert.deepEqual(homeEnv.calls.navigateTo, ['/pages/about/index']);
+  homePage.onQuickTap({ detail: { key: 'about' } });
+  assert.deepEqual(homeEnv.calls.navigateTo, ['/pages/about/index', '/pages/about/index']);
+
+  const profileEnv = createEnv();
+  const profile = profileEnv.page('miniapp/pages/profile/index.js');
+  profile.showAbout();
+  assert.deepEqual(profileEnv.calls.navigateTo, ['/pages/about/index']);
+
+  const api = { getConfig: async () => ({ success: true, data: { about_us: '第一段\n\n第二段', contact_info: { phone: '13306944888', address: '漳浦', hours: '8:00-20:00' } } }) };
+  const aboutEnv = createEnv({ deps: { '../../utils/api': api } });
+  const about = aboutEnv.page('miniapp/pages/about/index.js');
+  await about.load();
+  assert.equal(about.data.aboutUs, '第一段\n\n第二段');
+  assert.equal(about.data.contact.phone, '13306944888');
+  assert.equal(about.data.loading, false);
+});
+
 test('login redirects back to the page the guest came from, and ignores unsafe targets', async () => {
   const run = async (redirect, user = { id: 1, role: 'customer', nickname: '张三' }) => {
     const env = createEnv({ token: null, deps: {
@@ -359,8 +387,7 @@ test('order detail keeps the page when a refresh fails and offers a retry when t
   const env = createEnv({ deps: { '../../utils/api': api } });
   const page = env.page('miniapp/pages/orders/detail.js');
   page.onLoad({ id: '1' });
-
-  await page.loadOrderDetail('1');
+  await tick(); await tick();
   env.runTimers();
   assert.equal(page.data.loadFailed, true);
   assert.equal(page.data.loading, false);
@@ -377,6 +404,25 @@ test('order detail keeps the page when a refresh fails and offers a retry when t
   assert.equal(page.data.order.id, 1, 'the loaded order stays on screen');
   assert.equal(page.data.loadFailed, false);
   assert.equal(env.calls.navigateBack, 0);
+});
+
+test('order detail keeps a slower successful load when a later overlapping request fails', async () => {
+  const pending = [];
+  const api = { getOrderById: () => new Promise((resolve, reject) => pending.push({ resolve, reject })) };
+  const env = createEnv({ deps: { '../../utils/api': api } });
+  const page = env.page('miniapp/pages/orders/detail.js');
+  page.orderId = '7';
+  const first = page.loadOrderDetail('7');
+  const second = page.loadOrderDetail('7');
+  assert.equal(pending.length, 2);
+  pending[0].resolve({ success: true, data: { id: 7, status: 'pending', images: [] } });
+  pending[1].reject(new Error('aborted'));
+  await first.catch(() => {});
+  await second.catch(() => {});
+  await tick(); await tick();
+  assert.equal(page.data.order && page.data.order.id, 7);
+  assert.equal(page.data.loadFailed, false);
+  assert.equal(page.data.loading, false);
 });
 
 test('service detail keeps the page on failure, refreshes on pull-down and shares safely before loading', async () => {
@@ -402,6 +448,24 @@ test('service detail keeps the page on failure, refreshes on pull-down and share
 
   page.onPullDownRefresh(); await tick(); await tick();
   assert.equal(env.calls.stopPull, 1);
+});
+
+test('service detail keeps a slower successful load when a later overlapping request fails', async () => {
+  const pending = [];
+  const api = { getServiceById: () => new Promise((resolve, reject) => pending.push({ resolve, reject })) };
+  const env = createEnv({ deps: { '../../utils/api': api } });
+  const page = env.page('miniapp/pages/services/detail.js');
+  page.serviceId = '5';
+  const first = page.loadServiceDetail('5');
+  const second = page.loadServiceDetail('5');
+  pending[0].resolve({ success: true, data: { id: 5, name: '屋面防水', price_min: 10, reviews: [] } });
+  pending[1].reject(new Error('aborted'));
+  await first.catch(() => {});
+  await second.catch(() => {});
+  await tick(); await tick();
+  assert.equal(page.data.service && page.data.service.name, '屋面防水');
+  assert.equal(page.data.loadFailed, false);
+  assert.equal(page.data.loading, false);
 });
 
 test('order card labels the time row by what it really is', () => {
@@ -584,4 +648,10 @@ test('small buttons and photo delete buttons have an enlarged tap area', () => {
   const booking = read('miniapp/pages/booking/create.wxss');
   assert.match(booking, /\.image-delete::after/);
   assert.match(booking, /\.image-delete\s*\{[^}]*width:\s*44rpx/);
+});
+
+test('rh-image stays visible while loading so WeChat does not false-error remote photos', () => {
+  assert.doesNotMatch(read('miniapp/components/rh-image/rh-image.wxss'), /opacity:\s*0/);
+  assert.match(read('miniapp/components/rh-image/rh-image.js'), /lazy:\s*\{\s*type:\s*Boolean,\s*value:\s*false\s*\}/);
+  assert.match(read('backend/src/app.js'), /crossOriginResourcePolicy:\s*\{\s*policy:\s*'cross-origin'\s*\}/);
 });

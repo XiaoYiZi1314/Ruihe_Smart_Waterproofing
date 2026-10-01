@@ -1,0 +1,11 @@
+.about-block {
+  margin: 24rpx 0;
+}
+
+.about-text {
+  margin-top: 16rpx;
+  font-size: 28rpx;
+  color: var(--color-text);
+  line-height: 1.8;
+  white-space: pre-line;
+}

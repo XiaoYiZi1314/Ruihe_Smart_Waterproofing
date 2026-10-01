@@ -6,6 +6,7 @@
     "pages/orders/list",
     "pages/profile/index",
     "pages/profile/edit",
+    "pages/about/index",
     "pages/services/detail",
     "pages/booking/create",
     "pages/address/list",
@@ -14,8 +15,7 @@
     "pages/worker/orders/list",
     "pages/worker/orders/detail",
     "pages/worker/profile/index",
-    "pages/notifications/list",
-    "pages/dev/design-system"
+    "pages/notifications/list"
   ],
   "window": {
     "navigationBarTitleText": "瑞和智慧",

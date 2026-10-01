@@ -5,6 +5,7 @@
     "rh-button": "/components/rh-button/rh-button",
     "rh-card": "/components/rh-card/rh-card",
     "rh-empty": "/components/rh-empty/rh-empty",
+    "rh-load-more": "/components/rh-load-more/rh-load-more",
     "rh-icon": "/components/rh-icon/rh-icon",
     "rh-image": "/components/rh-image/rh-image",
     "rh-info-row": "/components/rh-info-row/rh-info-row",

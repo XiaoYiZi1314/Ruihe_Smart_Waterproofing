@@ -28,7 +28,6 @@ miniapp/
 │   └── icons/                       # 页面图标
 ├── components/                      # 可复用 UI 组件（rh-*）
 ├── pages/                           # 业务页面，只组合组件，不堆叠私有视觉体系
-│   └── dev/design-system            # 开发环境设计系统预览
 ├── utils/
 │   ├── api.js / request.js / auth.js
 │   ├── theme.js                     # 价格、渐变、手机号脱敏、环境判断
@@ -49,7 +48,7 @@ miniapp/
 | `pages/booking/create` | 预约表单 |
 | `pages/address/*` | 地址管理 |
 | `pages/orders/detail` | 工单详情 |
-| `pages/dev/design-system` | 设计系统预览，仅开发/体验版 |
+| `pages/about/index` | 关于我们 |
 
 ## 3. 设计系统架构
 
@@ -104,7 +103,6 @@ miniapp/
    - 以 `rh-` 为前缀
    - 吃设计令牌，不写硬编码色值（除非令牌尚未覆盖）
    - 在实际使用它的页面或父组件 JSON 的 `usingComponents` 中声明，不在 `app.json` 中全局注册
-   - 同步加到 `pages/dev/design-system` 预览
 
 按需注入约定：`app.json` 保持 `"lazyCodeLoading": "requiredComponents"`。页面和组件分别声明自身 WXML 中实际使用的组件，包含嵌套依赖；删除未使用的声明。共享初始化放在显式依赖的工具模块或应用入口，不依赖未访问页面的 JS 自动执行。当前没有用时注入占位组件需求，不额外添加 `componentPlaceholder`。
 
@@ -123,14 +121,8 @@ miniapp/
 - Tab 页之间跳转用 `wx.switchTab`，不要 `navigateTo`。
 - 工单状态映射集中在 `utils/status.js`，不要在页面里再写一套「待确认 / 进行中」。
 - 价格、封面渐变、手机号脱敏用 `utils/theme.js`。
-- 设计系统预览页：`pages/dev/design-system`。开发版可从「我的」进入；正式版会拦截并隐藏入口。发布前不要把它设为首页。
 - 核对还原效果时，用微信开发者工具对照 `temp/miniprogram-prototype.html`：首页、服务列表、工单列表、我的、服务详情、预约表单。
 - 图标资源用 `miniapp/scripts/generate-icons.py` 生成，不要手绘一套新的色值。
 - 图片和音频按合计体积控制，不是单张 200 KB。上传前运行 `node --test miniapp/scripts/test-code-quality.js miniapp/scripts/test-package-size.js`，并在微信开发者工具重新编译、扫描和真机预览；源码检查不替代实际编译包验收。
 - 业务规则变更看 `CONTEXT.md`，不要把原型里的示意文案当成接口合同。
 
-## 6. 设计系统预览
-
-路径：`/pages/dev/design-system`
-
-用途：纯前端渲染，展示颜色、字体、按钮、卡片、表单、标签、服务卡、工单卡、空态和布局，用来验证组件复用和样式还原。不请求业务接口。

@@ -47,6 +47,7 @@ Page({
       return;
     }
     this.orderId = id;
+    this.loadOrderDetail(id);
   },
 
   onShow() {
@@ -56,7 +57,8 @@ Page({
       this._previewing = false;
       return;
     }
-    this.loadOrderDetail(this.orderId);
+    // 首次进入已在 onLoad 拉取；这里只在已有数据时静默刷新，避免 onShow 连打两次把成功结果丢掉
+    if (this.data.order) this.loadOrderDetail(this.orderId);
   },
 
   onPullDownRefresh() {
@@ -72,10 +74,11 @@ Page({
 
   async loadOrderDetail(id) {
     const requestId = this._requestId = (this._requestId || 0) + 1;
+    if (!this.data.order) this.setData({ loading: true, loadFailed: false });
     try {
       const res = await api.getOrderById(id);
-      if (requestId !== this._requestId) return;
-      if (res.success) {
+      if (requestId !== this._requestId && this.data.order) return;
+      if (res.success && res.data) {
         const order = res.data;
         // 图片用稳定的 key（签名参数每次都会变，不能用 image_url 当 key）
         order.images = (order.images || []).map((img) => ({
@@ -120,9 +123,9 @@ Page({
           materialFeeText: order.material_fee !== null && order.material_fee !== undefined ? `¥${order.material_fee}` : '',
           laborFeeText: order.labor_fee !== null && order.labor_fee !== undefined ? `¥${order.labor_fee}` : ''
         });
-      } else if (!this.data.order) {
-        this.setData({ loading: false, loadFailed: true });
+        return;
       }
+      if (requestId === this._requestId && !this.data.order) this.setData({ loading: false, loadFailed: true });
     } catch (error) {
       if (requestId !== this._requestId) return;
       console.error('加载工单详情失败:', error);

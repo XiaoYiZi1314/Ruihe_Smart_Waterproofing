@@ -13,7 +13,7 @@ Component({
   properties: {
     src: { type: String, value: '' },
     mode: { type: String, value: 'aspectFill' },
-    lazy: { type: Boolean, value: true }
+    lazy: { type: Boolean, value: false }
   },
   data: {
     realSrc: '',

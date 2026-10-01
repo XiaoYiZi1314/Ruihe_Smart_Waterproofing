@@ -1,18 +1,18 @@
 <view class="rh-img rh-img--{{status}}">
-  <view wx:if="{{status !== 'loaded'}}" class="rh-img__ph {{status === 'loading' ? 'rh-img__ph--shimmer' : ''}}">
-    <block wx:if="{{status === 'error'}}">
-      <text class="rh-img__err">加载失败</text>
-      <text class="rh-img__retry">点击重试</text>
-    </block>
-  </view>
   <image
     wx:if="{{realSrc}}"
-    class="rh-img__img {{status === 'loaded' ? 'rh-img__img--on' : ''}}"
+    class="rh-img__img"
     src="{{realSrc}}"
     mode="{{mode}}"
     lazy-load="{{lazy}}"
     bindload="onLoad"
     binderror="onError"
   />
+  <view wx:if="{{status !== 'loaded'}}" class="rh-img__ph {{status === 'loading' ? 'rh-img__ph--shimmer' : ''}}">
+    <block wx:if="{{status === 'error'}}">
+      <text class="rh-img__err">加载失败</text>
+      <text class="rh-img__retry">点击重试</text>
+    </block>
+  </view>
   <view wx:if="{{status === 'error'}}" class="rh-img__mask" catchtap="onRetry"></view>
 </view>

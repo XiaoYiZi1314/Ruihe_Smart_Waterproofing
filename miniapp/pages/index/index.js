@@ -128,7 +128,7 @@ Page({
     } else if (key === 'consult') {
       this.onCallPhone();
     } else if (key === 'about') {
-      this.onAboutMore();
+      this.goAbout();
     }
   },
 
@@ -208,12 +208,8 @@ Page({
     });
   },
 
-  onAboutMore() {
-    wx.showModal({
-      title: '关于我们',
-      content: this.data.aboutUs,
-      showCancel: false
-    });
+  goAbout() {
+    wx.navigateTo({ url: '/pages/about/index' });
   },
 
   onJoinConsult() {

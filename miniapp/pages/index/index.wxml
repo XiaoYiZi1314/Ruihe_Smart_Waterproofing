@@ -91,7 +91,7 @@
     <rh-card>
       <rh-section-title title="🏢 关于我们" />
       <view class="about-text">{{aboutUs}}</view>
-      <view class="about-more" bindtap="onAboutMore">查看更多 ›</view>
+      <view class="about-more" bindtap="goAbout">查看详情 ›</view>
     </rh-card>
   </view>
 

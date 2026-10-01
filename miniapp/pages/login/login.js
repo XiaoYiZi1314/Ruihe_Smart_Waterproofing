@@ -14,7 +14,7 @@ const TAB_PAGES = [
 function safeRedirect(value) {
   let url = '';
   try { url = decodeURIComponent(value || ''); } catch (error) { return ''; }
-  if (!/^\/pages\//.test(url) || /^\/pages\/(login|worker|dev)\//.test(url)) return '';
+  if (!/^\/pages\//.test(url) || /^\/pages\/(login|worker)\//.test(url)) return '';
   return url;
 }
 
