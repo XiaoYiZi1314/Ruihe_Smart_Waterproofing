@@ -23,11 +23,20 @@ function formatDate(dateStr) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+function loadErrorText(error, fallback) {
+  if (error && error.type === 'network') return '网络不佳，加载失败';
+  if (error && error.statusCode === 403) return fallback.forbidden;
+  if (error && error.statusCode === 404) return fallback.notFound;
+  if (error && error.statusCode >= 500) return '服务暂时不可用，请稍后重试';
+  return '网络不佳，加载失败';
+}
+
 Page({
   data: {
     service: null,
     loading: true,
     loadFailed: false,
+    loadErrorText: '网络不佳，加载失败',
     bannerImages: [],
     currentBannerIndex: 0,
     bannerGradient: '',
@@ -83,6 +92,7 @@ Page({
           service,
           loading: false,
           loadFailed: false,
+          loadErrorText: '网络不佳，加载失败',
           bannerImages,
           bannerGradient: theme.coverGradient(service.id || service.name),
           priceMain: price.main,
@@ -107,12 +117,27 @@ Page({
         });
         return;
       }
-      if (requestId === this._requestId && !this.data.service) this.setData({ loading: false, loadFailed: true });
+      if (requestId === this._requestId && !this.data.service) {
+        this.setData({
+          loading: false,
+          loadFailed: true,
+          loadErrorText: res.message || '服务暂时不可用，请稍后重试'
+        });
+      }
     } catch (error) {
       if (requestId !== this._requestId) return;
       console.error('加载服务详情失败:', error);
       // 已有内容时保持页面不动（请求层已提示错误）；首次加载失败显示重试，不再自动退出页面
-      if (!this.data.service) this.setData({ loading: false, loadFailed: true });
+      if (requestId === this._requestId && !this.data.service) {
+        this.setData({
+          loading: false,
+          loadFailed: true,
+          loadErrorText: loadErrorText(error, {
+            forbidden: '暂无权限查看此服务',
+            notFound: '服务已下架或不存在'
+          })
+        });
+      }
     }
   },
 

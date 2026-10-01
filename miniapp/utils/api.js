@@ -68,7 +68,7 @@ const api = {
    * 获取服务详情
    */
   getServiceById(id) {
-    return request.get(`/api/services/${id}`);
+    return request.get(`/api/services/${id}`, undefined, { silentToast: true });
   },
 
   // ========== 地址接口 ==========
@@ -140,7 +140,7 @@ const api = {
    * 获取工单详情
    */
   getOrderById(id) {
-    return request.get(`/api/orders/${id}`);
+    return request.get(`/api/orders/${id}`, undefined, { silentToast: true });
   },
 
   /**

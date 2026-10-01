@@ -3,12 +3,21 @@ const statusUtil = require('../../utils/status');
 const theme = require('../../utils/theme');
 const { buildTimeline, correctionNotice, appointmentText } = require('../../utils/order-timeline');
 
+function loadErrorText(error) {
+  if (error && error.type === 'network') return '网络不佳，加载失败';
+  if (error && error.statusCode === 403) return '无权查看此工单';
+  if (error && error.statusCode === 404) return '工单不存在';
+  if (error && error.statusCode >= 500) return '服务暂时不可用，请稍后重试';
+  return '网络不佳，加载失败';
+}
+
 Page({
   data: {
     imageLoadFailed: false,
     order: null,
     loading: true,
     loadFailed: false,
+    loadErrorText: '网络不佳，加载失败',
     submitting: false,
     statusMeta: {},
     maskedWorkerPhone: '',
@@ -105,6 +114,7 @@ Page({
           order,
           loading: false,
           loadFailed: false,
+          loadErrorText: '网络不佳，加载失败',
           statusMeta,
           expectedPriceText,
           finalPriceText,
@@ -125,12 +135,24 @@ Page({
         });
         return;
       }
-      if (requestId === this._requestId && !this.data.order) this.setData({ loading: false, loadFailed: true });
+      if (requestId === this._requestId && !this.data.order) {
+        this.setData({
+          loading: false,
+          loadFailed: true,
+          loadErrorText: res.message || '工单暂时不可用，请稍后重试'
+        });
+      }
     } catch (error) {
       if (requestId !== this._requestId) return;
       console.error('加载工单详情失败:', error);
       // 已有内容时保持页面不动（请求层已提示错误）；首次加载失败显示重试入口，不再自动退出页面
-      if (!this.data.order) this.setData({ loading: false, loadFailed: true });
+      if (!this.data.order) {
+        this.setData({
+          loading: false,
+          loadFailed: true,
+          loadErrorText: loadErrorText(error)
+        });
+      }
     }
   },
 

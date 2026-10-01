@@ -1,5 +1,5 @@
 <view class="page-wrap page-wrap--footer">
-  <rh-empty wx:if="{{!loading && !order && loadFailed}}" text="网络不佳，加载失败" action-text="重新加载" bind:action="onRetryLoad" />
+  <rh-empty wx:if="{{!loading && !order && loadFailed}}" text="{{loadErrorText}}" action-text="重新加载" bind:action="onRetryLoad" />
   <view wx:if="{{!loading && order}}">
     <view class="status-head">
       <rh-status-tag status="{{statusMeta.tagClass}}" text="{{statusMeta.text}}" />

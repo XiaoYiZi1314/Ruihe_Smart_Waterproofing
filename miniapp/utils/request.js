@@ -3,13 +3,25 @@ const { normalizeResources } = require('./resources');
 const app = getApp();
 const { interpretHttpError } = require('./http-error');
 
-function applyHttpError(res, url, snapshot, reject) {
+function createRequestError(message, details = {}) {
+  const error = new Error(message || '请求失败');
+  Object.assign(error, details);
+  return error;
+}
+
+function applyHttpError(res, url, snapshot, reject, options = {}) {
   if (!session.isCurrent(snapshot)) {
-    reject(new Error('会话已切换，请重试')); return;
+    reject(createRequestError('会话已切换，请重试', { type: 'session', url })); return;
   }
   if (res.data && res.data.code === 'PASSWORD_CHANGE_REQUIRED') {
     wx.reLaunch({ url: '/pages/worker/profile/index' });
-    reject(new Error(res.data.message)); return;
+    reject(createRequestError(res.data.message, {
+      type: 'session',
+      code: res.data.code,
+      statusCode: res.statusCode,
+      url
+    }));
+    return;
   }
   const verdict = interpretHttpError(res.statusCode, url, !!snapshot.token, res.data);
 
@@ -18,15 +30,27 @@ function applyHttpError(res, url, snapshot, reject) {
     const globalData = app && app.globalData;
     if (globalData) globalData.loginNotice = '登录已过期，请重新登录';
     wx.reLaunch({ url: '/pages/login/login' });
-    reject(new Error(verdict.message));
+    reject(createRequestError(verdict.message, {
+      type: 'session',
+      statusCode: res.statusCode,
+      url,
+      response: res.data
+    }));
     return;
   }
 
-  wx.showToast({
-    title: verdict.message || '请求失败',
-    icon: 'none'
-  });
-  reject(new Error(verdict.message || '请求失败'));
+  if (!options.silentToast) {
+    wx.showToast({
+      title: verdict.message || '请求失败',
+      icon: 'none'
+    });
+  }
+  reject(createRequestError(verdict.message || '请求失败', {
+    type: 'http',
+    statusCode: res.statusCode,
+    url,
+    response: res.data
+  }));
 }
 
 /**
@@ -51,26 +75,35 @@ function request(options) {
       data: options.data || {},
       header,
       success: (res) => {
-        if (!session.isCurrent(snapshot)) { reject(new Error('会话已切换，请重试')); return; }
+        if (!session.isCurrent(snapshot)) {
+          reject(createRequestError('会话已切换，请重试', { type: 'session', url: options.url }));
+          return;
+        }
         if (res.statusCode === 200) {
           resolve(normalizeResources(res.data));
           return;
         }
-        applyHttpError(res, options.url, snapshot, reject);
+        applyHttpError(res, options.url, snapshot, reject, options);
       },
       fail: (err) => {
-        wx.showToast({
-          title: '网络请求失败',
-          icon: 'none'
-        });
-        reject(err);
+        if (!options.silentToast) {
+          wx.showToast({
+            title: '网络请求失败',
+            icon: 'none'
+          });
+        }
+        reject(createRequestError('网络请求失败', {
+          type: 'network',
+          url: options.url,
+          cause: err
+        }));
       }
     });
   });
 }
 
 module.exports = {
-  get: (url, data) => request({ url, method: 'GET', data }),
+  get: (url, data, options = {}) => request({ url, method: 'GET', data, ...options }),
   post: (url, data) => request({ url, method: 'POST', data }),
   put: (url, data) => request({ url, method: 'PUT', data }),
   delete: (url, data) => request({ url, method: 'DELETE', data }),
@@ -97,7 +130,10 @@ function upload(filePath, kind = 'image') {
       name: 'file',
       header,
       success: (res) => {
-        if (!session.isCurrent(snapshot)) { reject(new Error('会话已切换，请重试')); return; }
+        if (!session.isCurrent(snapshot)) {
+          reject(createRequestError('会话已切换，请重试', { type: 'session', url: '/api/upload/' + kind }));
+          return;
+        }
         try {
           const data = JSON.parse(res.data);
           if (res.statusCode === 200 && data.success) {
@@ -106,7 +142,7 @@ function upload(filePath, kind = 'image') {
           }
           applyHttpError(
             { statusCode: res.statusCode, data },
-            '/api/upload/image',
+            '/api/upload/' + kind,
             snapshot,
             reject
           );
@@ -115,9 +151,13 @@ function upload(filePath, kind = 'image') {
           reject(new Error('上传失败'));
         }
       },
-      fail: () => {
+      fail: (err) => {
         wx.showToast({ title: '网络请求失败', icon: 'none' });
-        reject(new Error('网络请求失败'));
+        reject(createRequestError('网络请求失败', {
+          type: 'network',
+          url: '/api/upload/' + kind,
+          cause: err
+        }));
       }
     });
   });

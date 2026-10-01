@@ -32,6 +32,14 @@ Page({
   },
 
   onShow() {
+    const token = wx.getStorageSync('token') || '';
+    const sessionChanged = this._sessionToken !== undefined && this._sessionToken !== token;
+    this._sessionToken = token;
+    if (sessionChanged) {
+      this._requestId = (this._requestId || 0) + 1;
+      this.setData({ orders: [], page: 1, total: 0, hasMore: true, loading: false, loadFailed: false });
+    }
+
     // 游客可以浏览，但看不到工单：给出登录入口，而不是把人直接赶去登录页
     if (!auth.checkLogin()) {
       this.setData({ guest: true, orders: [], loading: false, loadFailed: false });
@@ -101,6 +109,7 @@ Page({
 
   onOrderTap(e) {
     const order = e.detail.order || {};
+    if (!order.id || !this.data.orders.some(item => String(item.id) === String(order.id))) return;
     wx.navigateTo({
       url: `/pages/orders/detail?id=${order.id}`
     });

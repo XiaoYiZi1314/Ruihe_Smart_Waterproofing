@@ -373,11 +373,47 @@ test('orders list ignores a second cancel tap while the first is still running',
   const api = { getOrders: async () => ({ success: true, data: [], pagination: { page: 1, pages: 1, total: 0 } }), cancelOrder: async () => { cancels += 1; await gate.promise; return { success: true }; } };
   const env = createEnv({ deps: { '../../utils/api': api } });
   const page = env.page('miniapp/pages/orders/list.js');
+  page.data.orders = [{ id: 9 }];
   page.onOrderAction({ detail: { action: 'cancel', order: { id: 9 } } });
   page.onOrderAction({ detail: { action: 'cancel', order: { id: 9 } } });
   await tick(); await tick();
   assert.equal(cancels, 1);
   gate.resolve(); await tick(); await tick();
+});
+
+test('order detail explains authorization failures instead of calling them network failures', async () => {
+  const error = Object.assign(new Error('无权查看此工单'), { type: 'http', statusCode: 403 });
+  const api = { getOrderById: async () => { throw error; } };
+  const env = createEnv({ deps: { '../../utils/api': api } });
+  const page = env.page('miniapp/pages/orders/detail.js');
+  page.onLoad({ id: '11' });
+  await tick(); await tick();
+  assert.equal(page.data.loadErrorText, '无权查看此工单');
+  assert.equal(page.data.loadFailed, true);
+});
+
+test('service detail distinguishes a missing service from a network failure', async () => {
+  const error = Object.assign(new Error('服务不存在'), { type: 'http', statusCode: 404 });
+  const api = { getServiceById: async () => { throw error; } };
+  const env = createEnv({ deps: { '../../utils/api': api } });
+  const page = env.page('miniapp/pages/services/detail.js');
+  page.onLoad({ id: '999' });
+  await tick(); await tick();
+  assert.equal(page.data.loadErrorText, '服务已下架或不存在');
+  assert.equal(page.data.loadFailed, true);
+});
+
+test('orders list clears stale cards when the login session changes', () => {
+  const env = createEnv();
+  const page = env.page('miniapp/pages/orders/list.js');
+  page.data.orders = [{ id: 12 }];
+  page._sessionToken = 'tok';
+  env.store.set('token', 'new-token');
+  page.onShow();
+  assert.equal(page.data.orders.length, 0);
+  assert.equal(page.data.guest, false);
+  page.onOrderTap({ detail: { order: { id: 12 } } });
+  assert.deepEqual(env.calls.navigateTo, []);
 });
 
 // ---------------------------------------------------------------- 详情页：失败不再被踢出
