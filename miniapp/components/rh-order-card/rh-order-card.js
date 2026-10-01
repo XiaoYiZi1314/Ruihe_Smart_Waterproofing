@@ -52,7 +52,7 @@ Component({
   },
   methods: {
     onTap() {
-      this.triggerEvent('tap', { order: this.data.order });
+      this.triggerEvent('select', { order: this.data.order });
     },
     onAction(e) {
       this.triggerEvent('action', {

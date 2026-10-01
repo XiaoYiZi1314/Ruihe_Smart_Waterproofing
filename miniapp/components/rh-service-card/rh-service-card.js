@@ -33,7 +33,7 @@ Component({
   },
   methods: {
     onTap() {
-      this.triggerEvent('tap', { service: this.data.service });
+      this.triggerEvent('select', { service: this.data.service });
     },
     onBook() {
       this.triggerEvent('book', { service: this.data.service });

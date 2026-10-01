@@ -209,7 +209,7 @@ test('worker profile forces password change only on first login', () => {
   const js = read('pages/worker/profile/index.js');
   assert.match(wxml, /wx:if="\{\{userInfo\.must_change_password\}\}"/);
   assert.match(wxml, /首次登录修改密码/);
-  assert.match(wxml, /bind:tap="openPasswordModal"/);
+  assert.match(wxml, /<rh-menu-item\b[^>]*bind:select="openPasswordModal"/);
   assert.match(wxml, /wx:if="\{\{showPasswordModal\}\}"/);
   assert.match(js, /firstLogin/);
   assert.match(js, /\/pages\/worker\/orders\/list/);

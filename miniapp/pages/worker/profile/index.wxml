@@ -47,10 +47,10 @@
 
     <view class="worker-block">
       <rh-card padding="{{false}}">
-        <rh-menu-item icon="shield" title="修改密码" bind:tap="openPasswordModal" />
-        <rh-menu-item wx:if="{{!userInfo.wechat_bound}}" icon="chat" title="绑定微信" bind:tap="bindWechat" />
-        <rh-menu-item icon="info" title="订阅通知" bind:tap="subscribe" />
-        <rh-menu-item icon="document" title="站内消息" bind:tap="goMessages" />
+        <rh-menu-item icon="shield" title="修改密码" bind:select="openPasswordModal" />
+        <rh-menu-item wx:if="{{!userInfo.wechat_bound}}" icon="chat" title="绑定微信" bind:select="bindWechat" />
+        <rh-menu-item icon="info" title="订阅通知" bind:select="subscribe" />
+        <rh-menu-item icon="document" title="站内消息" bind:select="goMessages" />
       </rh-card>
     </view>
 

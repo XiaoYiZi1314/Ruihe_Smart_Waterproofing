@@ -44,6 +44,9 @@ exports.getServices = async (req, res) => {
 exports.getServiceById = async (req, res) => {
   try {
     const { id } = req.params;
+    if (typeof id !== 'string' || !/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(Number(id))) {
+      return res.status(400).json({ success: false, message: '服务ID无效' });
+    }
     const service = await Service.getById(id);
 
     if (!service) {

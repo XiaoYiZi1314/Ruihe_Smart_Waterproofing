@@ -46,14 +46,23 @@ Page({
     this.loadOrder();
   },
 
+  onUnload() {
+    this._unloaded = true;
+    this._requestId = (this._requestId || 0) + 1;
+    this._changeRequestId = (this._changeRequestId || 0) + 1;
+  },
+
   /**
    * 加载工单详情
    */
   async loadOrder() {
+    if (this._unloaded) return;
+    const requestId = this._requestId = (this._requestId || 0) + 1;
     // 已有数据时静默刷新，不切回“加载中”，避免整页闪一下
     this.setData({ loading: !this.data.order });
     try {
       const res = await api.get(`/api/worker/orders/${this.data.id}`);
+      if (this._unloaded || requestId !== this._requestId) return;
       const order = (res && res.data) || null;
       if (!order) throw new Error('工单不存在');
 
@@ -86,9 +95,10 @@ Page({
       this.setData({ order });
       this.loadChangeRequests();
     } catch (error) {
+      if (this._unloaded || requestId !== this._requestId) return;
       console.error('加载工单详情失败:', error);
     } finally {
-      this.setData({ loading: false });
+      if (!this._unloaded && requestId === this._requestId) this.setData({ loading: false });
     }
   },
 
@@ -309,8 +319,12 @@ Page({
 
   // ============ 现场变更申请（提交后由客服审核） ============
   async loadChangeRequests() {
+    if (this._unloaded) return;
+    const requestId = this._changeRequestId = (this._changeRequestId || 0) + 1;
+    const orderRequestId = this._requestId;
     try {
       const res = await api.get(`/api/worker/orders/${this.data.id}/change-requests`);
+      if (this._unloaded || requestId !== this._changeRequestId || orderRequestId !== this._requestId) return;
       const list = ((res && res.data) || []).map((item) => {
         const type = this.data.changeTypes.filter((t) => t.value === item.request_type)[0];
         let statusText = '已驳回';
@@ -320,6 +334,7 @@ Page({
       });
       this.setData({ changeRequests: list, hasPendingRequest: list.some((item) => item.status === 'pending') });
     } catch (error) {
+      if (this._unloaded || requestId !== this._changeRequestId || orderRequestId !== this._requestId) return;
       console.error('加载变更申请失败:', error);
     }
   },

@@ -1,4 +1,4 @@
-<view class="rh-svc" hover-class="rh-svc--active" bindtap="onTap">
+<view class="rh-svc" hover-class="rh-svc--active" catch:tap="onTap">
   <rh-image wx:if="{{view.cover}}" class="rh-svc__cover" src="{{view.cover}}" />
   <view wx:else class="rh-svc__cover rh-svc__cover--grad" style="background: {{view.gradient}};">
     <rh-icon name="shield" tone="white" size="68" />

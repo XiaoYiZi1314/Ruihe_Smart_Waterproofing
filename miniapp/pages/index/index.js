@@ -1,5 +1,6 @@
 const { addRealCovers } = require('../../utils/resources');
 const auth = require('../../utils/auth');
+const { isValidId } = require('../../utils/id');
 const api = require('../../utils/api');
 const theme = require('../../utils/theme');
 
@@ -148,7 +149,8 @@ Page({
     const banner = e.currentTarget.dataset.banner;
     if (!banner) return;
 
-    if (banner.link_type === 'service' && banner.link_value) {
+    if (banner.link_type === 'service') {
+      if (!isValidId(banner.link_value)) return;
       wx.navigateTo({
         url: `/pages/services/detail?id=${banner.link_value}`
       });
@@ -167,16 +169,16 @@ Page({
   },
 
   onServiceTap(e) {
-    const service = e.detail.service || {};
-    if (!service.id) return;
+    const service = (e.detail || {}).service || {};
+    if (!isValidId(service.id)) return;
     wx.navigateTo({
       url: `/pages/services/detail?id=${service.id}`
     });
   },
 
   onBookTap(e) {
-    const service = e.detail.service || {};
-    if (!service.id) return;
+    const service = (e.detail || {}).service || {};
+    if (!isValidId(service.id)) return;
     const url = `/pages/booking/create?serviceId=${service.id}`;
     if (!auth.requireLogin(url)) return;
     wx.navigateTo({ url });

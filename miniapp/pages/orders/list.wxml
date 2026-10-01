@@ -7,7 +7,7 @@
     wx:for="{{orders}}"
     wx:key="id"
     order="{{item}}"
-    bind:tap="onOrderTap"
+    bind:select="onOrderTap"
     bind:action="onOrderAction"
   />
 

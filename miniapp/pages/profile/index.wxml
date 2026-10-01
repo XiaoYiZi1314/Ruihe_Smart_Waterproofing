@@ -41,7 +41,7 @@
         gradient="{{item.gradient}}"
         badge="{{item.badge}}"
         data-id="{{item.id}}"
-        bind:tap="onMenuTap"
+        bind:select="onMenuTap"
       />
     </rh-card>
   </view>

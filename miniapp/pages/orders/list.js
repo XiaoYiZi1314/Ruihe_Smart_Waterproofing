@@ -1,6 +1,7 @@
 const api = require('../../utils/api');
 const statusUtil = require('../../utils/status');
 const auth = require('../../utils/auth');
+const { isValidId } = require('../../utils/id');
 
 Page({
   data: {
@@ -108,8 +109,8 @@ Page({
   },
 
   onOrderTap(e) {
-    const order = e.detail.order || {};
-    if (!order.id || !this.data.orders.some(item => String(item.id) === String(order.id))) return;
+    const order = (e.detail || {}).order || {};
+    if (!isValidId(order.id) || !this.data.orders.some(item => String(item.id) === String(order.id))) return;
     wx.navigateTo({
       url: `/pages/orders/detail?id=${order.id}`
     });
@@ -117,7 +118,7 @@ Page({
 
   async onOrderAction(e) {
     const { action, order } = e.detail;
-    if (!order) return;
+    if (!order || !isValidId(order.id)) return;
 
     if (action === 'progress' || action === 'review') {
       wx.navigateTo({ url: `/pages/orders/detail?id=${order.id}` });

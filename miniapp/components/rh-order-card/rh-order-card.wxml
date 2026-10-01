@@ -1,4 +1,4 @@
-<view class="rh-order" bindtap="onTap">
+<view class="rh-order" catch:tap="onTap">
   <view class="rh-order__top">
     <text class="rh-order__no">工单号：{{view.no}}</text>
     <rh-status-tag status="{{view.tagClass}}" text="{{view.statusText}}" />

@@ -504,6 +504,209 @@ test('service detail keeps a slower successful load when a later overlapping req
   assert.equal(page.data.loading, false);
 });
 
+const detailCases = [
+  { name: 'service', file: 'miniapp/pages/services/detail.js', getter: 'getServiceById', loader: 'loadServiceDetail', property: 'service', record: { id: 7, name: '防水', price_min: 10, reviews: [] } },
+  { name: 'order', file: 'miniapp/pages/orders/detail.js', getter: 'getOrderById', loader: 'loadOrderDetail', property: 'order', record: { id: 7, status: 'pending', images: [] } }
+];
+function detailFixture(spec) {
+  const pending = [];
+  const api = { [spec.getter]: () => { const gate = deferred(); pending.push(gate); return gate.promise; } };
+  const env = createEnv({ deps: { '../../utils/api': api } });
+  const page = env.page(spec.file);
+  return { page, pending, load: () => page[spec.loader]('7'), response: () => ({ success: true, data: plain(spec.record) }) };
+}
+
+for (const spec of detailCases) {
+  for (const code of [400, 401, 403, 404, 'session']) {
+    for (const successFirst of [true, false]) {
+      test(`${spec.name} detail: latest ${code} wins over an older success (${successFirst ? 'success first' : 'denial first'})`, async () => {
+        const f = detailFixture(spec);
+        const older = f.load();
+        const latest = f.load();
+        if (successFirst) { f.pending[0].resolve(f.response()); await older; }
+        f.pending[1].reject(Object.assign(new Error('denied'), code === 'session' ? { type: 'session' } : { type: 'http', statusCode: code }));
+        await latest;
+        if (!successFirst) { f.pending[0].resolve(f.response()); await older; }
+        assert.equal(f.page.data[spec.property], null);
+        assert.equal(f.page.data.loading, false);
+        assert.equal(f.page.data.loadFailed, true);
+      });
+    }
+  }
+
+  test(`${spec.name} detail: a definitive refresh failure clears loaded content and order modals`, async () => {
+    const f = detailFixture(spec);
+    const initial = f.load();
+    f.pending[0].resolve(f.response());
+    await initial;
+    if (spec.name === 'order') f.page.setData({ showReviewModal: true, showDisputeModal: true });
+    const refresh = f.load();
+    f.pending[1].reject(Object.assign(new Error('denied'), { type: 'http', statusCode: 403 }));
+    await refresh;
+    assert.equal(f.page.data[spec.property], null);
+    assert.equal(f.page.data.loadFailed, true);
+    if (spec.name === 'order') {
+      assert.equal(f.page.data.showReviewModal, false);
+      assert.equal(f.page.data.showDisputeModal, false);
+    }
+  });
+
+  test(`${spec.name} detail: latest successful content cannot be overwritten by an older success`, async () => {
+    const f = detailFixture(spec);
+    const older = f.load();
+    const latest = f.load();
+    const latestResponse = f.response();
+    latestResponse.data.version = 'latest';
+    f.pending[1].resolve(latestResponse);
+    await latest;
+    const oldResponse = f.response();
+    oldResponse.data.version = 'old';
+    f.pending[0].resolve(oldResponse);
+    await older;
+    assert.equal(f.page.data[spec.property].version, 'latest');
+  });
+
+  test(`${spec.name} detail: business failure response blocks older success too`, async () => {
+    const f = detailFixture(spec);
+    const older = f.load();
+    const latest = f.load();
+    f.pending[1].resolve({ success: false, message: '业务拒绝' });
+    await latest;
+    f.pending[0].resolve(f.response());
+    await older;
+    assert.equal(f.page.data[spec.property], null);
+    assert.equal(f.page.data.loadFailed, true);
+    assert.equal(f.page.data.loadErrorText, '业务拒绝');
+  });
+
+  test(`${spec.name} detail: starting a retry cannot revive a response from before denial`, async () => {
+    const f = detailFixture(spec);
+    const older = f.load();
+    const latest = f.load();
+    f.pending[1].reject(Object.assign(new Error('denied'), { type: 'http', statusCode: 403 }));
+    await latest;
+    const retry = f.load();
+    f.pending[0].resolve(f.response());
+    await older;
+    assert.equal(f.page.data[spec.property], null);
+    assert.equal(f.page.data.loading, true);
+    f.pending[2].resolve(f.response());
+    await retry;
+    assert.equal(f.page.data[spec.property].id, 7);
+    assert.equal(f.page.data.loadFailed, false);
+  });
+
+  for (const error of [Object.assign(new Error('offline'), { type: 'network' }), Object.assign(new Error('unavailable'), { type: 'http', statusCode: 503 })]) {
+    test(`${spec.name} detail: older success still recovers after latest ${error.type}/${error.statusCode || ''}`, async () => {
+      const f = detailFixture(spec);
+      const older = f.load();
+      const latest = f.load();
+      f.pending[1].reject(error);
+      await latest;
+      f.pending[0].resolve(f.response());
+      await older;
+      assert.equal(f.page.data[spec.property].id, 7);
+      assert.equal(f.page.data.loadFailed, false);
+      assert.equal(f.page.data.loading, false);
+    });
+  }
+
+  test(`${spec.name} detail: an unloaded page ignores late responses and new loads`, async () => {
+    const f = detailFixture(spec);
+    const pending = f.load();
+    assert.equal(typeof f.page.onUnload, 'function');
+    f.page.onUnload();
+    let writes = 0;
+    f.page.setData = () => { writes += 1; };
+    f.pending[0].resolve(f.response());
+    await pending;
+    await f.load();
+    assert.equal(writes, 0);
+    assert.equal(f.pending.length, 1);
+  });
+}
+
+function workerDetailFixture() {
+  const pending = [];
+  const env = createEnv({ user: { role: 'worker' }, deps: { '../../../utils/request': { get: (url) => {
+    const gate = deferred(); pending.push({ ...gate, url }); return gate.promise;
+  } } } });
+  const page = env.page('miniapp/pages/worker/orders/detail.js');
+  page.data.id = 7;
+  return { page, pending };
+}
+
+test('worker detail: older response cannot undo a newer state or trigger stale child reads', async () => {
+  const f = workerDetailFixture();
+  const older = f.page.loadOrder();
+  const latest = f.page.loadOrder();
+  f.pending[1].resolve({ data: { id: 7, status: 'in_progress' } });
+  await latest;
+  f.pending[0].resolve({ data: { id: 7, status: 'confirmed', confirmed_at: '2026-10-01' } });
+  await older;
+  assert.equal(f.page.data.order.status, 'in_progress');
+  assert.equal(f.page.data.order.canStart, false);
+  assert.equal(f.page.data.order.canComplete, true);
+  assert.equal(f.pending.filter(item => item.url.endsWith('/change-requests')).length, 1);
+  f.pending[2].resolve({ data: [] });
+  await tick();
+});
+
+test('worker detail: older failure cannot clear the newer loading indicator', async () => {
+  const f = workerDetailFixture();
+  const older = f.page.loadOrder();
+  const latest = f.page.loadOrder();
+  f.pending[0].reject(new Error('old offline failure'));
+  await older;
+  assert.equal(f.page.data.loading, true);
+  f.pending[1].resolve({ data: { id: 7, status: 'in_progress' } });
+  await latest;
+  assert.equal(f.page.data.loading, false);
+  f.pending[2].resolve({ data: [] });
+  await tick();
+});
+
+test('worker detail: change request responses cannot undo a newer pending-request state', async () => {
+  const f = workerDetailFixture();
+  const older = f.page.loadChangeRequests();
+  const latest = f.page.loadChangeRequests();
+  f.pending[1].resolve({ data: [{ id: 1, request_type: 'scope', status: 'pending' }] });
+  await latest;
+  f.pending[0].resolve({ data: [] });
+  await older;
+  assert.equal(f.page.data.hasPendingRequest, true);
+  assert.equal(f.page.data.changeRequests.length, 1);
+});
+
+test('worker detail: a newer order load invalidates child reads from the previous snapshot', async () => {
+  const f = workerDetailFixture();
+  const child = f.page.loadChangeRequests();
+  const latest = f.page.loadOrder();
+  f.pending[0].resolve({ data: [{ id: 1, request_type: 'scope', status: 'pending' }] });
+  await child;
+  assert.equal(f.page.data.hasPendingRequest, false);
+  f.pending[1].resolve({ data: { id: 7, status: 'in_progress' } });
+  await latest;
+  f.pending[2].resolve({ data: [] });
+  await tick();
+});
+
+test('worker detail: unloading ignores main and child responses and prevents new reads', async () => {
+  const f = workerDetailFixture();
+  const main = f.page.loadOrder();
+  const child = f.page.loadChangeRequests();
+  assert.equal(typeof f.page.onUnload, 'function');
+  f.page.onUnload();
+  let writes = 0;
+  f.page.setData = () => { writes += 1; };
+  f.pending[0].resolve({ data: { id: 7, status: 'in_progress' } });
+  f.pending[1].resolve({ data: [{ id: 1, request_type: 'scope', status: 'pending' }] });
+  await main; await child;
+  await f.page.loadOrder(); await f.page.loadChangeRequests();
+  assert.equal(writes, 0);
+  assert.equal(f.pending.length, 2);
+});
+
 test('order card labels the time row by what it really is', () => {
   const env = createEnv();
   const card = env.component('miniapp/components/rh-order-card/rh-order-card.js');

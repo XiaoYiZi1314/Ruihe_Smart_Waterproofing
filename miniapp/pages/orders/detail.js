@@ -1,10 +1,14 @@
 const api = require('../../utils/api');
 const statusUtil = require('../../utils/status');
 const theme = require('../../utils/theme');
+const { isValidId } = require('../../utils/id');
+const { isDefinitiveLoadError } = require('../../utils/detail-load');
 const { buildTimeline, correctionNotice, appointmentText } = require('../../utils/order-timeline');
 
 function loadErrorText(error) {
   if (error && error.type === 'network') return '网络不佳，加载失败';
+  if (error && (error.type === 'session' || error.statusCode === 401)) return error.message || '请重新登录';
+  if (error && error.statusCode === 400) return '参数错误';
   if (error && error.statusCode === 403) return '无权查看此工单';
   if (error && error.statusCode === 404) return '工单不存在';
   if (error && error.statusCode >= 500) return '服务暂时不可用，请稍后重试';
@@ -48,9 +52,10 @@ Page({
     maxReviewImages: 3
   },
 
-  onLoad(options) {
+  onLoad(options = {}) {
     const { id } = options;
-    if (!id) {
+    if (!isValidId(id)) {
+      this.setData({ loading: false, loadFailed: true, loadErrorText: '参数错误' });
       wx.showToast({ title: '参数错误', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 1500);
       return;
@@ -70,23 +75,37 @@ Page({
     if (this.data.order) this.loadOrderDetail(this.orderId);
   },
 
+  onUnload() {
+    this._unloaded = true;
+    this._requestId = (this._requestId || 0) + 1;
+  },
+
   onPullDownRefresh() {
-    this.loadOrderDetail(this.orderId).then(() => {
+    if (!this.orderId) return wx.stopPullDownRefresh();
+    return this.loadOrderDetail(this.orderId).then(() => {
       wx.stopPullDownRefresh();
     });
   },
 
   onRetryLoad() {
+    if (!this.orderId) return;
     this.setData({ loading: true, loadFailed: false });
     this.loadOrderDetail(this.orderId);
   },
 
   async loadOrderDetail(id) {
+    if (this._unloaded) return;
+    if (!isValidId(id)) {
+      this.setData({ loading: false, loadFailed: true, loadErrorText: '参数错误' });
+      return;
+    }
     const requestId = this._requestId = (this._requestId || 0) + 1;
     if (!this.data.order) this.setData({ loading: true, loadFailed: false });
     try {
       const res = await api.getOrderById(id);
-      if (requestId !== this._requestId && this.data.order) return;
+      // A definitive rejection invalidates its older reads, even while a retry is pending.
+      if (this._unloaded || requestId <= (this._rejectedThroughRequestId || 0) ||
+          (requestId !== this._requestId && this.data.order)) return;
       if (res.success && res.data) {
         const order = res.data;
         // 图片用稳定的 key（签名参数每次都会变，不能用 image_url 当 key）
@@ -135,19 +154,28 @@ Page({
         });
         return;
       }
-      if (requestId === this._requestId && !this.data.order) {
+      if (requestId === this._requestId) {
+        this._rejectedThroughRequestId = requestId;
         this.setData({
+          order: null,
+          showReviewModal: false,
+          showDisputeModal: false,
           loading: false,
           loadFailed: true,
           loadErrorText: res.message || '工单暂时不可用，请稍后重试'
         });
       }
     } catch (error) {
-      if (requestId !== this._requestId) return;
+      if (this._unloaded || requestId !== this._requestId) return;
       console.error('加载工单详情失败:', error);
-      // 已有内容时保持页面不动（请求层已提示错误）；首次加载失败显示重试入口，不再自动退出页面
-      if (!this.data.order) {
+      const definitive = isDefinitiveLoadError(error);
+      if (definitive) this._rejectedThroughRequestId = requestId;
+      // Keep loaded content on transient failures, but remove it on a business/session rejection.
+      if (definitive || !this.data.order) {
         this.setData({
+          order: null,
+          showReviewModal: false,
+          showDisputeModal: false,
           loading: false,
           loadFailed: true,
           loadErrorText: loadErrorText(error)

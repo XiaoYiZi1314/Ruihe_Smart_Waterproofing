@@ -1,6 +1,7 @@
 const { addRealCovers } = require('../../utils/resources');
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
+const { isValidId } = require('../../utils/id');
 
 Page({
   data: {
@@ -122,15 +123,16 @@ Page({
   },
 
   onServiceTap(e) {
-    const service = e.detail.service || {};
+    const service = (e.detail || {}).service || {};
+    if (!isValidId(service.id)) return;
     wx.navigateTo({
       url: `/pages/services/detail?id=${service.id}`
     });
   },
 
   onBookTap(e) {
-    const service = e.detail.service || {};
-    if (!service.id) return;
+    const service = (e.detail || {}).service || {};
+    if (!isValidId(service.id)) return;
     const url = `/pages/booking/create?serviceId=${service.id}`;
     if (!auth.requireLogin(url)) return;
     wx.navigateTo({ url });

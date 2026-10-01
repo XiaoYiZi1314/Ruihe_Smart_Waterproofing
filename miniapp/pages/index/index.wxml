@@ -47,7 +47,7 @@
       wx:for="{{services}}"
       wx:key="id"
       service="{{item}}"
-      bind:tap="onServiceTap"
+      bind:select="onServiceTap"
       bind:book="onBookTap"
     />
     <rh-empty wx:if="{{!loading && loadFailed && allServices.length === 0}}" text="网络不佳，加载失败" action-text="重新加载" bind:action="onRetryLoad" />
@@ -63,7 +63,7 @@
         icon="phone"
         title="{{contact.mobile || contact.phone}}"
         subtitle="点击拨打客服电话"
-        bind:tap="onCallPhone"
+        bind:select="onCallPhone"
       />
       <rh-contact-line
         wx:if="{{contact.address}}"
@@ -76,7 +76,7 @@
         icon="chat"
         title="{{contact.wechat}}"
         subtitle="点击复制微信号"
-        bind:tap="onCopyWechat"
+        bind:select="onCopyWechat"
       />
       <rh-contact-line
         wx:if="{{contact.hours}}"
@@ -103,7 +103,7 @@
           <rh-contact-line icon="shield" title="合作品牌 / 公司" subtitle="{{joinInfo.partners}}" />
         </view>
         <view class="join-contact" wx:if="{{joinInfo.phone}}">
-          <rh-contact-line icon="phone" title="加盟热线" subtitle="{{joinInfo.phone}}" bind:tap="onJoinConsult" />
+          <rh-contact-line icon="phone" title="加盟热线" subtitle="{{joinInfo.phone}}" bind:select="onJoinConsult" />
         </view>
       </view>
       <view class="about-text" wx:if="{{joinInfo.description}}">{{joinInfo.description}}</view>

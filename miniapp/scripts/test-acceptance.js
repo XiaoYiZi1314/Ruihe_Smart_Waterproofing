@@ -39,7 +39,10 @@ test('customer confirms logout: clear session and return to login', () => {
 });
 test('order list urge sends request and refreshes recorded count', async () => {
   let calls=0,refreshes=0;
-  const page = load('miniapp/pages/orders/list.js', {wx:{showToast(){}}}, {'../../utils/api':{urgeOrder:async id=>{assert.equal(id,7);calls++;return {success:true};}}});
+  const page = load('miniapp/pages/orders/list.js', {wx:{showToast(){}}}, {
+    '../../utils/id': require('../utils/id'),
+    '../../utils/api': {urgeOrder:async id=>{assert.equal(id,7);calls++;return {success:true};}}
+  });
   page.loadOrders=async ()=>{refreshes++;};
   await page.onOrderAction({detail:{action:'urge',order:{id:7}}});
   assert.equal(calls,1); assert.equal(refreshes,1);

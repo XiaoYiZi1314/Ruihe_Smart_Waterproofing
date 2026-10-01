@@ -18,7 +18,7 @@
           icon="phone"
           title="{{contact.mobile || contact.phone}}"
           subtitle="点击拨打客服电话"
-          bind:tap="onCallPhone"
+          bind:select="onCallPhone"
         />
         <rh-contact-line
           wx:if="{{contact.address}}"

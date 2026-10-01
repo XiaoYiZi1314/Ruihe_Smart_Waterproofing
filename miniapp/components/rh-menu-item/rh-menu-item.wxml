@@ -1,4 +1,4 @@
-<view class="rh-menu" hover-class="rh-menu--active" bindtap="onTap">
+<view class="rh-menu" hover-class="rh-menu--active" catch:tap="onTap">
   <view class="rh-menu__ico" style="background: {{gradient}};">
     <rh-icon name="{{icon}}" tone="white" size="32" />
   </view>

@@ -7,7 +7,7 @@ Component({
   },
   methods: {
     onTap() {
-      this.triggerEvent('tap');
+      this.triggerEvent('select');
     }
   }
 });

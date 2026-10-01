@@ -15,7 +15,7 @@
     wx:for="{{services}}"
     wx:key="id"
     service="{{item}}"
-    bind:tap="onServiceTap"
+    bind:select="onServiceTap"
     bind:book="onBookTap"
   />
 

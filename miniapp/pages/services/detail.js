@@ -1,6 +1,8 @@
 const api = require('../../utils/api');
 const theme = require('../../utils/theme');
 const auth = require('../../utils/auth');
+const { isValidId } = require('../../utils/id');
+const { isDefinitiveLoadError } = require('../../utils/detail-load');
 
 /**
  * 用户昵称脱敏：张三 → 张**
@@ -25,6 +27,8 @@ function formatDate(dateStr) {
 
 function loadErrorText(error, fallback) {
   if (error && error.type === 'network') return '网络不佳，加载失败';
+  if (error && (error.type === 'session' || error.statusCode === 401)) return error.message || '请重新登录';
+  if (error && error.statusCode === 400) return '参数错误';
   if (error && error.statusCode === 403) return fallback.forbidden;
   if (error && error.statusCode === 404) return fallback.notFound;
   if (error && error.statusCode >= 500) return '服务暂时不可用，请稍后重试';
@@ -48,15 +52,21 @@ Page({
     reviewStars: [1, 2, 3, 4, 5]
   },
 
-  onLoad(options) {
+  onLoad(options = {}) {
     const { id } = options;
-    if (id) {
+    if (isValidId(id)) {
       this.serviceId = id;
       this.loadServiceDetail(id);
     } else {
+      this.setData({ loading: false, loadFailed: true, loadErrorText: '参数错误' });
       wx.showToast({ title: '参数错误', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 1500);
     }
+  },
+
+  onUnload() {
+    this._unloaded = true;
+    this._requestId = (this._requestId || 0) + 1;
   },
 
   onPullDownRefresh() {
@@ -69,12 +79,19 @@ Page({
   },
 
   async loadServiceDetail(id) {
+    if (this._unloaded) return;
+    if (!isValidId(id)) {
+      this.setData({ loading: false, loadFailed: true, loadErrorText: '参数错误' });
+      return;
+    }
     const requestId = this._requestId = (this._requestId || 0) + 1;
     // 首次加载显示骨架屏；已有内容时静默刷新
     if (!this.data.service) this.setData({ loading: true, loadFailed: false });
     try {
       const res = await api.getServiceById(id);
-      if (requestId !== this._requestId && this.data.service) return;
+      // A definitive rejection invalidates its older reads, even while a retry is pending.
+      if (this._unloaded || requestId <= (this._rejectedThroughRequestId || 0) ||
+          (requestId !== this._requestId && this.data.service)) return;
       if (res.success && res.data) {
         const service = res.data;
         const price = theme.formatPrice(service.price_min, service.price_max, service.price_unit);
@@ -117,19 +134,24 @@ Page({
         });
         return;
       }
-      if (requestId === this._requestId && !this.data.service) {
+      if (requestId === this._requestId) {
+        this._rejectedThroughRequestId = requestId;
         this.setData({
+          service: null,
           loading: false,
           loadFailed: true,
           loadErrorText: res.message || '服务暂时不可用，请稍后重试'
         });
       }
     } catch (error) {
-      if (requestId !== this._requestId) return;
+      if (this._unloaded || requestId !== this._requestId) return;
       console.error('加载服务详情失败:', error);
-      // 已有内容时保持页面不动（请求层已提示错误）；首次加载失败显示重试，不再自动退出页面
-      if (requestId === this._requestId && !this.data.service) {
+      const definitive = isDefinitiveLoadError(error);
+      if (definitive) this._rejectedThroughRequestId = requestId;
+      // Keep loaded content on transient failures, but remove it on a business/session rejection.
+      if (definitive || !this.data.service) {
         this.setData({
+          service: null,
           loading: false,
           loadFailed: true,
           loadErrorText: loadErrorText(error, {
