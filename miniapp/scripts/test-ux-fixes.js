@@ -194,6 +194,13 @@ test('home page shows a retry state instead of an empty list when loading fails'
   assert.match(read('miniapp/pages/index/index.wxml'), /loadFailed[^"]*"[^>]*action-text="重新加载"/);
 });
 
+test('profile header contains only real account information', () => {
+  const markup = read('miniapp/pages/profile/index.wxml');
+  const styles = read('miniapp/pages/profile/index.wxss');
+  assert.doesNotMatch(markup, /认证会员|享专属服务保障|查看权益|profile-vip/);
+  assert.doesNotMatch(styles, /profile-vip/);
+});
+
 test('about us uses a readable page instead of a system modal', async () => {
   assert.match(read('miniapp/app.json'), /pages\/about\/index/);
   assert.match(read('miniapp/pages/about/index.wxss'), /white-space:\s*pre-line/);

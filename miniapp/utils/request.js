@@ -9,6 +9,19 @@ function createRequestError(message, details = {}) {
   return error;
 }
 
+function networkFailureMessage(err, upload = false) {
+  const text = String(err && err.errMsg || '').toLowerCase();
+  if (text.includes('url not in domain list')) {
+    return upload
+      ? '上传域名未配置，请在微信公众平台配置 uploadFile 合法域名'
+      : '接口域名未配置，请检查微信公众平台合法域名';
+  }
+  if (text.includes('timeout')) return upload ? '上传超时，请检查网络后重试' : '请求超时，请检查网络后重试';
+  if (text.includes('file not found') || text.includes('file error')) return upload ? '头像文件已失效，请重新选择头像' : '本地文件已失效，请重新选择';
+  if (text.includes('abort')) return upload ? '上传已取消，请重试' : '请求已取消，请重试';
+  return '网络请求失败';
+}
+
 function applyHttpError(res, url, snapshot, reject, options = {}) {
   if (!session.isCurrent(snapshot)) {
     reject(createRequestError('会话已切换，请重试', { type: 'session', url })); return;
@@ -88,11 +101,11 @@ function request(options) {
       fail: (err) => {
         if (!options.silentToast) {
           wx.showToast({
-            title: '网络请求失败',
+            title: networkFailureMessage(err),
             icon: 'none'
           });
         }
-        reject(createRequestError('网络请求失败', {
+        reject(createRequestError(networkFailureMessage(err), {
           type: 'network',
           url: options.url,
           cause: err
@@ -129,31 +142,42 @@ function upload(filePath, kind = 'image') {
       filePath,
       name: 'file',
       header,
+      timeout: 30000,
       success: (res) => {
         if (!session.isCurrent(snapshot)) {
           reject(createRequestError('会话已切换，请重试', { type: 'session', url: '/api/upload/' + kind }));
           return;
         }
+        let data;
         try {
-          const data = JSON.parse(res.data);
-          if (res.statusCode === 200 && data.success) {
-            resolve(data.data.url);
-            return;
-          }
-          applyHttpError(
-            { statusCode: res.statusCode, data },
-            '/api/upload/' + kind,
-            snapshot,
-            reject
-          );
-        } catch (e) {
-          wx.showToast({ title: '上传失败', icon: 'none' });
-          reject(new Error('上传失败'));
+          data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
+        } catch (error) {
+          const responseError = createRequestError('上传响应异常，请稍后重试', {
+            type: 'upload',
+            statusCode: res.statusCode,
+            url: '/api/upload/' + kind,
+            response: res.data,
+            cause: error
+          });
+          wx.showToast({ title: responseError.message, icon: 'none' });
+          reject(responseError);
+          return;
         }
+        if (res.statusCode === 200 && data && data.success) {
+          resolve(data.data.url);
+          return;
+        }
+        applyHttpError(
+          { statusCode: res.statusCode, data },
+          '/api/upload/' + kind,
+          snapshot,
+          reject
+        );
       },
       fail: (err) => {
-        wx.showToast({ title: '网络请求失败', icon: 'none' });
-        reject(createRequestError('网络请求失败', {
+        const message = networkFailureMessage(err, true);
+        wx.showToast({ title: message, icon: 'none' });
+        reject(createRequestError(message, {
           type: 'network',
           url: '/api/upload/' + kind,
           cause: err

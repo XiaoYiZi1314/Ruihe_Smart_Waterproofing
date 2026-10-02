@@ -42,21 +42,6 @@
   opacity: 0.85;
 }
 
-.profile-vip {
-  margin-top: 28rpx;
-  background: rgba(255, 255, 255, 0.16);
-  border-radius: 20rpx;
-  padding: 20rpx 26rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 24rpx;
-}
-
-.profile-vip__more {
-  opacity: 0.85;
-}
-
 .menu-wrap {
   margin: 28rpx 24rpx;
 }

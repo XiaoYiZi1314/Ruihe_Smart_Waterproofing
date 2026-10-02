@@ -93,11 +93,51 @@ test('stale successful API response is rejected rather than exposing previous ac
   h.storage.set('token','new-token');h.requests[0].success({statusCode:200,data:{success:true,data:[{id:1}]}});
   await assert.rejects(pending,/会话已切换/);
 });
-test('late upload 401 neither clears new session nor redirects',async()=>{
-  const h=harness();const request=h.load('miniapp/utils/request.js');const pending=request.upload('/temporary/photo.jpg');
-  h.storage.set('token','new-token');h.requests[0].success({statusCode:401,data:JSON.stringify({message:'expired'})});
-  await assert.rejects(pending);assert.equal(h.storage.get('token'),'new-token');assert.equal(h.routes.length,0);
+test('late upload 401 neither clears new session nor redirects', async () => {
+  const h = harness();
+  const request = h.load('miniapp/utils/request.js');
+  const pending = request.upload('/temporary/photo.jpg');
+  h.storage.set('token', 'new-token');
+  h.requests[0].success({ statusCode: 401, data: JSON.stringify({ message: 'expired' }) });
+  await assert.rejects(pending);
+  assert.equal(h.storage.get('token'), 'new-token');
+  assert.equal(h.routes.length, 0);
 });
+
+test('upload failure explains the real device cause instead of always saying network failed', async () => {
+  const cases = [
+    [{ errMsg: 'uploadFile:fail url not in domain list' }, '上传域名未配置，请在微信公众平台配置 uploadFile 合法域名'],
+    [{ errMsg: 'uploadFile:fail timeout' }, '上传超时，请检查网络后重试'],
+    [{ errMsg: 'uploadFile:fail file error, file not found' }, '头像文件已失效，请重新选择头像'],
+    [{ errMsg: 'uploadFile:fail abort' }, '上传已取消，请重试']
+  ];
+  for (const [failure, expected] of cases) {
+    const h = harness();
+    const request = h.load('miniapp/utils/request.js');
+    const pending = request.upload('/temporary/photo.jpg', 'avatar');
+    assert.equal(h.requests.length, 1);
+    h.requests[0].fail(failure);
+    await assert.rejects(pending, error => error.message === expected && error.type === 'network');
+    assert.equal(h.routes.length, 0);
+  }
+});
+
+test('upload response errors preserve HTTP status and backend message', async () => {
+  const h = harness();
+  const request = h.load('miniapp/utils/request.js');
+  const pending = request.upload('/temporary/photo.jpg', 'avatar');
+  h.requests[0].success({ statusCode: 413, data: JSON.stringify({ success: false, message: '头像文件过大' }) });
+  await assert.rejects(pending, error => error.statusCode === 413 && error.message === '头像文件过大');
+});
+
+test('malformed upload responses use a response-specific error', async () => {
+  const h = harness();
+  const request = h.load('miniapp/utils/request.js');
+  const pending = request.upload('/temporary/photo.jpg', 'avatar');
+  h.requests[0].success({ statusCode: 200, data: '<html>gateway error</html>' });
+  await assert.rejects(pending, error => error.type === 'upload' && error.message === '上传响应异常，请稍后重试');
+});
+
 test('startup without credentials settles without requesting the backend',async()=>{
   const h=harness(null);assert.equal(await start(h),false);assert.equal(h.requests.length,0);
 });
