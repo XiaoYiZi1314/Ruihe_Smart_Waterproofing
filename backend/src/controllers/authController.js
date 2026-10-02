@@ -6,6 +6,7 @@ const { buildWorkerLoginLookup } = require('../utils/workerLoginLookup');
 const { exchangeCode } = require('../utils/wechatIdentity');
 const { logOperation } = require('../utils/operationLog');
 const { purgePublicAvatar } = require('../utils/attachments');
+const { isValidWorkerPassword } = require('../utils/password');
 
 function publicUser(user) {
   return { id: user.id, nickname: user.nickname, avatar_url: user.avatar_url, phone: user.phone,
@@ -59,8 +60,8 @@ async function bindWechat(req, res) {
 async function changePassword(req, res) {
   try {
     const { current_password, new_password } = req.body;
-    if (typeof new_password !== 'string' || new_password.length < 12 || Buffer.byteLength(new_password) > 72 || !/[A-Za-z]/.test(new_password) || !/\d/.test(new_password)) {
-      return res.status(400).json({ success: false, message: '新密码需12位以上且包含字母和数字，最多72字节' });
+    if (!isValidWorkerPassword(new_password, { requireLetterAndDigit: true })) {
+      return res.status(400).json({ success: false, message: '新密码需8位以上且包含字母和数字，最多72字节' });
     }
     if (typeof current_password !== 'string' || !req.user.password || !(await bcrypt.compare(current_password, req.user.password))) return res.status(400).json({ success: false, message: '原密码不正确' });
     const hash = await bcrypt.hash(new_password, 12);

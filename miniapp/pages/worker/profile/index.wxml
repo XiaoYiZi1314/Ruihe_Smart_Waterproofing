@@ -9,7 +9,7 @@
           <input class="rh-input" password placeholder="请输入初始密码" value="{{currentPassword}}" bindinput="onCurrentPassword" />
         </rh-form-field>
         <rh-form-field label="新密码" required>
-          <input class="rh-input" password placeholder="至少12位，包含字母和数字" value="{{newPassword}}" bindinput="onNewPassword" />
+          <input class="rh-input" password placeholder="至少8位，包含字母和数字" value="{{newPassword}}" bindinput="onNewPassword" />
         </rh-form-field>
         <view class="profile-action">
           <rh-button block text="确认修改" loading="{{submitting}}" bind:tap="changePassword" />
@@ -81,7 +81,7 @@
           <input class="rh-input" password placeholder="请输入当前密码" value="{{currentPassword}}" bindinput="onCurrentPassword" />
         </rh-form-field>
         <rh-form-field label="新密码" required>
-          <input class="rh-input" password placeholder="至少12位，包含字母和数字" value="{{newPassword}}" bindinput="onNewPassword" />
+          <input class="rh-input" password placeholder="至少8位，包含字母和数字" value="{{newPassword}}" bindinput="onNewPassword" />
         </rh-form-field>
         <view class="worker-actions">
           <rh-button variant="ghost" text="取消" bind:tap="closePasswordModal" />

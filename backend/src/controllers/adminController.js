@@ -10,6 +10,7 @@ const ExcelJS = require('exceljs');
 const bcrypt = require('bcryptjs');
 const NotificationService = require('../utils/notification');
 const { logOperation } = require('../utils/operationLog');
+const { generateWorkerPassword, isValidWorkerPassword } = require('../utils/password');
 
 class AdminController {
   /**
@@ -280,9 +281,9 @@ class AdminController {
       // 生成 openid（使用手机号作为唯一标识）
       const openid = `worker_${phone}_${Date.now()}`;
 
-      // 生成密码哈希（传入了密码则用密码，否则生成随机密码）
-      const rawPassword = password || require('crypto').randomBytes(18).toString('base64url');
-      if (typeof rawPassword !== 'string' || rawPassword.length < 12 || Buffer.byteLength(rawPassword) > 72) return res.status(400).json({ success: false, message: '密码需12位以上，最多72字节' });
+      // 生成密码哈希（传入了密码则用密码，否则生成 8 位随机密码）
+      const rawPassword = password || generateWorkerPassword();
+      if (!isValidWorkerPassword(rawPassword)) return res.status(400).json({ success: false, message: '密码需8位以上，最多72字节' });
       const passwordHash = await bcrypt.hash(rawPassword, 12);
 
       // 创建师傅账号
@@ -650,7 +651,7 @@ class AdminController {
    */
   static async resetWorkerPassword(req, res) {
     try {
-      const password = require('crypto').randomBytes(18).toString('base64url');
+      const password = generateWorkerPassword();
       const hash = await bcrypt.hash(password, 12);
       const [result] = await db.query("UPDATE users SET password=?, must_change_password=1, token_version=token_version+1 WHERE id=? AND role='worker' AND status='active'", [hash, req.params.id]);
       if (!result.affectedRows) return res.status(404).json({ success: false, message: '师傅不存在' });
