@@ -89,19 +89,27 @@ async function handleLogin() {
 
 <style scoped>
 .login-page {
-  height: 100%;
+  min-height: 100%;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 16px;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   background: linear-gradient(135deg, #1a5cff 0%, #2b7be4 100%);
 }
 
 .login-card {
   width: 400px;
+  max-width: 100%;
   background: #fff;
   border-radius: 16px;
   padding: 40px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.login-card :deep(.el-input__inner) {
+  font-size: 16px;
 }
 
 .login-header {
@@ -145,5 +153,14 @@ async function handleLogin() {
 
 .login-btn:hover {
   opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .login-card {
+    padding: 28px 20px;
+  }
+  .login-header h1 {
+    font-size: 20px;
+  }
 }
 </style>

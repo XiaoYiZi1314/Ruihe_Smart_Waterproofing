@@ -1,59 +1,21 @@
 <template>
   <el-container class="layout">
-    <!-- 侧边栏 -->
-    <el-aside width="220px" class="aside">
+    <el-aside v-if="!isMobile" width="220px" class="aside">
       <div class="aside-logo">
         <div class="logo-icon">瑞</div>
         <span class="logo-text">瑞和防水</span>
       </div>
-
-      <el-menu
-        :default-active="activeMenu"
-        router
-        background-color="#1f2937"
-        text-color="#9ca3af"
-        active-text-color="#ffffff"
-        class="aside-menu"
-      >
-        <el-menu-item index="/dashboard">
-          <el-icon><DataAnalysis /></el-icon>
-          <span>数据看板</span>
-        </el-menu-item>
-        <el-menu-item index="/orders">
-          <el-icon><Tickets /></el-icon>
-          <span>工单管理</span>
-        </el-menu-item>
-        <el-menu-item index="/workers">
-          <el-icon><User /></el-icon>
-          <span>师傅管理</span>
-        </el-menu-item>
-        <el-menu-item index="/corrections">
-          <el-icon><EditPen /></el-icon>
-          <span>更正复盘</span>
-        </el-menu-item>
-        <el-sub-menu index="content">
-          <template #title>
-            <el-icon><Goods /></el-icon>
-            <span>项目管理</span>
-          </template>
-          <el-menu-item index="/categories">服务分类</el-menu-item>
-          <el-menu-item index="/services">服务项目</el-menu-item>
-        </el-sub-menu>
-        <el-menu-item index="/site-config">
-          <el-icon><Setting /></el-icon>
-          <span>站点配置</span>
-        </el-menu-item>
-        <el-menu-item index="/logs">
-          <el-icon><Document /></el-icon>
-          <span>操作日志</span>
-        </el-menu-item>
-      </el-menu>
+      <AdminNavMenu :active="activeMenu" />
     </el-aside>
 
     <el-container>
-      <!-- 顶栏 -->
       <el-header class="header">
-        <div class="header-title">{{ route.meta.title }}</div>
+        <div class="header-left">
+          <button v-if="isMobile" class="menu-btn" type="button" aria-label="打开菜单" @click="navOpen = true">
+            <el-icon :size="22"><Menu /></el-icon>
+          </button>
+          <div class="header-title">{{ route.meta.title }}</div>
+        </div>
         <div class="header-right">
           <!-- 连接状态 -->
           <el-tooltip :content="connected ? '实时通知已连接' : '实时通知未连接'" placement="bottom">
@@ -61,7 +23,7 @@
           </el-tooltip>
 
           <!-- 通知铃铛 -->
-          <el-popover placement="bottom-end" :width="360" trigger="click">
+          <el-popover placement="bottom-end" :width="notifyWidth" trigger="click">
             <template #reference>
               <span class="bell-wrap">
                 <el-badge :value="unreadCount" :hidden="unreadCount === 0" :max="99">
@@ -101,7 +63,7 @@
           <el-dropdown @command="handleCommand">
             <span class="user-info">
               <el-icon><UserFilled /></el-icon>
-              管理员
+              <span class="user-info__name">管理员</span>
               <el-icon><ArrowDown /></el-icon>
             </span>
             <template #dropdown>
@@ -119,18 +81,41 @@
       </el-main>
     </el-container>
   </el-container>
+
+  <el-drawer
+    v-model="navOpen"
+    direction="ltr"
+    size="240px"
+    :with-header="false"
+    append-to-body
+    class="nav-drawer"
+  >
+    <div class="aside aside--drawer">
+      <div class="aside-logo">
+        <div class="logo-icon">瑞</div>
+        <span class="logo-text">瑞和防水</span>
+      </div>
+      <AdminNavMenu :active="activeMenu" @select="navOpen = false" />
+    </div>
+  </el-drawer>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
+import AdminNavMenu from '../components/AdminNavMenu.vue';
+import { useMobile } from '../composables/useMobile';
 import { useRealtimeNotify } from '../composables/useRealtimeNotify';
 
 const route = useRoute();
 const router = useRouter();
+const { isMobile } = useMobile();
+const navOpen = ref(false);
+const notifyWidth = computed(() => (isMobile.value ? Math.min(320, window.innerWidth - 24) : 360));
 
 const activeMenu = computed(() => route.path);
+watch(() => route.path, () => { navOpen.value = false; });
 
 // 实时通知
 const {
@@ -194,33 +179,52 @@ function handleCommand(command) {
   font-weight: 600;
 }
 
-.aside-menu {
-  border-right: none;
-  flex: 1;
-}
-
-.aside-menu :deep(.el-menu-item.is-active) {
-  background: linear-gradient(135deg, #1a5cff, #2b7be4);
-}
-
 .header {
   background: #fff;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 0 16px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.menu-btn {
+  border: none;
+  background: transparent;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  color: #1f2937;
+  cursor: pointer;
 }
 
 .header-title {
   font-size: 17px;
   font-weight: 600;
   color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.aside--drawer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .ws-status {
@@ -326,5 +330,36 @@ function handleCommand(command) {
   background: #f5f7fa;
   padding: 20px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0 8px 0 4px;
+    height: 56px;
+  }
+  .header-title {
+    font-size: 16px;
+  }
+  .header-right {
+    gap: 12px;
+  }
+  .user-info__name {
+    display: none;
+  }
+  .main {
+    padding: 12px;
+  }
+}
+</style>
+
+<style>
+.nav-drawer {
+  background: #1f2937 !important;
+}
+.nav-drawer .el-drawer__body {
+  padding: 0;
+  height: 100%;
+  background: #1f2937;
 }
 </style>

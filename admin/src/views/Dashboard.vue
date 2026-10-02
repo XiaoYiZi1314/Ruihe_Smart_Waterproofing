@@ -1,8 +1,8 @@
 <template>
   <div class="dashboard">
     <!-- 统计卡片 -->
-    <el-row :gutter="20" class="stat-cards">
-      <el-col :span="6">
+    <el-row :gutter="12" class="stat-cards">
+      <el-col :xs="12" :sm="12" :md="6">
         <div class="stat-card stat-card--blue">
           <div class="stat-icon">
             <el-icon :size="28"><Tickets /></el-icon>
@@ -13,7 +13,7 @@
           </div>
         </div>
       </el-col>
-      <el-col :span="6">
+      <el-col :xs="12" :sm="12" :md="6">
         <div class="stat-card stat-card--orange">
           <div class="stat-icon">
             <el-icon :size="28"><Clock /></el-icon>
@@ -24,7 +24,7 @@
           </div>
         </div>
       </el-col>
-      <el-col :span="6">
+      <el-col :xs="12" :sm="12" :md="6">
         <div class="stat-card stat-card--green">
           <div class="stat-icon">
             <el-icon :size="28"><CircleCheck /></el-icon>
@@ -35,7 +35,7 @@
           </div>
         </div>
       </el-col>
-      <el-col :span="6">
+      <el-col :xs="12" :sm="12" :md="6">
         <div class="stat-card stat-card--red">
           <div class="stat-icon">
             <el-icon :size="28"><WarningFilled /></el-icon>
@@ -50,7 +50,7 @@
 
     <!-- 今日/本月数据 -->
     <el-row :gutter="20" class="stat-cards">
-      <el-col :span="12">
+      <el-col :xs="24" :sm="24" :md="12">
         <el-card shadow="never">
           <template #header>今日数据</template>
           <div class="today-stats">
@@ -65,7 +65,7 @@
           </div>
         </el-card>
       </el-col>
-      <el-col :span="12">
+      <el-col :xs="24" :sm="24" :md="12">
         <el-card shadow="never">
           <template #header>本月数据</template>
           <div class="today-stats">
@@ -103,7 +103,7 @@
 
     <el-row :gutter="20">
       <!-- 工单状态分布 -->
-      <el-col :span="12">
+      <el-col :xs="24" :sm="24" :md="12">
         <el-card shadow="never" class="status-card-box">
           <template #header>工单状态分布</template>
           <div class="status-distribution">
@@ -128,7 +128,7 @@
       </el-col>
 
       <!-- 师傅排行榜 -->
-      <el-col :span="12">
+      <el-col :xs="24" :sm="24" :md="12">
         <el-card shadow="never">
           <template #header>师傅本月完成排行</template>
           <el-table :data="workerRanking" v-loading="rankingLoading" size="small">
@@ -408,6 +408,26 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .stat-card {
+    padding: 14px;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .stat-icon {
+    width: 44px;
+    height: 44px;
+  }
+  .stat-value {
+    font-size: 22px;
+  }
+  .trend-chart {
+    height: 240px;
+  }
 }
 
 .trend-chart {
