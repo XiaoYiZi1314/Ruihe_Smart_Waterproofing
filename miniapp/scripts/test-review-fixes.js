@@ -177,7 +177,8 @@ test('old home failure does not toast or hide a newer loading indicator',async()
 });
 test('home refresh preserves category selection and visible data on latest failure',async()=>{
   const f=homeFixture();f.page.data.currentCategoryId=2;
-  const refresh=f.page.loadData();f.pending[0].resolve({success:true,data:[{id:1,category_id:1},{id:2,category_id:2}]});await refresh;
+  const refresh=f.page.loadData();f.pending[0].resolve({success:true,data:[{id:2,category_id:2}]});await refresh;
+  assert.equal(f.page.data.currentCategoryId,2);
   assert.equal(f.page.data.services.length,1);assert.equal(f.page.data.services[0].id,2);
   const failed=f.page.loadData();f.pending[1].reject(new Error('network'));await failed;
   assert.equal(f.page.data.services[0].id,2);assert.equal(f.toasts.length,1);

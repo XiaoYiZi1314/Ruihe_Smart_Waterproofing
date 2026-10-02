@@ -40,7 +40,7 @@
   />
 
   <view class="page-pad">
-    <rh-section-title title="🔥 热门服务" more="查看更多 ›" bind:more="onViewMoreServices" />
+    <rh-section-title title="{{sectionTitle}}" more="查看更多 ›" bind:more="onViewMoreServices" />
   </view>
   <view class="home-list">
     <rh-service-card
@@ -50,8 +50,8 @@
       bind:select="onServiceTap"
       bind:book="onBookTap"
     />
-    <rh-empty wx:if="{{!loading && loadFailed && allServices.length === 0}}" text="网络不佳，加载失败" action-text="重新加载" bind:action="onRetryLoad" />
-    <rh-empty wx:elif="{{!loading && services.length === 0}}" text="暂无热门服务" />
+    <rh-empty wx:if="{{!loading && loadFailed && services.length === 0}}" text="网络不佳，加载失败" action-text="重新加载" bind:action="onRetryLoad" />
+    <rh-empty wx:elif="{{!loading && services.length === 0}}" text="{{emptyText}}" />
   </view>
 
   <view class="home-block" wx:if="{{contact.phone || contact.mobile || contact.address}}">

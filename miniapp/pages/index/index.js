@@ -5,14 +5,34 @@ const api = require('../../utils/api');
 const theme = require('../../utils/theme');
 
 const FALLBACK_BANNERS = [];
+const HOT_KEY = 'hot';
+const HOME_SERVICE_LIMIT = 50;
+
+function normalizeCategoryKey(key) {
+  if (key === HOT_KEY || key == null || key === '' || key === 'null') return HOT_KEY;
+  const id = Number(key);
+  return Number.isInteger(id) && id > 0 ? id : HOT_KEY;
+}
+
+function homeServiceQuery(categoryId) {
+  if (categoryId === HOT_KEY) return { is_hot: 1, limit: HOME_SERVICE_LIMIT };
+  return { category_id: categoryId, limit: HOME_SERVICE_LIMIT };
+}
+
+function sectionMeta(categoryId, categoryTags) {
+  if (categoryId === HOT_KEY) return { sectionTitle: '🔥 热门服务', emptyText: '暂无热门服务' };
+  const label = (categoryTags || []).find(item => item.key === categoryId)?.label;
+  return { sectionTitle: label || '服务项目', emptyText: '暂无相关服务' };
+}
 
 Page({
   data: {
     banners: FALLBACK_BANNERS,
     services: [],
-    allServices: [],
-    categoryTags: [{ key: null, label: '全部' }],
-    currentCategoryId: null,
+    categoryTags: [{ key: HOT_KEY, label: '热门' }],
+    currentCategoryId: HOT_KEY,
+    sectionTitle: '🔥 热门服务',
+    emptyText: '暂无热门服务',
     contact: {},
     aboutUs: '',
     joinInfo: {},
@@ -35,11 +55,14 @@ Page({
 
   onUnload() {
     this._requestId = (this._requestId || 0) + 1;
+    this._serviceRequestId = (this._serviceRequestId || 0) + 1;
     wx.hideLoading();
   },
 
   async loadData() {
     const requestId = this._requestId = (this._requestId || 0) + 1;
+    const serviceRequestId = this._serviceRequestId = (this._serviceRequestId || 0) + 1;
+    const categoryId = normalizeCategoryKey(this.data.currentCategoryId);
     // 只有第一次加载才显示遮罩；之后都是静默刷新
     const silent = !!this._loadedAt;
     if (!silent) wx.showLoading({ title: '加载中...' });
@@ -47,7 +70,7 @@ Page({
     try {
       const [bannersRes, servicesRes, categoriesRes, configRes] = await Promise.all([
         api.getBanners(),
-        api.getServices({ is_hot: 1, limit: 6 }),
+        api.getServices(homeServiceQuery(categoryId)),
         api.getCategories(),
         api.getConfig()
       ]);
@@ -55,7 +78,7 @@ Page({
 
       let banners = FALLBACK_BANNERS;
       if (bannersRes.success && bannersRes.data && bannersRes.data.length) {
-        banners = bannersRes.data.map((item, index) => ({
+        banners = bannersRes.data.map((item) => ({
           ...item,
           title: item.title || '',
           subtitle: item.subtitle || item.description || '',
@@ -63,32 +86,30 @@ Page({
         }));
       }
 
-      const allServices = servicesRes.success ? addRealCovers(servicesRes.data) : [];
-      const categoryTags = [{ key: null, label: '全部' }].concat(
+      const categoryTags = [{ key: HOT_KEY, label: '热门' }].concat(
         (categoriesRes.success ? categoriesRes.data : []).map((item) => ({
           key: item.id,
           label: item.name
         }))
       );
-
+      const currentCategoryId = categoryTags.some(item => item.key === categoryId) ? categoryId : HOT_KEY;
       const config = configRes.success ? configRes.data : {};
-      const currentCategoryId = categoryTags.some(item => item.key === this.data.currentCategoryId)
-        ? this.data.currentCategoryId : null;
-      const services = currentCategoryId == null ? allServices
-        : allServices.filter(item => item.category_id === currentCategoryId);
-
-      this.setData({
+      const nextData = {
         banners,
-        allServices,
-        services,
         currentCategoryId,
         categoryTags,
         contact: config.contact_info || {},
         aboutUs: config.about_us || '',
         joinInfo: { ...(config.join_info || {}), partners: Array.isArray(config.join_info?.partners) ? config.join_info.partners.join('\n') : config.join_info?.partners || '' },
         loading: false,
-        loadFailed: false
-      });
+        loadFailed: false,
+        ...sectionMeta(currentCategoryId, categoryTags)
+      };
+      if (serviceRequestId === this._serviceRequestId) {
+        nextData.services = servicesRes.success ? addRealCovers(servicesRes.data || []) : [];
+      }
+
+      this.setData(nextData);
       this._loadedAt = Date.now();
     } catch (error) {
       if (requestId !== this._requestId) return;
@@ -97,6 +118,24 @@ Page({
       this.setData({ loading: false, loadFailed: true });
     } finally {
       if (!silent && requestId === this._requestId) wx.hideLoading();
+    }
+  },
+
+  async loadServices(categoryId) {
+    const currentCategoryId = normalizeCategoryKey(categoryId);
+    const serviceRequestId = this._serviceRequestId = (this._serviceRequestId || 0) + 1;
+    const meta = sectionMeta(currentCategoryId, this.data.categoryTags);
+    this.setData({ currentCategoryId, ...meta, loadFailed: false });
+    try {
+      const res = await api.getServices(homeServiceQuery(currentCategoryId));
+      if (serviceRequestId !== this._serviceRequestId) return;
+      this.setData({
+        services: res.success ? addRealCovers(res.data || []) : [],
+        loadFailed: false
+      });
+    } catch (error) {
+      if (serviceRequestId !== this._serviceRequestId) return;
+      this.setData({ loadFailed: true });
     }
   },
 
@@ -134,15 +173,9 @@ Page({
   },
 
   onCategoryChange(e) {
-    const categoryId = e.detail.key;
-    const { allServices } = this.data;
-    const services = categoryId == null
-      ? allServices
-      : allServices.filter((item) => item.category_id === categoryId);
-    this.setData({
-      currentCategoryId: categoryId,
-      services
-    });
+    const categoryId = normalizeCategoryKey(e.detail.key);
+    if (categoryId === this.data.currentCategoryId) return;
+    this.loadServices(categoryId);
   },
 
   onBannerTap(e) {

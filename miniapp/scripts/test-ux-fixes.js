@@ -183,6 +183,39 @@ test('guests can open the home page and only booking asks them to log in', async
   assert.deepEqual(env.calls.navigateTo, [`/pages/login/login?redirect=${encodeURIComponent('/pages/booking/create?serviceId=3')}`]);
 });
 
+test('home hot tab loads every hot service and category tabs refetch from the API', async () => {
+  const requested = [];
+  const api = {
+    getBanners: async () => ({ success: true, data: [] }),
+    getCategories: async () => ({ success: true, data: [{ id: 1, name: '屋面防水' }] }),
+    getConfig: async () => ({ success: true, data: {} }),
+    getServices: async (params) => {
+      requested.push(params);
+      const rows = params.is_hot
+        ? Array.from({ length: 7 }, (_, index) => ({ id: index + 1, name: 'hot' + (index + 1), category_id: 1 }))
+        : [{ id: 99, name: 'roof', category_id: 1 }];
+      return { success: true, data: rows };
+    }
+  };
+  const env = createEnv({ token: null, deps: { '../../utils/api': api } });
+  const page = env.page('miniapp/pages/index/index.js');
+  page.onShow();
+  await tick(); await tick();
+  assert.equal(requested[0].is_hot, 1);
+  assert.equal(requested[0].limit, 50);
+  assert.equal(page.data.currentCategoryId, 'hot');
+  assert.equal(page.data.services.length, 7);
+  assert.match(read('miniapp/pages/index/index.js'), /is_hot: 1, limit: HOME_SERVICE_LIMIT/);
+  assert.doesNotMatch(read('miniapp/pages/index/index.js'), /limit: 6/);
+
+  page.onCategoryChange({ detail: { key: 1 } });
+  await tick(); await tick();
+  assert.equal(requested[1].category_id, 1);
+  assert.equal(requested[1].is_hot, undefined);
+  assert.equal(page.data.services[0].id, 99);
+  assert.equal(page.data.sectionTitle, '屋面防水');
+});
+
 test('home page shows a retry state instead of an empty list when loading fails', async () => {
   const fail = async () => { throw new Error('network'); };
   const env = createEnv({ deps: { '../../utils/api': { getBanners: fail, getServices: fail, getCategories: fail, getConfig: fail } } });

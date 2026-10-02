@@ -68,7 +68,7 @@
         <el-table-column label="热门" width="80" align="center">
           <template #default="{ row }">
             <el-switch
-              :model-value="row.is_hot === 1"
+              :model-value="Number(row.is_hot) === 1"
               @change="toggleHot(row)"
               inline-prompt
             />
@@ -274,7 +274,7 @@ function openDialog(row) {
     price_min: row ? row.price_min : null,
     price_max: row ? row.price_max : null,
     price_unit: row ? (row.price_unit || '元') : '元',
-    is_hot: row ? row.is_hot === 1 : false,
+    is_hot: row ? Number(row.is_hot) === 1 : false,
     sort_order: row ? row.sort_order : 0
   });
   dialogVisible.value = true;
