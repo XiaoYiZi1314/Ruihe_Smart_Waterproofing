@@ -6,14 +6,16 @@
   <rh-tag-bar items="{{tabs}}" active-key="{{activeTab}}" bind:change="onTabChange" />
   <view class="worker-order" wx:for="{{orders}}" wx:key="id">
     <rh-card>
-      <rh-status-tag status="{{item.status}}" />
-      <rh-info-row label="工单号" value="{{item.order_no}}" />
+      <view class="worker-order__top">
+        <text class="worker-order__no">工单号：{{item.order_no}}</text>
+        <rh-status-tag status="{{item.statusClass}}" text="{{item.statusText}}" />
+      </view>
       <rh-info-row label="服务" value="{{item.service_name}}" />
       <rh-info-row label="联系人" value="{{item.contact_name}}" />
       <rh-info-row label="地址" value="{{item.full_address}}" />
       <rh-info-row label="最终价格" value="{{item.priceText}}" />
       <view class="worker-actions">
-        <rh-button variant="line" text="拨打电话" data-phone="{{item.contact_phone}}" bind:tap="callCustomer" />
+        <rh-button wx:if="{{item.canCall}}" variant="line" text="拨打电话" data-phone="{{item.contact_phone}}" bind:tap="callCustomer" />
         <rh-button text="工单详情" data-id="{{item.id}}" bind:tap="goToDetail" />
       </view>
     </rh-card>

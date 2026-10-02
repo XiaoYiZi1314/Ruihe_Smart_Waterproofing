@@ -782,6 +782,34 @@ test('worker list: a failed load-more does not skip a page and failure shows a r
   assert.equal(page.data.page, 2);
 });
 
+test('worker list shows distinct status tags and hides call on finished orders', () => {
+  const { getStatusText, getStatusClass, canCallCustomer } = require('../utils/workerStatus');
+  assert.equal(getStatusText('confirmed'), '待接单');
+  assert.equal(getStatusText('in_progress'), '施工中');
+  assert.equal(getStatusText('pending_review'), '待验收');
+  assert.equal(getStatusText('price_negotiating'), '价格协商');
+  assert.equal(getStatusText('completed'), '已完成');
+  assert.equal(getStatusClass('confirmed'), 'confirmed');
+  assert.equal(getStatusClass('in_progress'), 'doing');
+  assert.equal(getStatusClass('pending_review'), 'review');
+  assert.equal(getStatusClass('price_negotiating'), 'pending');
+  assert.equal(getStatusClass('completed'), 'done');
+  assert.equal(canCallCustomer({ status: 'confirmed' }), true);
+  assert.equal(canCallCustomer({ status: 'pending_review' }), true);
+  assert.equal(canCallCustomer({ status: 'completed' }), false);
+  assert.equal(canCallCustomer({ status: 'cancelled' }), false);
+
+  const listWxml = read('miniapp/pages/worker/orders/list.wxml');
+  assert.match(listWxml, /status="\{\{item\.statusClass\}\}"/);
+  assert.match(listWxml, /text="\{\{item\.statusText\}\}"/);
+  assert.match(listWxml, /wx:if="\{\{item\.canCall\}\}"/);
+  const detailWxml = read('miniapp/pages/worker/orders/detail.wxml');
+  assert.match(detailWxml, /status="\{\{order\.statusClass\}\}"/);
+  assert.match(detailWxml, /text="\{\{order\.statusText\}\}"/);
+  assert.match(detailWxml, /wx:if="\{\{order\.canCall\}\}"/);
+  assert.match(read('miniapp/components/rh-status-tag/rh-status-tag.wxss'), /\.rh-status--review/);
+});
+
 test('worker must confirm the fees before a completion is submitted', async () => {
   const puts = [];
   const api = { get: async () => ({ data: { id: 8, status: 'in_progress' } }), put: async (url, body) => { puts.push([url, body]); return {}; } };

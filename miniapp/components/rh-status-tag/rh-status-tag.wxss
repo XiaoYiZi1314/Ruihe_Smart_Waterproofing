@@ -21,6 +21,11 @@
   color: var(--color-green);
 }
 
+.rh-status--review {
+  background: var(--color-master-bg);
+  color: var(--color-primary);
+}
+
 .rh-status--done {
   background: var(--color-done-bg);
   color: var(--color-gray);

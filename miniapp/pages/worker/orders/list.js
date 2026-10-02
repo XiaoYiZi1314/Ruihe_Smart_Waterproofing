@@ -1,5 +1,5 @@
 const api = require('../../../utils/request');
-const { STATUS, getStatusText, getStatusClass, formatPrice, formatTime } = require('../../../utils/workerStatus');
+const { getStatusText, getStatusClass, canCallCustomer, formatPrice, formatTime } = require('../../../utils/workerStatus');
 
 Page({
   data: {
@@ -75,6 +75,7 @@ Page({
         ...o,
         statusText: getStatusText(o.status),
         statusClass: getStatusClass(o.status),
+        canCall: canCallCustomer(o),
         priceText: formatPrice(o.final_price),
         createdTimeText: formatTime(o.created_at)
       }));

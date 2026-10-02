@@ -1,12 +1,12 @@
 <view class="page-wrap page-pad">
   <rh-load-more wx:if="{{loading}}" loading />
   <block wx:elif="{{order}}">
-    <view class="detail-section"><rh-status-tag status="{{order.status}}" /><rh-section-title title="{{order.service_name}}" /></view>
+    <view class="detail-section detail-section--head"><rh-status-tag status="{{order.statusClass}}" text="{{order.statusText}}" /><rh-section-title title="{{order.service_name}}" /></view>
     <rh-info-row label="工单号" value="{{order.order_no}}" />
     <rh-info-row label="客户" value="{{order.contact_name || order.customer_name}}" />
     <rh-info-row label="电话" value="{{order.contact_phone}}" />
     <rh-info-row label="地址" value="{{order.full_address}}" />
-    <view class="worker-actions"><rh-button variant="line" text="拨打客户" bind:tap="callCustomer" /><rh-button variant="ghost" text="复制地址" bind:tap="copyAddress" /></view>
+    <view class="worker-actions"><rh-button wx:if="{{order.canCall}}" variant="line" text="拨打客户" bind:tap="callCustomer" /><rh-button variant="ghost" text="复制地址" bind:tap="copyAddress" /></view>
     <view class="detail-section"><rh-section-title title="预约信息" /></view>
     <rh-info-row label="期望价格" value="{{order.expected_price}}" />
     <rh-info-row label="预计上门" value="{{order.estimatedTimeText}}" />

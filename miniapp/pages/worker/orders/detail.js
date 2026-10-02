@@ -1,5 +1,5 @@
 const api = require('../../../utils/request');
-const { STATUS, getStatusText, getStatusClass, formatPrice, formatTime, maskPhone } = require('../../../utils/workerStatus');
+const { STATUS, getStatusText, getStatusClass, canCallCustomer, formatPrice, formatTime, maskPhone } = require('../../../utils/workerStatus');
 
 Page({
   data: {
@@ -89,6 +89,7 @@ Page({
       order.canStart = order.status === STATUS.CONFIRMED && !!order.confirmed_at;
       order.canComplete = order.status === STATUS.IN_PROGRESS;
       order.canRequestChange = [STATUS.CONFIRMED, STATUS.IN_PROGRESS, 'pending_review'].includes(order.status);
+      order.canCall = canCallCustomer(order);
       order.appointmentText = order.appointment_date ? `${String(order.appointment_date).slice(0, 10)} ${order.appointment_slot || ''}`.trim() : '';
       order.correctionText = order.price_corrected_at && order.price_before_correction != null ? `已由客服更正（原 ¥${Number(order.price_before_correction).toFixed(2)}）` : '';
 
