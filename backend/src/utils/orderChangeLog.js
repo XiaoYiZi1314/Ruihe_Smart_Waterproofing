@@ -16,7 +16,7 @@ const FIELD_LABELS = {
   price_adjusted_at: '价格调整时间', images: '现场图片'
 };
 const ACTION_LABELS = {
-  create: '提交预约', assign: '指派师傅', accept: '师傅接单', reject: '师傅拒单', start: '开始施工', complete: '提交完工',
+  create: '提交预约', register: '电话登记', assign: '指派师傅', accept: '师傅接单', reject: '师傅拒单', start: '开始施工', complete: '提交完工',
   dispute: '价格异议', adjust_price: '调整价格', confirm: '客户确认完成', auto_complete: '系统自动完成', cancel: '取消工单',
   edit: '更正工单信息', reassign: '改派师傅', correct_status: '更正工单状态', image_add: '补充现场图片', image_remove: '删除现场图片',
   request_handle: '处理师傅变更申请'

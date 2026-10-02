@@ -117,7 +117,7 @@ async function migrate() {
         province VARCHAR(50) COMMENT '省份',
         city VARCHAR(50) COMMENT '城市',
         district VARCHAR(50) COMMENT '区县',
-        detail_address VARCHAR(200) NOT NULL COMMENT '详细地址',
+        detail_address VARCHAR(500) NOT NULL COMMENT '详细地址',
         is_default TINYINT(1) DEFAULT 0 COMMENT '是否默认地址',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -141,6 +141,7 @@ async function migrate() {
         contact_name VARCHAR(50) NOT NULL COMMENT '联系人',
         contact_phone VARCHAR(20) NOT NULL COMMENT '联系电话',
         full_address VARCHAR(500) NOT NULL COMMENT '完整地址',
+        booking_source VARCHAR(20) NOT NULL DEFAULT 'miniapp' COMMENT '预约来源：miniapp=小程序 phone=电话登记',
 
         expected_price DECIMAL(10,2) COMMENT '期望价格',
         final_price DECIMAL(10,2) COMMENT '最终价格',

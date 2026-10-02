@@ -4,6 +4,7 @@
 const db = require('../config/database');
 const ExcelJS = require('exceljs');
 const OrderEdit = require('../utils/orderEdit');
+const OrderRegister = require('../utils/orderRegister');
 const Log = require('../utils/orderChangeLog');
 const { logOperation } = require('../utils/operationLog');
 
@@ -28,6 +29,13 @@ exports.getEditMeta = (req, res) => {
   } });
 };
 
+exports.registerOrder = async (req, res) => {
+  try {
+    const result = await OrderRegister.registerPhoneOrder(req.user, req.body || {}, meta(req));
+    logOperation({ user_id: req.user.id, order_id: result.id, action: 'register_order', detail: `电话登记工单 ${result.order_no}`, ip: req.ip });
+    res.json({ success: true, message: '工单已登记', data: result });
+  } catch (error) { send(res, error, '登记失败，请重试'); }
+};
 exports.editOrder = async (req, res) => {
   try {
     const result = await OrderEdit.editOrder(req.params.id, req.user, req.body || {}, meta(req));

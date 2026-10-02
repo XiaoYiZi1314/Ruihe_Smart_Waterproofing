@@ -18,6 +18,7 @@ router.post('/upload', ...uploadHandler('image', true));
 
 // ============ 工单管理 ============
 router.get('/orders', AdminController.getOrders);
+router.post('/orders', OrderAdmin.registerOrder);
 router.get('/orders/export', AdminController.exportOrders);
 router.get('/orders/edit-meta', OrderAdmin.getEditMeta);
 router.get('/orders/:id', AdminController.getOrderDetail);

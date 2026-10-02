@@ -414,6 +414,7 @@ class AdminController {
       const [orders] = await db.query(
         `SELECT 
           wo.order_no,
+          wo.booking_source,
           wo.contact_name as customer_name,
           wo.contact_phone,
           s.name as service_name,
@@ -459,6 +460,7 @@ class AdminController {
       // 设置列
       worksheet.columns = [
         { header: '工单号', key: 'order_no', width: 20 },
+        { header: '来源', key: 'booking_source', width: 12 },
         { header: '客户名称', key: 'customer_name', width: 15 },
         { header: '联系电话', key: 'contact_phone', width: 15 },
         { header: '服务项目', key: 'service_name', width: 20 },
@@ -491,6 +493,7 @@ class AdminController {
       orders.forEach(order => {
         worksheet.addRow({
           ...order,
+          booking_source: order.booking_source === 'phone' ? '电话登记' : '小程序',
           status: OrderStateMachine.getStatusText(order.status)
         });
       });

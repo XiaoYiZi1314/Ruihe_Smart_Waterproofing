@@ -24,6 +24,12 @@
             style="width: 260px"
           />
         </el-form-item>
+        <el-form-item label="来源">
+          <el-select v-model="filter.booking_source" placeholder="全部" clearable style="width: 140px">
+            <el-option label="小程序" value="miniapp" />
+            <el-option label="电话登记" value="phone" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="关键词">
           <el-input
             v-model="filter.keyword"
@@ -36,6 +42,7 @@
         <el-form-item>
           <el-button type="primary" @click="loadOrders">查询</el-button>
           <el-button @click="resetFilter">重置</el-button>
+          <el-button type="primary" @click="openRegisterDialog">电话登记</el-button>
           <el-button type="success" @click="exportOrders">
             <el-icon><Download /></el-icon>导出Excel
           </el-button>
@@ -53,6 +60,13 @@
     <el-card shadow="never">
       <el-table :data="orders" v-loading="loading" stripe>
         <el-table-column prop="order_no" label="工单号" width="180" />
+        <el-table-column label="来源" width="100">
+          <template #default="{ row }">
+            <el-tag :type="row.booking_source === 'phone' ? 'warning' : 'info'" size="small" effect="plain">
+              {{ sourceText(row.booking_source) }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="customer_name" label="客户" width="100" />
         <el-table-column prop="contact_phone" label="联系电话" width="130" />
         <el-table-column prop="service_name" label="服务项目" width="140" />
@@ -127,6 +141,44 @@
       </div>
     </el-card>
 
+    <!-- 电话登记 -->
+    <el-dialog v-model="registerDialogVisible" title="电话登记工单" width="560px" destroy-on-close>
+      <el-form ref="registerFormRef" :model="registerForm" :rules="registerRules" label-width="100px">
+        <el-form-item label="联系人" prop="contact_name">
+          <el-input v-model="registerForm.contact_name" maxlength="50" placeholder="客户姓名" />
+        </el-form-item>
+        <el-form-item label="手机号" prop="contact_phone">
+          <el-input v-model="registerForm.contact_phone" maxlength="11" placeholder="11 位手机号" />
+        </el-form-item>
+        <el-form-item label="服务地址" prop="full_address">
+          <el-input v-model="registerForm.full_address" type="textarea" :rows="2" maxlength="500" show-word-limit placeholder="省市区 + 门牌，至少 5 个字" />
+        </el-form-item>
+        <el-form-item label="服务项目" prop="service_id">
+          <el-select v-model="registerForm.service_id" placeholder="请选择上架服务" filterable style="width: 100%">
+            <el-option v-for="item in registerServices" :key="item.id" :label="item.name" :value="item.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="预约日期">
+          <el-date-picker v-model="registerForm.appointment_date" type="date" value-format="YYYY-MM-DD" placeholder="可选" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="预约时段">
+          <el-select v-model="registerForm.appointment_slot" clearable placeholder="与日期一起填写" style="width: 100%">
+            <el-option v-for="slot in APPOINTMENT_SLOTS" :key="slot" :label="slot" :value="slot" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="期望价格">
+          <el-input-number v-model="registerForm.expected_price" :min="0" :precision="2" :controls="false" placeholder="可选" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="沟通备注">
+          <el-input v-model="registerForm.remark" type="textarea" :rows="3" maxlength="2000" show-word-limit placeholder="来电诉求、漏水位置等" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="registerDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="submitting" @click="handleRegister">确认登记</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 指派弹窗 -->
     <el-dialog v-model="assignDialogVisible" title="指派工单" width="480px">
       <el-form label-width="100px">
@@ -165,6 +217,7 @@
       <template v-if="currentOrder">
         <el-descriptions :column="1" border size="small">
           <el-descriptions-item label="工单号">{{ currentOrder.order_no }}</el-descriptions-item>
+          <el-descriptions-item label="来源">{{ sourceText(currentOrder.booking_source) }}</el-descriptions-item>
           <el-descriptions-item label="状态">
             <el-tag :type="statusTagType(currentOrder.status)" size="small">
               {{ orderStatusText(currentOrder) }}
@@ -263,10 +316,17 @@ const orders = ref([]);
 const loading = ref(false);
 const submitting = ref(false);
 
+const APPOINTMENT_SLOTS = ['上午 08-12', '下午 13-18', '晚上 18-20'];
+const SOURCE_TEXT = { miniapp: '小程序', phone: '电话登记' };
+function sourceText(source) {
+  return SOURCE_TEXT[source] || '小程序';
+}
+
 const filter = reactive({
   status: '',
   keyword: '',
   quick: '',
+  booking_source: '',
   dateRange: null
 });
 
@@ -348,6 +408,7 @@ async function loadOrders(options = {}) {
       limit: pagination.limit
     };
     if (filter.status) params.status = filter.status;
+    if (filter.booking_source) params.booking_source = filter.booking_source;
     if (filter.keyword) params.keyword = filter.keyword;
     if (filter.quick) params.quick = filter.quick;
     if (filter.dateRange && filter.dateRange.length === 2) {
@@ -370,6 +431,7 @@ function resetFilter() {
   filter.status = '';
   filter.keyword = '';
   filter.quick = '';
+  filter.booking_source = '';
   filter.dateRange = null;
   pagination.page = 1;
   loadOrders();
@@ -380,6 +442,7 @@ async function exportOrders() {
   if (filter.keyword) params.keyword = filter.keyword;
   if (filter.quick) params.quick = filter.quick;
   if (filter.status) params.status = filter.status;
+  if (filter.booking_source) params.booking_source = filter.booking_source;
   if (filter.dateRange && filter.dateRange.length === 2) {
     params.start_date = filter.dateRange[0];
     params.end_date = filter.dateRange[1];
@@ -430,6 +493,75 @@ watch(detailVisible, visible => {
     detailRequest += 1;
   }
 });
+
+const registerDialogVisible = ref(false);
+const registerFormRef = ref();
+const registerServices = ref([]);
+const registerForm = reactive({
+  contact_name: '',
+  contact_phone: '',
+  full_address: '',
+  service_id: null,
+  appointment_date: '',
+  appointment_slot: '',
+  expected_price: null,
+  remark: ''
+});
+const registerRules = {
+  contact_name: [{ required: true, message: '请填写联系人', trigger: 'blur' }],
+  contact_phone: [
+    { required: true, message: '请填写手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
+  ],
+  full_address: [{ required: true, min: 5, message: '地址至少 5 个字', trigger: 'blur' }],
+  service_id: [{ required: true, message: '请选择服务项目', trigger: 'change' }]
+};
+
+async function openRegisterDialog() {
+  Object.assign(registerForm, {
+    contact_name: '',
+    contact_phone: '',
+    full_address: '',
+    service_id: null,
+    appointment_date: '',
+    appointment_slot: '',
+    expected_price: null,
+    remark: ''
+  });
+  registerDialogVisible.value = true;
+  try {
+    const res = await api.get('/admin/services', { params: { status: 'active', limit: 100 } });
+    registerServices.value = res.data.services || [];
+  } catch (err) {
+    // 拦截器已处理
+  }
+}
+
+async function handleRegister() {
+  await registerFormRef.value.validate();
+  submitting.value = true;
+  try {
+    const payload = {
+      contact_name: registerForm.contact_name,
+      contact_phone: registerForm.contact_phone,
+      full_address: registerForm.full_address,
+      service_id: registerForm.service_id,
+      remark: registerForm.remark || undefined,
+      expected_price: registerForm.expected_price || undefined,
+      appointment_date: registerForm.appointment_date || undefined,
+      appointment_slot: registerForm.appointment_slot || undefined
+    };
+    const res = await api.post('/admin/orders', payload);
+    ElMessage.success(`已登记 ${res.data.order_no}`);
+    registerDialogVisible.value = false;
+    pagination.page = 1;
+    loadOrders();
+  } catch (err) {
+    // 拦截器已处理
+  } finally {
+    submitting.value = false;
+  }
+}
 
 async function openAssignDialog(row) {
   currentOrder.value = row;

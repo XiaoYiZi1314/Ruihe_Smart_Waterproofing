@@ -15,6 +15,10 @@ function orderFilter(query) {
     if (query[key]) { clauses.push(sql); params.push(query[key]); }
   }
   if (query.keyword) { clauses.push('(wo.order_no LIKE ? OR wo.contact_name LIKE ? OR wo.contact_phone LIKE ?)'); params.push(...Array(3).fill(`%${query.keyword}%`)); }
+  if (query.booking_source === 'miniapp' || query.booking_source === 'phone') {
+    clauses.push('wo.booking_source = ?');
+    params.push(query.booking_source);
+  }
   if (query.quick && Object.prototype.hasOwnProperty.call(QUICK, query.quick)) clauses.push(`(${QUICK[query.quick]})`);
   return { whereClause: clauses.join(' AND '), params };
 }
