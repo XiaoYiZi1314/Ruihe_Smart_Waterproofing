@@ -101,7 +101,7 @@ async function transition(id, actor, action, data = {}, meta = {}) {
     await ChangeLog.recordFlow(connection, { order, nextStatus, action, actor, data, worker, fees: feeResult, meta });
     await connection.commit();
     // Broadcast only committed state. A socket outage must not fail a saved operation.
-    Promise.resolve().then(() => Realtime.notifyOrderChange(order.id, nextStatus, { action }))
+    Promise.resolve().then(() => Realtime.notifyOrderChange(order.id, nextStatus, { action, order_no: order.order_no }))
       .catch(error => console.error('Order change delivery failed:', error.message));
     return { ...order, status: nextStatus, ...(action === 'complete' || action === 'adjust_price' ? fees(data) : {}), worker_name: worker ? worker.nickname : undefined };
   } catch (error) {

@@ -476,7 +476,7 @@ function afterCommit(order, entries, info) {
     }
     if (workerLabels.length && order.worker_id) notify(order.worker_id, order.id, 'order_corrected', '工单信息已更新', `工单 ${number} 已由客服更正（${workerLabels.join('、')}），请以最新信息为准`);
   }
-  Promise.resolve().then(() => Realtime.notifyOrderChange(order.id, info.toStatus || order.status, { action: info.kind }))
+  Promise.resolve().then(() => Realtime.notifyOrderChange(order.id, info.toStatus || order.status, { action: info.kind, order_no: order.order_no }))
     .catch(error => console.error('Correction delivery failed:', error.message));
 }
 

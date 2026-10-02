@@ -18,7 +18,7 @@ function fixture({ status = 'confirmed', commitFails = false, deliveryFails = fa
         return [[{ id: 8, role: 'worker', status: 'active' }]];
       }
       if (sql.startsWith('SELECT * FROM work_orders')) {
-        return [[{ id: 42, worker_id: 8, user_id: 7, status, confirmed_at: null }]];
+        return [[{ id: 42, order_no: 'RH202610030001', worker_id: 8, user_id: 7, status, confirmed_at: null }]];
       }
       calls.push('update'); return [{ affectedRows: 1 }];
     }
@@ -28,7 +28,7 @@ function fixture({ status = 'confirmed', commitFails = false, deliveryFails = fa
     './orderStateMachine': State,
     './realtime': { async notifyOrderChange(id, nextStatus, extra) {
       assert(calls.includes('commit'), 'must not broadcast uncommitted state');
-      events.push({ id, status: nextStatus, action: extra.action });
+      events.push({ id, status: nextStatus, action: extra.action, order_no: extra.order_no });
       if (deliveryFails) throw Error('socket unavailable');
     } }
   };
@@ -50,7 +50,7 @@ for (const [action, status] of [['accept', 'confirmed'], ['start', 'in_progress'
     const result = await f.workflow.transition(42, { id: 8, role: 'worker' }, action, data);
     await new Promise(resolve => setImmediate(resolve));
     assert.equal(result.status, status);
-    assert.deepEqual(f.events, [{ id: 42, status, action }]);
+    assert.deepEqual(f.events, [{ id: 42, status, action, order_no: 'RH202610030001' }]);
     assert(!f.calls.includes('rollback'));
   });
 }

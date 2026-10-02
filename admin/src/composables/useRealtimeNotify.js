@@ -10,6 +10,22 @@ const unreadCount = ref(0);
 
 let socket = null;
 const MAX_NOTIFICATIONS = 50;
+const STATUS_TEXT = {
+  pending: '待指派',
+  confirmed: '待接单',
+  in_progress: '施工中',
+  pending_review: '待验收',
+  price_negotiating: '价格协商',
+  completed: '已完成',
+  cancelled: '已取消'
+};
+
+function orderStatusText(data = {}) {
+  if (data.status === 'confirmed') {
+    return data.action === 'accept' || data.confirmed_at ? '已接单，待开工' : '待接单';
+  }
+  return STATUS_TEXT[data.status] || data.status || '';
+}
 
 /**
  * 管理后台实时通知
@@ -49,12 +65,15 @@ export function useRealtimeNotify() {
       if (event === 'order_urged') loadHistory();
     });
 
-    // 工单状态变更
+    // 工单状态变更：展示工单号和后台同一套状态文案
     socket.on('order:changed', (data) => {
       window.dispatchEvent(new CustomEvent('ruihe:orders-changed'));
+      const orderNo = data.order_no || (data.order_id != null ? `#${data.order_id}` : '');
+      const statusText = orderStatusText(data);
       addNotification('order_changed', {
         title: '工单状态更新',
-        content: `工单 #${data.order_id} 状态变更为 ${data.status || ''}`
+        content: orderNo ? `工单 ${orderNo} 状态变更为 ${statusText}` : `状态变更为 ${statusText}`,
+        order_id: data.order_id || null
       });
     });
   }
