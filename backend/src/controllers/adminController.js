@@ -524,10 +524,10 @@ class AdminController {
    */
   static async getLogs(req, res) {
     try {
-      const { action, start_date, end_date, page = 1, limit = 20 } = req.query;
-      const offset = (page - 1) * limit;
+      const { action, keyword, start_date, end_date, page = 1, limit = 20 } = req.query;
+      const current = Math.max(parseInt(page, 10) || 1, 1);
+      const size = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
 
-      // 构建查询条件
       let whereClause = '1=1';
       const params = [];
 
@@ -546,25 +546,31 @@ class AdminController {
         params.push(end_date);
       }
 
-      // 查询日志
+      const term = typeof keyword === 'string' ? keyword.trim() : '';
+      if (term) {
+        whereClause += ' AND (wo.order_no LIKE ? OR u.nickname LIKE ? OR u.username LIKE ? OR ol.detail LIKE ?)';
+        params.push(...Array(4).fill(`%${term}%`));
+      }
+
+      const from = `FROM operation_logs ol
+         LEFT JOIN users u ON ol.user_id = u.id
+         LEFT JOIN work_orders wo ON ol.order_id = wo.id
+         WHERE ${whereClause}`;
+
       const [logs] = await db.query(
-        `SELECT 
-          ol.*,
+        `SELECT
+          ol.id, ol.user_id, ol.order_id, ol.action, ol.detail, ol.ip, ol.created_at,
           u.nickname as user_name,
           u.role as user_role,
           wo.order_no
-         FROM operation_logs ol
-         LEFT JOIN users u ON ol.user_id = u.id
-         LEFT JOIN work_orders wo ON ol.order_id = wo.id
-         WHERE ${whereClause}
-         ORDER BY ol.created_at DESC
+         ${from}
+         ORDER BY ol.created_at DESC, ol.id DESC
          LIMIT ? OFFSET ?`,
-        [...params, parseInt(limit), parseInt(offset)]
+        [...params, size, (current - 1) * size]
       );
 
-      // 查询总数
       const [countResult] = await db.query(
-        `SELECT COUNT(*) as total FROM operation_logs ol WHERE ${whereClause}`,
+        `SELECT COUNT(*) as total ${from}`,
         params
       );
 
@@ -573,10 +579,10 @@ class AdminController {
         data: {
           logs,
           pagination: {
-            page: parseInt(page),
-            limit: parseInt(limit),
+            page: current,
+            limit: size,
             total: countResult[0].total,
-            totalPages: Math.ceil(countResult[0].total / limit)
+            totalPages: Math.ceil(countResult[0].total / size)
           }
         }
       });

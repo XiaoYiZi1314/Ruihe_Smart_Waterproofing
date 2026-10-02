@@ -1,15 +1,24 @@
 <template>
   <div class="logs-page">
-    <el-card shadow="never">
-      <template #header>
-        <div class="card-header">
-          <span>操作日志</span>
+    <el-card shadow="never" class="filter-card">
+      <el-form inline :model="filter">
+        <el-form-item label="操作时间">
+          <el-date-picker
+            v-model="filter.dateRange"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            value-format="YYYY-MM-DD"
+            style="width: 260px"
+          />
+        </el-form-item>
+        <el-form-item label="操作类型">
           <el-select
             v-model="filter.action"
-            placeholder="全部操作类型"
+            placeholder="全部"
             clearable
             style="width: 180px"
-            @change="loadLogs"
           >
             <el-option
               v-for="item in ACTION_OPTIONS"
@@ -18,11 +27,36 @@
               :value="item.value"
             />
           </el-select>
-        </div>
-      </template>
+        </el-form-item>
+        <el-form-item label="关键词">
+          <el-input
+            v-model="filter.keyword"
+            placeholder="工单号 / 操作人 / 详情"
+            clearable
+            style="width: 220px"
+            @keyup.enter="search"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="search">查询</el-button>
+          <el-button @click="resetFilter">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
 
+    <el-card shadow="never">
       <el-table :data="logs" v-loading="loading" stripe>
-        <el-table-column prop="id" label="ID" width="70" />
+        <el-table-column label="操作时间" width="180">
+          <template #default="{ row }">{{ formatTime(row.created_at) }}</template>
+        </el-table-column>
+        <el-table-column prop="user_name" label="操作人" width="120">
+          <template #default="{ row }">{{ row.user_name || '系统' }}</template>
+        </el-table-column>
+        <el-table-column label="角色" width="90">
+          <template #default="{ row }">
+            {{ ROLE_TEXT[row.user_role] || (row.user_name ? row.user_role : '系统') || '-' }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作类型" width="130">
           <template #default="{ row }">
             <el-tag size="small" :type="actionTagType(row.action)">
@@ -30,16 +64,13 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="order_no" label="关联工单" width="180" />
-        <el-table-column prop="user_name" label="操作人" width="120" />
-        <el-table-column label="角色" width="90">
-          <template #default="{ row }">
-            {{ ROLE_TEXT[row.user_role] || row.user_role || '-' }}
-          </template>
+        <el-table-column prop="order_no" label="关联工单" width="180">
+          <template #default="{ row }">{{ row.order_no || '-' }}</template>
         </el-table-column>
         <el-table-column prop="detail" label="操作详情" min-width="240" show-overflow-tooltip />
-        <el-table-column prop="ip" label="IP地址" width="130" />
-        <el-table-column prop="created_at" label="操作时间" width="170" />
+        <el-table-column prop="ip" label="IP地址" width="140">
+          <template #default="{ row }">{{ row.ip || '-' }}</template>
+        </el-table-column>
       </el-table>
 
       <div class="pagination-wrap">
@@ -63,6 +94,7 @@ import api from '../api';
 
 const ACTION_TEXT = {
   create_order: '创建工单',
+  register_order: '电话登记',
   assign: '指派工单',
   accept: '接受工单',
   reject: '拒绝工单',
@@ -103,7 +135,9 @@ const logs = ref([]);
 const loading = ref(false);
 
 const filter = reactive({
-  action: ''
+  action: '',
+  keyword: '',
+  dateRange: null
 });
 
 const pagination = reactive({
@@ -112,9 +146,28 @@ const pagination = reactive({
   total: 0
 });
 
+function formatTime(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).formatToParts(date);
+  const pick = type => parts.find(part => part.type === type)?.value || '';
+  return `${pick('year')}-${pick('month')}-${pick('day')} ${pick('hour')}:${pick('minute')}:${pick('second')}`;
+}
+
 function actionTagType(action) {
   const map = {
     create_order: 'primary',
+    register_order: 'warning',
     assign: 'primary',
     accept: 'success',
     reject: 'danger',
@@ -131,6 +184,19 @@ function actionTagType(action) {
   return map[action] || 'info';
 }
 
+function search() {
+  pagination.page = 1;
+  loadLogs();
+}
+
+function resetFilter() {
+  filter.action = '';
+  filter.keyword = '';
+  filter.dateRange = null;
+  pagination.page = 1;
+  loadLogs();
+}
+
 async function loadLogs() {
   loading.value = true;
   try {
@@ -139,6 +205,11 @@ async function loadLogs() {
       limit: pagination.limit
     };
     if (filter.action) params.action = filter.action;
+    if (filter.keyword) params.keyword = filter.keyword.trim();
+    if (filter.dateRange && filter.dateRange.length === 2) {
+      params.start_date = filter.dateRange[0];
+      params.end_date = filter.dateRange[1];
+    }
 
     const res = await api.get('/admin/logs', { params });
     logs.value = res.data.logs || [];
@@ -154,10 +225,8 @@ onMounted(loadLogs);
 </script>
 
 <style scoped>
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.filter-card {
+  margin-bottom: 16px;
 }
 
 .pagination-wrap {
