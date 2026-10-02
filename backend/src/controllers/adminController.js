@@ -9,7 +9,7 @@ const OrderStateMachine = require('../utils/orderStateMachine');
 const ExcelJS = require('exceljs');
 const bcrypt = require('bcryptjs');
 const NotificationService = require('../utils/notification');
-const { logOperation } = require('../utils/operationLog');
+const { logOperation, decorateLog, actionOptions } = require('../utils/operationLog');
 const { generateWorkerPassword, isValidWorkerPassword } = require('../utils/password');
 
 class AdminController {
@@ -577,7 +577,8 @@ class AdminController {
       res.json({
         success: true,
         data: {
-          logs,
+          logs: logs.map(decorateLog),
+          action_options: actionOptions(),
           pagination: {
             page: current,
             limit: size,

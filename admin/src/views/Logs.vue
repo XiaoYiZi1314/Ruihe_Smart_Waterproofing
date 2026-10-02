@@ -57,10 +57,10 @@
             {{ ROLE_TEXT[row.user_role] || (row.user_name ? row.user_role : '系统') || '-' }}
           </template>
         </el-table-column>
-        <el-table-column label="操作类型" width="130">
+        <el-table-column label="操作类型" width="150">
           <template #default="{ row }">
             <el-tag size="small" :type="actionTagType(row.action)">
-              {{ ACTION_TEXT[row.action] || row.action }}
+              {{ row.action_label || ACTION_TEXT[row.action] || '其他操作' }}
             </el-tag>
           </template>
         </el-table-column>
@@ -114,15 +114,30 @@ const ACTION_TEXT = {
   handle_change_request: '处理变更申请',
   auto_complete: '自动完成',
   mark_exception: '标记异常',
+  review: '评价',
   create_worker: '创建师傅',
-  delete_worker: '删除师傅',
-  review: '评价'
+  update_worker: '编辑师傅',
+  delete_worker: '停用师傅',
+  update_worker_status: '切换师傅状态',
+  reset_worker_password: '重置师傅密码',
+  create_category: '新增分类',
+  update_category: '编辑分类',
+  delete_category: '删除分类',
+  toggle_category: '切换分类状态',
+  create_service: '新增服务',
+  update_service: '编辑服务',
+  delete_service: '删除服务',
+  toggle_service: '上架/下架服务',
+  toggle_hot: '设置热门服务',
+  create_banner: '新增轮播',
+  update_banner: '编辑轮播',
+  delete_banner: '删除轮播',
+  update_config: '更新站点配置',
+  upload_image: '上传图片',
+  change_password: '修改密码'
 };
 
-const ACTION_OPTIONS = Object.entries(ACTION_TEXT).map(([value, label]) => ({
-  value,
-  label
-}));
+const ACTION_OPTIONS = ref(Object.entries(ACTION_TEXT).map(([value, label]) => ({ value, label })));
 
 const ROLE_TEXT = {
   customer: '客户',
@@ -213,6 +228,9 @@ async function loadLogs() {
 
     const res = await api.get('/admin/logs', { params });
     logs.value = res.data.logs || [];
+    if (Array.isArray(res.data.action_options) && res.data.action_options.length) {
+      ACTION_OPTIONS.value = res.data.action_options;
+    }
     pagination.total = res.data.pagination.total || 0;
   } catch (err) {
     // 拦截器已处理
