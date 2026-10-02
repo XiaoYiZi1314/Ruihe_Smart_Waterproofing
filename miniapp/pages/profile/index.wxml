@@ -21,7 +21,7 @@
       </view>
       <view>
         <view class="profile-name">{{userInfo.nickname || '微信用户'}}</view>
-        <view class="profile-phone">{{displayPhone || '未绑定手机号'}}</view>
+        <view wx:if="{{displayPhone}}" class="profile-phone">{{displayPhone}}</view>
       </view>
       <text class="profile-edit">编辑资料 ›</text>
     </view>

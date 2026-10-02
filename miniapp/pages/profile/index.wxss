@@ -1,6 +1,6 @@
 .profile-head {
   background: var(--gradient-profile);
-  padding: 48rpx 36rpx 52rpx;
+  padding: 40rpx 36rpx 44rpx;
   color: var(--color-surface);
   border-radius: 0 0 36rpx 36rpx;
 }
@@ -8,7 +8,7 @@
 .profile-top {
   display: flex;
   align-items: center;
-  gap: 26rpx;
+  gap: 24rpx;
 }
 
 .avatar {
@@ -43,7 +43,7 @@
 }
 
 .menu-wrap {
-  margin: 28rpx 24rpx;
+  margin: 24rpx 24rpx;
 }
 
 .logout-wrap {
