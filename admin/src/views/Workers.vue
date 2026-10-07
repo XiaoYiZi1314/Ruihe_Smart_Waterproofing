@@ -32,7 +32,9 @@
             />
           </template>
         </el-table-column>
-        <el-table-column prop="created_at" label="创建时间" width="170" />
+        <el-table-column label="创建时间" width="130">
+          <template #default="{ row }">{{ formatDate(row.created_at) }}</template>
+        </el-table-column>
         <el-table-column label="操作" width="240" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="openEditDialog(row)">编辑</el-button>
@@ -105,6 +107,7 @@
 import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import api from '../api';
+import { formatDate } from '../utils/datetime';
 
 const workers = ref([]);
 const loading = ref(false);

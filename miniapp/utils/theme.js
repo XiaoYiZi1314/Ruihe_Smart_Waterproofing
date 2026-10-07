@@ -57,11 +57,19 @@ function isDevEnv() {
 }
 
 function formatTime(value) {
-  if (!value) return '';
+  if (value == null || value === '') return '';
+  const text = String(value).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+  const naive = /^(\d{4}-\d{2}-\d{2})[ T]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/.exec(text);
+  if (naive) return naive[1];
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  const pad = n => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  if (Number.isNaN(date.getTime())) return text;
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(date);
 }
 
 module.exports = {

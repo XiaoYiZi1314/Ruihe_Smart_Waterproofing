@@ -223,6 +223,7 @@
 import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import api from '../../api';
+import { formatDate } from '../../utils/datetime';
 
 const props = defineProps({ order: { type: Object, required: true } });
 const emit = defineEmits(['changed']);
@@ -272,10 +273,7 @@ function nowText() {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 function formatTime(value) {
-  if (!value) return '';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return String(value);
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return formatDate(value);
 }
 function showValue(value) { return value === null || value === undefined || value === '' ? '（空）' : value; }
 function toForm(order) {

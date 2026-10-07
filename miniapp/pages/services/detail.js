@@ -14,15 +14,8 @@ function maskName(name) {
   return name[0] + '**' + name[name.length - 1];
 }
 
-/**
- * 日期格式化：2026-08-28
- */
 function formatDate(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return dateStr;
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  return theme.formatTime(dateStr);
 }
 
 function loadErrorText(error, fallback) {

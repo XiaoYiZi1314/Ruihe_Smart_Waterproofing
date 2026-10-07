@@ -85,7 +85,7 @@
           <el-form-item><el-button @click="loadLogs(1)">查询</el-button></el-form-item>
         </el-form>
         <el-table :data="logs" v-loading="logsLoading" stripe size="small">
-          <el-table-column label="时间" width="160"><template #default="{ row }">{{ formatTime(row.created_at) }}</template></el-table-column>
+          <el-table-column label="时间" width="160"><template #default="{ row }">{{ formatDate(row.created_at) }}</template></el-table-column>
           <el-table-column prop="order_no" label="工单号" width="170" />
           <el-table-column prop="operator_name" label="操作人" width="100" />
           <el-table-column prop="action_label" label="操作" width="120" />
@@ -108,7 +108,7 @@
           <el-radio-button value="pending">待处理</el-radio-button><el-radio-button value="approved">已同意</el-radio-button><el-radio-button value="rejected">已驳回</el-radio-button>
         </el-radio-group>
         <el-table :data="requests" v-loading="requestsLoading" stripe size="small" empty-text="暂无申请">
-          <el-table-column label="提交时间" width="160"><template #default="{ row }">{{ formatTime(row.created_at) }}</template></el-table-column>
+          <el-table-column label="提交时间" width="160"><template #default="{ row }">{{ formatDate(row.created_at) }}</template></el-table-column>
           <el-table-column prop="order_no" label="工单号" width="170" />
           <el-table-column prop="worker_name" label="师傅" width="100" />
           <el-table-column prop="request_label" label="类型" width="120" />
@@ -129,6 +129,7 @@ import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import api from '../api';
+import { formatDate } from '../utils/datetime';
 
 const router = useRouter();
 const pad = n => String(n).padStart(2, '0');
@@ -146,11 +147,6 @@ const logFilter = reactive({ order_no: '', reason_type: '', source: 'admin_edit'
 const requests = ref([]); const requestsLoading = ref(false); const requestPage = ref(1); const requestTotal = ref(0);
 const requestStatus = ref('pending'); const pendingRequests = ref(0);
 
-function formatTime(value) {
-  if (!value) return '';
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? String(value) : `${ymd(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 async function loadStats() {
   statsLoading.value = true;
   try {

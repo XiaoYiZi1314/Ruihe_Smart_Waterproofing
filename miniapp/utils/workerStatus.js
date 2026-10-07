@@ -42,11 +42,7 @@ function formatPrice(price) {
   return price == null || price === '' ? '待报价' : theme.formatPrice(Number(price).toFixed(2)).main;
 }
 function formatTime(value) {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  const pad = number => String(number).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  return theme.formatTime(value);
 }
 module.exports = { STATUS, getStatusText, getStatusClass, canCallCustomer,
   formatPrice, formatTime, maskPhone: theme.maskPhone };

@@ -2,6 +2,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { io } from 'socket.io-client';
 import api from '../api';
 import { ElNotification } from 'element-plus';
+import { formatDate } from '../utils/datetime';
 
 // 全局通知状态（模块级单例）
 const notifications = ref([]);
@@ -93,11 +94,7 @@ export function useRealtimeNotify() {
       title: payload.title || '通知',
       content: payload.content || '',
       order_id: payload.order_id || null,
-      time: new Date().toLocaleTimeString('zh-CN', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      }),
+      time: formatDate(new Date()),
       read: false
     };
 
@@ -132,7 +129,7 @@ export function useRealtimeNotify() {
       const res = await api.get('/notifications');
       const history = (res.data || []).map(item => ({
         ...item, read: !!item.is_read, persisted: true,
-        time: new Date(item.created_at).toLocaleString('zh-CN')
+        time: formatDate(item.created_at)
       }));
       const transient = notifications.value.filter(item => !item.persisted && item.event !== 'order_urged');
       notifications.value = [...transient, ...history].slice(0, MAX_NOTIFICATIONS);

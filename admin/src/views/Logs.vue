@@ -47,7 +47,7 @@
     <el-card shadow="never">
       <el-table :data="logs" v-loading="loading" stripe>
         <el-table-column label="操作时间" width="180">
-          <template #default="{ row }">{{ formatTime(row.created_at) }}</template>
+          <template #default="{ row }">{{ formatDate(row.created_at) }}</template>
         </el-table-column>
         <el-table-column prop="user_name" label="操作人" width="120">
           <template #default="{ row }">{{ row.user_name || '系统' }}</template>
@@ -91,6 +91,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import api from '../api';
+import { formatDate } from '../utils/datetime';
 
 const ACTION_TEXT = {
   register_order: '电话登记',
@@ -148,24 +149,6 @@ const pagination = reactive({
   limit: 20,
   total: 0
 });
-
-function formatTime(value) {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Shanghai',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  }).formatToParts(date);
-  const pick = type => parts.find(part => part.type === type)?.value || '';
-  return `${pick('year')}-${pick('month')}-${pick('day')} ${pick('hour')}:${pick('minute')}:${pick('second')}`;
-}
 
 function actionTagType(action) {
   const map = {

@@ -766,7 +766,7 @@ test('order card labels the time row by what it really is', () => {
 
   const created = view({ status: 'pending', created_at: '2026-09-30T02:00:00.000Z', remark: '' });
   assert.equal(created.timeLabel, '下单时间');
-  assert.match(created.time, /^2026-09-30 \d\d:\d\d$/);
+  assert.equal(created.time, '2026-09-30');
   assert.match(read('miniapp/components/rh-order-card/rh-order-card.wxml'), /\{\{view\.timeLabel\}\}：\{\{view\.time\}\}/);
 });
 
@@ -879,7 +879,7 @@ test('notifications show formatted times, update read state locally and can mark
   const page = env.page('miniapp/pages/notifications/list.js');
   await page.load();
   assert.equal(page.data.unreadCount, 2);
-  assert.match(page.data.items[0].timeText, /^2026-09-\d\d \d\d:\d\d$/);
+  assert.equal(page.data.items[0].timeText, '2026-09-30');
   assert.equal(page.data.items[0].order_no, 'WO1');
   assert.doesNotMatch(read('miniapp/pages/notifications/list.wxml'), /item\.created_at/);
   assert.match(read('miniapp/pages/notifications/list.wxml'), /item\.order_no/);
@@ -988,4 +988,13 @@ test('service detail uses admin-configured highlights and hides the section when
   emptyPage.onLoad({ id: '6' });
   await tick(); await tick();
   assert.deepEqual(plain(emptyPage.data.highlights), []);
+});
+
+test('display times are China calendar dates without hours', () => {
+  const theme = require('../utils/theme');
+  assert.equal(theme.formatTime('2026-09-30T03:02:11.000Z'), '2026-09-30');
+  assert.equal(theme.formatTime('2026-09-30T16:00:00.000Z'), '2026-10-01');
+  assert.equal(theme.formatTime('2026-10-01 22:00:00'), '2026-10-01');
+  assert.equal(theme.formatTime('2026-08-28'), '2026-08-28');
+  assert.equal(theme.formatTime(''), '');
 });

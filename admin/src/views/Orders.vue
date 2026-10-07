@@ -108,7 +108,9 @@
             <span v-if="!Number(row.pending_requests) && !Number(row.correction_count)">-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="created_at" label="创建时间" width="170" />
+        <el-table-column label="创建时间" width="130">
+          <template #default="{ row }">{{ formatDate(row.created_at) }}</template>
+        </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="showDetail(row)">
@@ -234,10 +236,10 @@
           </el-descriptions-item>
           <el-descriptions-item label="问题描述"><span style="white-space: pre-wrap">{{ currentOrder.remark || '-' }}</span></el-descriptions-item>
           <el-descriptions-item label="期望价格">{{ currentOrder.expected_price ?? '未填写' }}</el-descriptions-item>
-          <el-descriptions-item label="预计上门">{{ currentOrder.estimated_time || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="预计上门">{{ formatDate(currentOrder.estimated_time) || '-' }}</el-descriptions-item>
           <el-descriptions-item label="客户预约">{{ currentOrder.appointment_date ? `${currentOrder.appointment_date} ${currentOrder.appointment_slot || ''}` : '-' }}</el-descriptions-item>
           <el-descriptions-item label="上门/材料/工时费">{{ currentOrder.door_fee ?? '-' }} / {{ currentOrder.material_fee ?? '-' }} / {{ currentOrder.labor_fee ?? '-' }}</el-descriptions-item>
-          <el-descriptions-item v-for="(label, key) in timeFields" :key="key" :label="label">{{ currentOrder[key] || '-' }}</el-descriptions-item>
+          <el-descriptions-item v-for="(label, key) in timeFields" :key="key" :label="label">{{ formatDate(currentOrder[key]) || '-' }}</el-descriptions-item>
           <el-descriptions-item label="现场图片">
             <el-image v-for="image in currentOrder.images || []" :key="image.id" :src="image.image_url" :preview-src-list="(currentOrder.images || []).map(i => i.image_url)" preview-teleported style="width:90px;height:90px;margin:4px" fit="cover" />
           </el-descriptions-item>
@@ -255,7 +257,7 @@
           <el-descriptions-item label="价格异议" v-if="currentOrder.price_dispute_reason">
             <span class="reject-reason">{{ currentOrder.price_dispute_reason }}</span>
           </el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ currentOrder.created_at }}</el-descriptions-item>
+          <el-descriptions-item label="创建时间">{{ formatDate(currentOrder.created_at) }}</el-descriptions-item>
         </el-descriptions>
 
         <!-- 价格调整 -->
@@ -300,6 +302,7 @@ import { useRoute } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import api from '../api';
 import OrderManage from '../components/order/OrderManage.vue';
+import { formatDate } from '../utils/datetime';
 
 const timeFields = { assigned_at: '指派时间', confirmed_at: '接单时间', started_at: '开始施工', completed_at: '完工时间', finished_at: '验收完成', cancelled_at: '取消时间' };
 const STATUS_TEXT = {
