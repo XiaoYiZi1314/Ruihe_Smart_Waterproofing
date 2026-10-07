@@ -68,7 +68,8 @@
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+                <el-dropdown-item command="password">修改密码</el-dropdown-item>
+                <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -98,15 +99,50 @@
       <AdminNavMenu :active="activeMenu" @select="navOpen = false" />
     </div>
   </el-drawer>
+
+  <el-dialog
+    v-model="passwordVisible"
+    title="修改密码"
+    :width="isMobile ? '92%' : '420px'"
+    append-to-body
+    :close-on-click-modal="false"
+    @closed="resetPasswordForm"
+  >
+    <el-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules" label-width="88px">
+      <el-form-item label="原密码" prop="current_password">
+        <el-input
+          v-model="passwordForm.current_password"
+          type="password"
+          show-password
+          autocomplete="current-password"
+          placeholder="请输入原密码"
+        />
+      </el-form-item>
+      <el-form-item label="新密码" prop="new_password">
+        <el-input
+          v-model="passwordForm.new_password"
+          type="password"
+          show-password
+          autocomplete="new-password"
+          placeholder="至少 8 位，需包含字母和数字"
+        />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="passwordVisible = false">取消</el-button>
+      <el-button type="primary" :loading="passwordSaving" @click="submitPassword">保存</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import AdminNavMenu from '../components/AdminNavMenu.vue';
 import { useMobile } from '../composables/useMobile';
 import { useRealtimeNotify } from '../composables/useRealtimeNotify';
+import api from '../api';
 
 const route = useRoute();
 const router = useRouter();
@@ -132,7 +168,60 @@ function goToOrder(n) {
   }
 }
 
+const passwordVisible = ref(false);
+const passwordSaving = ref(false);
+const passwordFormRef = ref();
+const passwordForm = reactive({
+  current_password: '',
+  new_password: ''
+});
+const passwordRules = {
+  current_password: [{ required: true, message: '请输入原密码', trigger: 'blur' }],
+  new_password: [
+    { required: true, message: '请输入新密码', trigger: 'blur' },
+    {
+      validator: (_rule, value, callback) => {
+        if (typeof value !== 'string' || value.length < 8 || !/[A-Za-z]/.test(value) || !/\d/.test(value)) {
+          callback(new Error('新密码需 8 位以上且包含字母和数字'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'blur'
+    }
+  ]
+};
+
+function resetPasswordForm() {
+  passwordForm.current_password = '';
+  passwordForm.new_password = '';
+  passwordFormRef.value?.clearValidate();
+}
+
+async function submitPassword() {
+  await passwordFormRef.value.validate();
+  passwordSaving.value = true;
+  try {
+    const res = await api.post('/auth/change-password', {
+      current_password: passwordForm.current_password,
+      new_password: passwordForm.new_password
+    });
+    if (res.data && res.data.token) localStorage.setItem('admin_token', res.data.token);
+    passwordVisible.value = false;
+    ElMessage.success('密码已修改');
+  } catch {
+    // 错误已在拦截器中处理
+  } finally {
+    passwordSaving.value = false;
+  }
+}
+
 function handleCommand(command) {
+  if (command === 'password') {
+    resetPasswordForm();
+    passwordVisible.value = true;
+    return;
+  }
   if (command === 'logout') {
     localStorage.removeItem('admin_token');
     ElMessage.success('已退出登录');
