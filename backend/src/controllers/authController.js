@@ -68,7 +68,7 @@ async function changePassword(req, res) {
     const [result] = await db.query('UPDATE users SET password=?, must_change_password=0, token_version=token_version+1 WHERE id=? AND token_version=?', [hash, req.user.id, req.user.token_version]);
     if (!result.affectedRows) return res.status(409).json({ success: false, message: '账号凭据已变化，请重新登录' });
     const user = await User.findById(req.user.id);
-    logOperation({ user_id: user.id, action: 'change_password', detail: '用户修改密码', ip: req.ip });
+    logOperation({ user_id: user.id, role: user.role, action: 'change_password', detail: '用户修改密码', ip: req.ip });
     res.json({ success: true, data: session(user) });
   } catch (error) { handleError(res, error); }
 }

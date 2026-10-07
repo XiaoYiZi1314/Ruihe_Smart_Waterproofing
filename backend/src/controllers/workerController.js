@@ -7,7 +7,6 @@ const Workflow = require('../utils/orderWorkflow');
 const db = require('../config/database');
 const OrderStateMachine = require('../utils/orderStateMachine');
 const NotificationService = require('../utils/notification');
-const { logOperation } = require('../utils/operationLog');
 
 class WorkerController {
   /**
@@ -139,7 +138,6 @@ class WorkerController {
       const id = req.params.id;
       const result = await Workflow.transition(id, req.user, 'accept', req.body || {}, { ip: req.ip });
 
-      logOperation({ user_id: req.user.id, order_id: id, action: 'accept', detail: '已接受工单', ip: req.ip });
       res.json({ success: true, message: '已接受工单', data: { final_price: result.final_price } });
     } catch (error) {
       res.status(error.status || 500).json({ success: false, message: error.status ? error.message : '操作失败，请重试' });
@@ -155,7 +153,6 @@ class WorkerController {
       const id = req.params.id;
       const result = await Workflow.transition(id, req.user, 'reject', req.body || {}, { ip: req.ip });
       NotificationService.notifyAdminOrderRejected(id, req.body.reason, req.user.nickname).catch(() => {});
-      logOperation({ user_id: req.user.id, order_id: id, action: 'reject', detail: '已拒绝工单', ip: req.ip });
       res.json({ success: true, message: '已拒绝工单', data: { final_price: result.final_price } });
     } catch (error) {
       res.status(error.status || 500).json({ success: false, message: error.status ? error.message : '操作失败，请重试' });
@@ -171,7 +168,6 @@ class WorkerController {
       const id = req.params.id;
       const result = await Workflow.transition(id, req.user, 'start', req.body || {}, { ip: req.ip });
       NotificationService.notifyCustomerWorkStarted(id).catch(() => {});
-      logOperation({ user_id: req.user.id, order_id: id, action: 'start', detail: '已开始施工', ip: req.ip });
       res.json({ success: true, message: '已开始施工', data: { final_price: result.final_price } });
     } catch (error) {
       res.status(error.status || 500).json({ success: false, message: error.status ? error.message : '操作失败，请重试' });
@@ -187,7 +183,6 @@ class WorkerController {
       const id = req.params.id;
       const result = await Workflow.transition(id, req.user, 'complete', req.body || {}, { ip: req.ip });
       NotificationService.notifyCustomerWorkCompleted(id).catch(() => {});
-      logOperation({ user_id: req.user.id, order_id: id, action: 'complete', detail: '已完工，等待验收', ip: req.ip });
       res.json({ success: true, message: '已完工，等待验收', data: { final_price: result.final_price } });
     } catch (error) {
       res.status(error.status || 500).json({ success: false, message: error.status ? error.message : '操作失败，请重试' });
@@ -301,7 +296,6 @@ class WorkerController {
 WorkerController.createChangeRequest = async (req, res) => {
   try {
     const result = await require('../utils/orderEdit').createChangeRequest(req.user.id, req.params.id, req.body || {});
-    logOperation({ user_id: req.user.id, order_id: req.params.id, action: 'change_request', detail: '提交现场变更申请', ip: req.ip });
     res.json({ success: true, message: '申请已提交，请等待客服处理', data: result });
   } catch (error) {
     if (!error.status) console.error('提交变更申请失败:', error);

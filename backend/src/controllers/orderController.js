@@ -3,7 +3,6 @@ const Service = require('../models/Service');
 const Address = require('../models/Address');
 const OrderEdit = require('../utils/orderEdit');
 const NotificationService = require('../utils/notification');
-const { logOperation } = require('../utils/operationLog');
 
 /**
  * 创建工单
@@ -87,15 +86,7 @@ exports.createOrder = async (req, res) => {
       appointment_slot
     });
 
-    // 异步：通知管理员新工单 + 记录日志
     NotificationService.notifyAdminNewOrder(result.id).catch(() => {});
-    logOperation({
-      user_id: userId,
-      order_id: result.id,
-      action: 'create_order',
-      detail: '客户提交新工单',
-      ip: req.ip
-    });
 
     res.json({
       success: true,
@@ -210,15 +201,7 @@ exports.cancelOrder = async (req, res) => {
       });
     }
 
-    // 异步：通知师傅 + 记录日志
     NotificationService.notifyWorkerOrderCancelled(id, '客户主动取消').catch(() => {});
-    logOperation({
-      user_id: userId,
-      order_id: id,
-      action: 'cancel',
-      detail: '客户取消工单',
-      ip: req.ip
-    });
 
     res.json({
       success: true,
@@ -270,14 +253,6 @@ exports.urgeOrder = async (req, res) => {
       // 查询失败不影响主流程
     }
 
-    logOperation({
-      user_id: userId,
-      order_id: id,
-      action: 'urge',
-      detail: '客户催单',
-      ip: req.ip
-    });
-
     res.json({
       success: true,
       message: '催单成功'
@@ -316,15 +291,7 @@ exports.confirmOrder = async (req, res) => {
       });
     }
 
-    // 异步：通知师傅 + 记录日志
     NotificationService.notifyWorkerOrderConfirmed(id).catch(() => {});
-    logOperation({
-      user_id: userId,
-      order_id: id,
-      action: 'confirm',
-      detail: '客户确认工单完成',
-      ip: req.ip
-    });
 
     res.json({
       success: true,
@@ -378,14 +345,6 @@ exports.disputePrice = async (req, res) => {
       title: '价格异议提醒',
       content: `客户对工单提出价格异议：${reason.trim().substring(0, 50)}`
     });
-    logOperation({
-      user_id: userId,
-      order_id: id,
-      action: 'dispute_price',
-      detail: `客户提交价格异议：${reason.trim()}`,
-      ip: req.ip
-    });
-
     res.json({
       success: true,
       message: '已提交价格异议'
@@ -453,15 +412,6 @@ exports.submitReview = async (req, res) => {
         message: '只能对已完成的工单进行评价'
       });
     }
-
-    // 异步：记录日志
-    logOperation({
-      user_id: userId,
-      order_id: id,
-      action: 'review',
-      detail: `客户评价：态度${service_attitude_score}分 / 质量${quality_score}分 / 价格${price_score}分`,
-      ip: req.ip
-    });
 
     res.json({
       success: true,

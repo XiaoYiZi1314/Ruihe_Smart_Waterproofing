@@ -93,16 +93,8 @@ import { ref, reactive, onMounted } from 'vue';
 import api from '../api';
 
 const ACTION_TEXT = {
-  create_order: '创建工单',
   register_order: '电话登记',
   assign: '指派工单',
-  accept: '接受工单',
-  reject: '拒绝工单',
-  start: '开始施工',
-  complete: '完工填价',
-  urge: '催单',
-  confirm: '确认完成',
-  dispute_price: '价格异议',
   adjust_price: '调整价格',
   cancel: '取消工单',
   edit_order: '更正工单',
@@ -110,11 +102,7 @@ const ACTION_TEXT = {
   correct_status: '更正状态',
   image_add: '补充图片',
   image_remove: '删除图片',
-  change_request: '师傅变更申请',
   handle_change_request: '处理变更申请',
-  auto_complete: '自动完成',
-  mark_exception: '标记异常',
-  review: '评价',
   create_worker: '创建师傅',
   update_worker: '编辑师傅',
   delete_worker: '停用师傅',

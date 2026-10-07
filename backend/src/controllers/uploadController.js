@@ -20,6 +20,7 @@ class UploadController {
 
       logOperation({
         user_id: req.user.id,
+        role: req.user.role,
         action: 'upload_image',
         detail: `上传图片：${req.file.filename}`,
         ip: req.ip

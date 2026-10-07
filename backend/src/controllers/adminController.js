@@ -9,7 +9,7 @@ const OrderStateMachine = require('../utils/orderStateMachine');
 const ExcelJS = require('exceljs');
 const bcrypt = require('bcryptjs');
 const NotificationService = require('../utils/notification');
-const { logOperation, decorateLog, actionOptions } = require('../utils/operationLog');
+const { logOperation, decorateLog, actionOptions, adminLogScopeSql } = require('../utils/operationLog');
 const { generateWorkerPassword, isValidWorkerPassword } = require('../utils/password');
 
 class AdminController {
@@ -528,7 +528,7 @@ class AdminController {
       const current = Math.max(parseInt(page, 10) || 1, 1);
       const size = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
 
-      let whereClause = '1=1';
+      let whereClause = adminLogScopeSql();
       const params = [];
 
       if (action) {
