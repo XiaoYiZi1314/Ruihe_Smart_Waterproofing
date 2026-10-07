@@ -5,6 +5,7 @@
 
 const db = require('../config/database');
 const { logOperation } = require('../utils/operationLog');
+const { parseHighlights, readHighlights } = require('../utils/serviceHighlights');
 
 class ContentController {
   // ==================== 服务分类 ====================
@@ -222,6 +223,10 @@ class ContentController {
         params
       );
 
+      for (const service of services) {
+        service.highlights = readHighlights(service.highlights);
+      }
+
       res.json({
         success: true,
         data: {
@@ -247,7 +252,7 @@ class ContentController {
   static async createService(req, res) {
     try {
       const {
-        category_id, name, description, cover_image, images,
+        category_id, name, description, cover_image, images, highlights,
         price_min, price_max, price_unit = '元', is_hot = 0, sort_order = 0
       } = req.body;
 
@@ -257,6 +262,8 @@ class ContentController {
           message: '请选择分类并填写服务名称'
         });
       }
+
+      const highlightsJson = JSON.stringify(parseHighlights(highlights));
 
       // 验证分类存在
       const [categories] = await db.query(
@@ -269,15 +276,16 @@ class ContentController {
 
       const [result] = await db.query(
         `INSERT INTO services 
-         (category_id, name, description, cover_image, images, 
+         (category_id, name, description, cover_image, images, highlights,
           price_min, price_max, price_unit, is_hot, sort_order)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           category_id,
           name.trim(),
           description || null,
           cover_image || null,
           images ? JSON.stringify(images) : null,
+          highlightsJson,
           price_min || null,
           price_max || null,
           price_unit,
@@ -299,6 +307,9 @@ class ContentController {
         data: { id: result.insertId }
       });
     } catch (error) {
+      if (error.status === 400) {
+        return res.status(400).json({ success: false, message: error.message });
+      }
       console.error('创建服务失败:', error);
       res.status(500).json({ success: false, message: '创建服务失败' });
     }
@@ -312,7 +323,7 @@ class ContentController {
     try {
       const { id } = req.params;
       const {
-        category_id, name, description, cover_image, images,
+        category_id, name, description, cover_image, images, highlights,
         price_min, price_max, price_unit, is_hot, sort_order
       } = req.body;
 
@@ -323,24 +334,31 @@ class ContentController {
         });
       }
 
+      const fields = [
+        'category_id = ?', 'name = ?', 'description = ?', 'cover_image = ?', 'images = ?',
+        'price_min = ?', 'price_max = ?', 'price_unit = ?', 'is_hot = ?', 'sort_order = ?'
+      ];
+      const params = [
+        category_id,
+        name.trim(),
+        description || null,
+        cover_image || null,
+        images ? JSON.stringify(images) : null,
+        price_min || null,
+        price_max || null,
+        price_unit || '元',
+        is_hot ? 1 : 0,
+        parseInt(sort_order) || 0
+      ];
+      if (Object.prototype.hasOwnProperty.call(req.body, 'highlights')) {
+        fields.push('highlights = ?');
+        params.push(JSON.stringify(parseHighlights(highlights)));
+      }
+      params.push(id);
+
       const [result] = await db.query(
-        `UPDATE services 
-         SET category_id = ?, name = ?, description = ?, cover_image = ?, images = ?,
-             price_min = ?, price_max = ?, price_unit = ?, is_hot = ?, sort_order = ?
-         WHERE id = ?`,
-        [
-          category_id,
-          name.trim(),
-          description || null,
-          cover_image || null,
-          images ? JSON.stringify(images) : null,
-          price_min || null,
-          price_max || null,
-          price_unit || '元',
-          is_hot ? 1 : 0,
-          parseInt(sort_order) || 0,
-          id
-        ]
+        `UPDATE services SET ${fields.join(', ')} WHERE id = ?`,
+        params
       );
 
       if (result.affectedRows === 0) {
@@ -356,6 +374,9 @@ class ContentController {
 
       res.json({ success: true, message: '服务项目已更新' });
     } catch (error) {
+      if (error.status === 400) {
+        return res.status(400).json({ success: false, message: error.message });
+      }
       console.error('更新服务失败:', error);
       res.status(500).json({ success: false, message: '更新服务失败' });
     }

@@ -142,6 +142,18 @@
             show-word-limit
           />
         </el-form-item>
+        <el-form-item label="服务亮点">
+          <el-select
+            v-model="form.highlights"
+            multiple
+            filterable
+            allow-create
+            default-first-option
+            placeholder="输入后回车添加，如：质保5年"
+            style="width: 100%"
+          />
+          <div class="form-tip">最多 8 个，每个不超过 12 个字。留空则服务详情不展示该区块。</div>
+        </el-form-item>
         <el-form-item label="价格区间">
           <div class="price-range">
             <el-input-number v-model="form.price_min" :min="0" :precision="2" placeholder="最低价" />
@@ -211,6 +223,7 @@ const defaultForm = {
   name: '',
   category_id: null,
   description: '',
+  highlights: [],
   cover_image: '',
   price_min: null,
   price_max: null,
@@ -270,6 +283,7 @@ function openDialog(row) {
     name: row ? row.name : '',
     category_id: row ? row.category_id : null,
     description: row ? (row.description || '') : '',
+    highlights: row && Array.isArray(row.highlights) ? [...row.highlights] : [],
     cover_image: row ? (row.cover_image || '') : '',
     price_min: row ? row.price_min : null,
     price_max: row ? row.price_max : null,
@@ -386,5 +400,12 @@ onMounted(() => {
   height: 80px;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
+}
+
+.form-tip {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #9ca3af;
+  line-height: 1.5;
 }
 </style>

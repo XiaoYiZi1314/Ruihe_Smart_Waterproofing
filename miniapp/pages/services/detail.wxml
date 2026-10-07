@@ -34,7 +34,7 @@
       <text class="detail-price__unit">{{priceSuffix || '参考价格'}}</text>
     </view>
 
-    <view class="detail-sec">
+    <view class="detail-sec" wx:if="{{highlights.length}}">
       <rh-section-title title="服务亮点" />
       <view class="detail-tags">
         <text wx:for="{{highlights}}" wx:key="*this">{{item}}</text>

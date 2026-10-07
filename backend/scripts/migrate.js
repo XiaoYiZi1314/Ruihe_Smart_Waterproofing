@@ -69,6 +69,7 @@ async function migrate() {
         description TEXT COMMENT '服务描述',
         cover_image VARCHAR(500) COMMENT '封面图',
         images TEXT COMMENT '详情图片（JSON数组）',
+        highlights TEXT COMMENT '服务亮点（JSON数组）',
         price_min DECIMAL(10,2) COMMENT '价格区间-最低',
         price_max DECIMAL(10,2) COMMENT '价格区间-最高',
         price_unit VARCHAR(20) DEFAULT '元' COMMENT '价格单位',

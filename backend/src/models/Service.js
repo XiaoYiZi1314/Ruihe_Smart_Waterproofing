@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const { parseHighlights, readHighlights } = require('../utils/serviceHighlights');
 
 class Service {
   /**
@@ -118,6 +119,7 @@ class Service {
       }
     }
     if (!Array.isArray(service.images)) service.images = [];
+    service.highlights = readHighlights(service.highlights);
 
     return service;
   }
@@ -147,17 +149,18 @@ class Service {
    */
   static async create(data) {
     const {
-      category_id, name, description, cover_image, images,
+      category_id, name, description, cover_image, images, highlights,
       price_min, price_max, price_unit, is_hot, sort_order
     } = data;
 
     const imagesJson = Array.isArray(images) ? JSON.stringify(images) : images;
+    const highlightsJson = JSON.stringify(parseHighlights(highlights));
 
     const [result] = await db.query(
       `INSERT INTO services
-       (category_id, name, description, cover_image, images, price_min, price_max, price_unit, is_hot, sort_order)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [category_id, name, description, cover_image, imagesJson,
+       (category_id, name, description, cover_image, images, highlights, price_min, price_max, price_unit, is_hot, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [category_id, name, description, cover_image, imagesJson, highlightsJson,
        price_min, price_max, price_unit || '元', is_hot || 0, sort_order || 0]
     );
 
@@ -169,18 +172,21 @@ class Service {
    */
   static async update(id, data) {
     const {
-      category_id, name, description, cover_image, images,
+      category_id, name, description, cover_image, images, highlights,
       price_min, price_max, price_unit, is_hot, is_active, sort_order
     } = data;
 
     const imagesJson = Array.isArray(images) ? JSON.stringify(images) : images;
+    const highlightsJson = JSON.stringify(parseHighlights(
+      Object.prototype.hasOwnProperty.call(data, 'highlights') ? highlights : []
+    ));
 
     const [result] = await db.query(
       `UPDATE services
-       SET category_id = ?, name = ?, description = ?, cover_image = ?, images = ?,
+       SET category_id = ?, name = ?, description = ?, cover_image = ?, images = ?, highlights = ?,
            price_min = ?, price_max = ?, price_unit = ?, is_hot = ?, is_active = ?, sort_order = ?
        WHERE id = ?`,
-      [category_id, name, description, cover_image, imagesJson,
+      [category_id, name, description, cover_image, imagesJson, highlightsJson,
        price_min, price_max, price_unit, is_hot, is_active, sort_order, id]
     );
 

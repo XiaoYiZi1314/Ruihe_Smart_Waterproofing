@@ -46,7 +46,7 @@ Page({
     bannerGradient: '',
     priceMain: '',
     priceSuffix: '',
-    highlights: ['质保5年', '免费勘测', '签约施工'],
+    highlights: [],
     reviews: [],
     reviewStats: null,
     reviewStars: [1, 2, 3, 4, 5]
@@ -114,9 +114,9 @@ Page({
           bannerGradient: theme.coverGradient(service.id || service.name),
           priceMain: price.main,
           priceSuffix: price.suffix ? `${price.suffix} · 参考价格` : '参考价格',
-          highlights: service.tags && service.tags.length
-            ? service.tags
-            : ['质保5年', '免费勘测', '签约施工'],
+          highlights: Array.isArray(service.highlights)
+            ? service.highlights.filter(Boolean)
+            : [],
           reviews: (service.reviews || []).map((r) => ({
             ...r,
             maskedName: maskName(r.user_name),

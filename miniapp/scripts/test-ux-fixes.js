@@ -963,3 +963,29 @@ test('rh-image stays visible while loading so WeChat does not false-error remote
   assert.match(read('miniapp/components/rh-image/rh-image.js'), /lazy:\s*\{\s*type:\s*Boolean,\s*value:\s*false\s*\}/);
   assert.match(read('backend/src/app.js'), /crossOriginResourcePolicy:\s*\{\s*policy:\s*'cross-origin'\s*\}/);
 });
+
+test('service detail uses admin-configured highlights and hides the section when empty', async () => {
+  assert.doesNotMatch(read('miniapp/pages/services/detail.js'), /质保5年|免费勘测|签约施工/);
+  assert.match(read('miniapp/pages/services/detail.wxml'), /wx:if="\{\{highlights\.length\}\}"/);
+
+  const api = {
+    getServiceById: async () => ({
+      success: true,
+      data: { id: 5, name: '卫生间免砸砖防水', price_min: 80, highlights: ['质保8年', '免砸砖'], reviews: [] }
+    })
+  };
+  const env = createEnv({ deps: { '../../utils/api': api } });
+  const page = env.page('miniapp/pages/services/detail.js');
+  page.onLoad({ id: '5' });
+  await tick(); await tick();
+  assert.deepEqual(plain(page.data.highlights), ['质保8年', '免砸砖']);
+
+  const emptyApi = {
+    getServiceById: async () => ({ success: true, data: { id: 6, name: '厨房防水', price_min: 50, reviews: [] } })
+  };
+  const emptyEnv = createEnv({ deps: { '../../utils/api': emptyApi } });
+  const emptyPage = emptyEnv.page('miniapp/pages/services/detail.js');
+  emptyPage.onLoad({ id: '6' });
+  await tick(); await tick();
+  assert.deepEqual(plain(emptyPage.data.highlights), []);
+});

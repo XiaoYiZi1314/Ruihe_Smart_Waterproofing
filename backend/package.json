@@ -11,6 +11,7 @@
     "migrate:phase3": "node scripts/migrate-phase3.js",
     "migrate:review": "node scripts/migrate-review.js",
     "migrate:order-edit": "node scripts/migrate-order-edit.js",
+    "migrate:service-highlights": "node scripts/migrate-service-highlights.js",
     "migrate:company-info": "node scripts/update-company-info.js",
     "seed": "node scripts/seed.js",
     "init-admin": "node scripts/init-admin.js",

@@ -68,9 +68,10 @@ async function seed() {
 
     for (const service of services) {
       await connection.query(
-        `INSERT INTO services (category_id, name, description, cover_image, images, price_min, price_max, price_unit, is_hot, is_active, sort_order)
-         VALUES (?, ?, ?, ?, ?, ?, ?, '元/平米', ?, 1, ?)`,
+        `INSERT INTO services (category_id, name, description, cover_image, images, highlights, price_min, price_max, price_unit, is_hot, is_active, sort_order)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, '元/平米', ?, 1, ?)`,
         [service.category_id, service.name, service.description, service.cover_image, service.images,
+         service.highlights || '["质保5年","免费勘测","签约施工"]',
          service.price_min, service.price_max, service.is_hot, service.sort_order]
       );
     }
