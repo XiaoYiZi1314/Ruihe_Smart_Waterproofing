@@ -27,10 +27,10 @@
             <el-table-column prop="title" label="标题" width="140">
               <template #default="{ row }">{{ row.title || '-' }}</template>
             </el-table-column>
-            <el-table-column label="跳转" min-width="160">
+            <el-table-column label="跳转" min-width="180">
               <template #default="{ row }">
                 <span v-if="row.link_type === 'none'">无跳转</span>
-                <span v-else-if="row.link_type === 'service'">服务 ID: {{ row.link_value }}</span>
+                <span v-else-if="row.link_type === 'service'">{{ serviceLinkText(row.link_value) }}</span>
                 <span v-else class="link-url">{{ row.link_value }}</span>
               </template>
             </el-table-column>
@@ -160,7 +160,7 @@
 
     <!-- 轮播图编辑弹窗 -->
     <el-dialog v-model="bannerDialogVisible" :title="editingBanner ? '编辑轮播图' : '新增轮播图'" width="520px">
-      <el-form ref="bannerFormRef" :model="bannerForm" :rules="bannerRules" label-width="90px">
+      <el-form ref="bannerFormRef" :model="bannerForm" :rules="bannerRules" label-width="100px">
         <el-form-item label="图片" prop="image_url">
           <div class="banner-upload">
             <el-image
@@ -182,20 +182,29 @@
           <el-input v-model="bannerForm.title" placeholder="轮播图标题（可选）" maxlength="100" />
         </el-form-item>
         <el-form-item label="跳转类型">
-          <el-select v-model="bannerForm.link_type" style="width: 100%">
+          <el-select v-model="bannerForm.link_type" style="width: 100%" @change="onLinkTypeChange">
             <el-option label="无跳转" value="none" />
             <el-option label="跳转服务" value="service" />
             <el-option label="外部链接" value="url" />
           </el-select>
         </el-form-item>
-        <el-form-item
-          v-if="bannerForm.link_type !== 'none'"
-          :label="bannerForm.link_type === 'service' ? '服务ID' : '链接地址'"
-        >
-          <el-input
+        <el-form-item v-if="bannerForm.link_type === 'service'" label="跳转服务" prop="link_value">
+          <el-select
             v-model="bannerForm.link_value"
-            :placeholder="bannerForm.link_type === 'service' ? '输入服务项目 ID' : '输入完整 URL'"
-          />
+            filterable
+            placeholder="请选择要跳转的服务"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="item in serviceOptions"
+              :key="item.id"
+              :label="serviceOptionLabel(item)"
+              :value="String(item.id)"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-else-if="bannerForm.link_type === 'url'" label="链接地址" prop="link_value">
+          <el-input v-model="bannerForm.link_value" placeholder="输入完整 URL，如 https://..." />
         </el-form-item>
         <el-form-item label="排序">
           <el-input-number v-model="bannerForm.sort_order" :min="0" :max="999" />
@@ -210,7 +219,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import api from '../api';
 
@@ -231,10 +240,42 @@ const bannerForm = reactive({
   link_value: '',
   sort_order: 0
 });
+const services = ref([]);
+const serviceOptions = computed(() =>
+  [...services.value].sort((a, b) => Number(b.is_active) - Number(a.is_active) || (a.sort_order - b.sort_order))
+);
 
 const bannerRules = {
-  image_url: [{ required: true, message: '请上传图片', trigger: 'change' }]
+  image_url: [{ required: true, message: '请上传图片', trigger: 'change' }],
+  link_value: [{
+    validator: (_rule, value, callback) => {
+      if (bannerForm.link_type === 'none') return callback();
+      if (!value) {
+        return callback(new Error(bannerForm.link_type === 'service' ? '请选择服务项目' : '请填写链接地址'));
+      }
+      if (bannerForm.link_type === 'url' && !/^https?:\/\/\S+/i.test(String(value))) {
+        return callback(new Error('请填写有效的 http 或 https 链接'));
+      }
+      callback();
+    },
+    trigger: 'change'
+  }]
 };
+
+function serviceOptionLabel(item) {
+  const name = item.name || `服务 #${item.id}`;
+  return item.is_active === 1 ? name : `${name}（已下架）`;
+}
+
+function serviceLinkText(id) {
+  if (id == null || id === '') return '未选择服务';
+  const item = services.value.find((service) => String(service.id) === String(id));
+  return item ? serviceOptionLabel(item) : `服务 #${id}`;
+}
+
+function onLinkTypeChange() {
+  bannerForm.link_value = '';
+}
 
 // 配置
 const configLoading = ref(false);
@@ -276,7 +317,7 @@ function openBannerDialog(row) {
     title: row ? (row.title || '') : '',
     image_url: row ? row.image_url : '',
     link_type: row ? row.link_type : 'none',
-    link_value: row ? (row.link_value || '') : '',
+    link_value: row && row.link_value != null && row.link_value !== '' ? String(row.link_value) : '',
     sort_order: row ? row.sort_order : 0
   });
   bannerDialogVisible.value = true;
@@ -393,9 +434,19 @@ async function saveConfig(type) {
   }
 }
 
+async function loadServices() {
+  try {
+    const res = await api.get('/admin/services', { params: { limit: 200 } });
+    services.value = res.data.services || [];
+  } catch (err) {
+    // 拦截器已处理
+  }
+}
+
 onMounted(() => {
   loadBanners();
   loadConfig();
+  loadServices();
 });
 </script>
 

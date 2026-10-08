@@ -7,6 +7,28 @@ const db = require('../config/database');
 const { logOperation } = require('../utils/operationLog');
 const { parseHighlights, readHighlights } = require('../utils/serviceHighlights');
 
+function fail(message, status = 400) {
+  const error = new Error(message);
+  error.status = status;
+  throw error;
+}
+
+async function normalizeBannerLink(link_type, link_value) {
+  const type = link_type || 'none';
+  if (!['none', 'service', 'url'].includes(type)) fail('跳转类型无效');
+  if (type === 'none') return { link_type: 'none', link_value: null };
+  if (type === 'service') {
+    const id = Number(link_value);
+    if (!Number.isInteger(id) || id <= 0) fail('请选择服务项目');
+    const [rows] = await db.query('SELECT id FROM services WHERE id = ?', [id]);
+    if (!rows.length) fail('服务项目不存在');
+    return { link_type: 'service', link_value: String(id) };
+  }
+  const url = String(link_value || '').trim();
+  if (!/^https?:\/\/\S+/i.test(url)) fail('请填写有效的 http 或 https 链接');
+  return { link_type: 'url', link_value: url };
+}
+
 class ContentController {
   // ==================== 服务分类 ====================
 
@@ -517,11 +539,12 @@ class ContentController {
       if (!image_url) {
         return res.status(400).json({ success: false, message: '请上传轮播图图片' });
       }
+      const link = await normalizeBannerLink(link_type, link_value);
 
       const [result] = await db.query(
         `INSERT INTO banners (title, image_url, link_type, link_value, sort_order)
          VALUES (?, ?, ?, ?, ?)`,
-        [title || null, image_url, link_type, link_value || null, parseInt(sort_order) || 0]
+        [title || null, image_url, link.link_type, link.link_value, parseInt(sort_order) || 0]
       );
 
       logOperation({
@@ -538,7 +561,7 @@ class ContentController {
       });
     } catch (error) {
       console.error('创建轮播图失败:', error);
-      res.status(500).json({ success: false, message: '创建轮播图失败' });
+      res.status(error.status || 500).json({ success: false, message: error.status ? error.message : '创建轮播图失败' });
     }
   }
 
@@ -554,6 +577,7 @@ class ContentController {
       if (!image_url) {
         return res.status(400).json({ success: false, message: '图片地址不能为空' });
       }
+      const link = await normalizeBannerLink(link_type, link_value);
 
       const [result] = await db.query(
         `UPDATE banners 
@@ -562,8 +586,8 @@ class ContentController {
         [
           title || null,
           image_url,
-          link_type || 'none',
-          link_value || null,
+          link.link_type,
+          link.link_value,
           parseInt(sort_order) || 0,
           id
         ]
@@ -583,7 +607,7 @@ class ContentController {
       res.json({ success: true, message: '轮播图已更新' });
     } catch (error) {
       console.error('更新轮播图失败:', error);
-      res.status(500).json({ success: false, message: '更新轮播图失败' });
+      res.status(error.status || 500).json({ success: false, message: error.status ? error.message : '更新轮播图失败' });
     }
   }
 
