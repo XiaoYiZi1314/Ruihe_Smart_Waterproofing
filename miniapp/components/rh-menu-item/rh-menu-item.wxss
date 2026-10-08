@@ -27,7 +27,7 @@
 
 .rh-menu__txt {
   flex: 1;
-  font-size: 28rpx;
+  font-size: 30rpx;
   color: var(--color-text);
 }
 
@@ -38,7 +38,7 @@
   border-radius: 16rpx;
   background: var(--color-red);
   color: #ffffff;
-  font-size: 20rpx;
+  font-size: 22rpx;
   line-height: 32rpx;
   text-align: center;
 }

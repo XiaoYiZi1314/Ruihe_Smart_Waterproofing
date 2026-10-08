@@ -9,20 +9,20 @@
 }
 
 .addr-name {
-  font-size: 30rpx;
+  font-size: 32rpx;
   font-weight: 600;
   color: var(--color-text);
   margin-right: 16rpx;
 }
 
 .addr-phone {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: var(--color-text-secondary);
 }
 
 .addr-text {
   margin-top: 16rpx;
-  font-size: 25rpx;
+  font-size: 27rpx;
   color: var(--color-text-secondary);
   line-height: 1.6;
 }

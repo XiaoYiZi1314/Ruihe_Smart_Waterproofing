@@ -28,13 +28,13 @@
 }
 
 .home-slide__title {
-  font-size: 32rpx;
+  font-size: 34rpx;
   font-weight: 700;
   text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
 }
 
 .home-slide__sub {
-  font-size: 22rpx;
+  font-size: 24rpx;
   opacity: 0.9;
   margin-top: 6rpx;
 }
@@ -53,7 +53,7 @@
 
 .about-text {
   margin-top: 16rpx;
-  font-size: 25rpx;
+  font-size: 27rpx;
   color: var(--color-text-secondary);
   line-height: 1.7;
   white-space: pre-line;
@@ -61,7 +61,7 @@
 
 .about-more {
   margin-top: 16rpx;
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: var(--color-brand);
 }
 

@@ -26,19 +26,19 @@
 }
 
 .profile-name {
-  font-size: 34rpx;
+  font-size: 36rpx;
   font-weight: 600;
 }
 
 .profile-phone {
-  font-size: 25rpx;
+  font-size: 27rpx;
   opacity: 0.9;
   margin-top: 6rpx;
 }
 
 .profile-edit {
   margin-left: auto;
-  font-size: 24rpx;
+  font-size: 26rpx;
   opacity: 0.85;
 }
 

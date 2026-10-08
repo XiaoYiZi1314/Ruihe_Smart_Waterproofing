@@ -61,7 +61,7 @@
   padding: 56rpx 120rpx 28rpx 32rpx;
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
   color: var(--color-surface);
-  font-size: 36rpx;
+  font-size: 38rpx;
   font-weight: 600;
   pointer-events: none;
 }
@@ -72,7 +72,7 @@
   bottom: 24rpx;
   background: rgba(0, 0, 0, 0.5);
   color: #ffffff;
-  font-size: 22rpx;
+  font-size: 24rpx;
   padding: 6rpx 16rpx;
   border-radius: 28rpx;
 }
@@ -85,7 +85,7 @@
 }
 
 .detail-price__unit {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: var(--color-text-muted);
   font-weight: 400;
   margin-left: 8rpx;
@@ -96,13 +96,13 @@
 }
 
 .detail-p {
-  font-size: 26rpx;
+  font-size: 28rpx;
   color: var(--color-text-secondary);
   line-height: 1.7;
 }
 
 .detail-richtext {
-  font-size: 26rpx;
+  font-size: 28rpx;
   color: var(--color-text-secondary);
   line-height: 1.7;
 }
@@ -114,7 +114,7 @@
 }
 
 .detail-tags text {
-  font-size: 22rpx;
+  font-size: 24rpx;
   background: var(--color-brand-soft);
   color: var(--color-brand);
   padding: 6rpx 18rpx;
@@ -146,7 +146,7 @@
 }
 
 .review-stats__label {
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: var(--color-text-secondary);
   margin-top: 4rpx;
 }
@@ -159,7 +159,7 @@
 .review-stats__row {
   display: flex;
   justify-content: space-between;
-  font-size: 24rpx;
+  font-size: 26rpx;
   padding: 4rpx 0;
 }
 
@@ -173,7 +173,7 @@
 }
 
 .review-stats__count {
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: #9CA3AF;
   margin-top: 8rpx;
 }
@@ -194,13 +194,13 @@
 }
 
 .review-item__name {
-  font-size: 26rpx;
+  font-size: 28rpx;
   font-weight: 500;
   color: var(--color-text);
 }
 
 .review-item__stars {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: var(--color-orange, #F59E0B);
   font-weight: 500;
 }
@@ -212,7 +212,7 @@
 }
 
 .review-item__score-row text {
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: var(--color-text-secondary);
   background: var(--color-bg, #F4F6FA);
   border-radius: var(--radius-pill, 36rpx);
@@ -220,7 +220,7 @@
 }
 
 .review-item__comment {
-  font-size: 26rpx;
+  font-size: 28rpx;
   color: var(--color-text);
   line-height: 1.7;
   margin-top: 16rpx;
@@ -240,7 +240,7 @@
 }
 
 .review-item__time {
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: #D1D5DB;
   margin-top: 12rpx;
 }

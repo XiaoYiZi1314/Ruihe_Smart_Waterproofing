@@ -1,5 +1,5 @@
 .rh-status {
-  font-size: 22rpx;
+  font-size: 24rpx;
   padding: 6rpx 18rpx;
   border-radius: 20rpx;
   font-weight: 500;

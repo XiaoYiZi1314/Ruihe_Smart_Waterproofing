@@ -11,7 +11,7 @@
 
 .rh-tag {
   flex-shrink: 0;
-  font-size: 25rpx;
+  font-size: 27rpx;
   padding: 12rpx 26rpx;
   border-radius: 32rpx;
   background: var(--color-surface);

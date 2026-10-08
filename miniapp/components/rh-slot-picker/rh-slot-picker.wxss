@@ -6,7 +6,7 @@
 }
 
 .rh-slot {
-  font-size: 24rpx;
+  font-size: 26rpx;
   padding: 14rpx 24rpx;
   border-radius: var(--radius-md);
   background: var(--color-slot-bg);

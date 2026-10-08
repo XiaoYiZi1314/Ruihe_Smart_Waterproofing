@@ -22,6 +22,6 @@
 }
 
 .rh-quick__label {
-  font-size: 23rpx;
+  font-size: 25rpx;
   color: var(--color-text-body);
 }

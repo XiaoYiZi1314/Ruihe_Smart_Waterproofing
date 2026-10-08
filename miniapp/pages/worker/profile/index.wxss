@@ -3,7 +3,7 @@
 }
 
 .worker-hint {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: var(--color-text-secondary);
   line-height: 1.6;
   margin: 8rpx 0 24rpx;
@@ -35,19 +35,19 @@
 }
 
 .worker-head__name {
-  font-size: 32rpx;
+  font-size: 34rpx;
   font-weight: 600;
   color: var(--color-text);
 }
 
 .worker-head__sub {
   margin-top: 6rpx;
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: var(--color-text-secondary);
 }
 
 .worker-head__edit {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: var(--color-text-secondary);
   flex-shrink: 0;
 }

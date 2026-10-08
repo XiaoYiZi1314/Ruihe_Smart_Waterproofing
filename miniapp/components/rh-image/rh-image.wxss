@@ -44,12 +44,12 @@
 }
 
 .rh-img__err {
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: var(--color-text-muted, #9CA3AF);
 }
 
 .rh-img__retry {
-  font-size: 20rpx;
+  font-size: 22rpx;
   color: var(--color-brand, #2B7BE4);
 }
 

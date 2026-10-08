@@ -1,6 +1,6 @@
 .rh-more {
   text-align: center;
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: var(--color-text-muted);
   padding: 28rpx 0 12rpx;
 }

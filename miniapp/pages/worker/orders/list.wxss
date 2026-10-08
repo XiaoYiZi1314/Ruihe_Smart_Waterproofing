@@ -2,5 +2,5 @@
 .worker-toolbar { margin-bottom: 24rpx; }
 .worker-order { margin-top: 24rpx; }
 .worker-order__top { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; margin-bottom: 8rpx; }
-.worker-order__no { font-size: 22rpx; color: var(--color-text-muted); }
+.worker-order__no { font-size: 24rpx; color: var(--color-text-muted); }
 .worker-actions { margin-top: 20rpx; }
