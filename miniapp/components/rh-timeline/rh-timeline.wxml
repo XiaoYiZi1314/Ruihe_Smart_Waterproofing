@@ -6,6 +6,7 @@
     </view>
     <view class="rh-timeline__body">
       <view class="rh-timeline__label">{{item.label}}</view>
+      <view wx:if="{{item.detail}}" class="rh-timeline__detail">{{item.detail}}</view>
       <view class="rh-timeline__time">{{item.time}}</view>
     </view>
   </view>

@@ -202,6 +202,25 @@ class WorkOrder {
       order.review.images = imagesByReview[order.review.id] || [];
     }
 
+    if (order.price_adjusted_at) {
+      try {
+        const [priceLogs] = await db.query(
+          `SELECT old_value FROM order_change_logs
+           WHERE order_id = ? AND action = 'adjust_price' AND field = 'final_price'
+           ORDER BY id DESC LIMIT 1`,
+          [id]
+        );
+        if (priceLogs[0] && priceLogs[0].old_value != null && priceLogs[0].old_value !== '') {
+          order.price_before_adjustment = priceLogs[0].old_value;
+        } else {
+          order.price_before_adjustment = order.final_price;
+        }
+      } catch (error) {
+        if (error.code !== 'ER_NO_SUCH_TABLE') throw error;
+        order.price_before_adjustment = order.final_price;
+      }
+    }
+
     return presentOrder(order);
   }
 

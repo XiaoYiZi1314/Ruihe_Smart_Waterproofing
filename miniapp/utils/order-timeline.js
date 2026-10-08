@@ -27,10 +27,32 @@ function buildTimeline(order, formatTime) {
     if (!value) return;
     const at = parse(value);
     if (Number.isNaN(at)) return;
-    items.push({ key: step.key, label: step.label, time: formatTime(value), at, index });
+    items.push({
+      key: step.key,
+      label: step.label,
+      detail: step.key === 'price_adjusted_at' ? adjustmentDetail(source) : '',
+      time: formatTime(value),
+      at,
+      index
+    });
   });
   items.sort((a, b) => a.at - b.at || a.index - b.index);
-  return items.map((item, position) => ({ key: item.key, label: item.label, time: item.time, current: position === items.length - 1 }));
+  return items.map((item, position) => ({
+    key: item.key,
+    label: item.label,
+    detail: item.detail || '',
+    time: item.time,
+    current: position === items.length - 1
+  }));
+}
+
+function adjustmentDetail(order) {
+  const before = money(order.price_before_adjustment);
+  const after = money(order.final_price);
+  if (!after) return '';
+  if (!before) return `调整为 ${after}`;
+  if (before === after) return `${after}（未变）`;
+  return `${before} → ${after}`;
 }
 
 function money(value) {

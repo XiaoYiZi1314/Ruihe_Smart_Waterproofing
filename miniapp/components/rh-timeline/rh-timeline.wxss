@@ -40,6 +40,12 @@
   color: var(--color-text-body);
 }
 
+.rh-timeline__detail {
+  margin-top: 4rpx;
+  font-size: 26rpx;
+  color: var(--color-text);
+}
+
 .rh-timeline__time {
   margin-top: 4rpx;
   font-size: 24rpx;

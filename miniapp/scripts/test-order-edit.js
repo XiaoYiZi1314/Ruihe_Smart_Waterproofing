@@ -22,6 +22,23 @@ test('timeline skips empty or invalid times and shows a price correction and can
   assert.deepEqual(items.map(item => item.key), ['created_at', 'price_corrected_at', 'cancelled_at']);
   assert.equal(items[2].current, true);
 });
+test('price adjustment timeline shows previous and new amounts, including unchanged totals', () => {
+  const changed = buildTimeline({
+    created_at: '2026-10-01 10:00:00',
+    price_adjusted_at: '2026-10-02 11:38:00',
+    price_before_adjustment: '350',
+    final_price: '280'
+  }, fmt).find(item => item.key === 'price_adjusted_at');
+  assert.equal(changed.label, '价格已调整');
+  assert.equal(changed.detail, '¥350.00 → ¥280.00');
+  const same = buildTimeline({
+    price_adjusted_at: '2026-10-02 11:38:00',
+    price_before_adjustment: '200.00',
+    final_price: '200'
+  }, fmt)[0];
+  assert.equal(same.detail, '¥200.00（未变）');
+  assert.match(read('components/rh-timeline/rh-timeline.wxml'), /item\.detail/);
+});
 test('correction notice shows previous and new amount only after a correction', () => {
   assert.equal(correctionNotice({ final_price: '250.00' }, fmt), '');
   const text = correctionNotice({ price_corrected_at: '2026-10-02 10:00:00', price_before_correction: '350.00', final_price: '250.00' }, fmt);

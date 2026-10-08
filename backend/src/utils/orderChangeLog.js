@@ -117,6 +117,14 @@ async function recordFlow(connection, { order, nextStatus, action, actor, data =
     note = data.reason;
   } else if ((action === 'complete' || action === 'adjust_price') && fees) {
     entries.push(...diffEntries(order, fees, ['door_fee', 'material_fee', 'labor_fee', 'final_price']));
+    // 协商调价即使总额没变也记下最终价格，客户进度才能看出「原价 → 现价 / 未变」
+    if (action === 'adjust_price' && !entries.some(entry => entry.field === 'final_price')) {
+      entries.push({
+        field: 'final_price',
+        old_value: normalize('final_price', order.final_price),
+        new_value: normalize('final_price', fees.final_price)
+      });
+    }
   } else if (action === 'cancel' || action === 'dispute') {
     note = data.reason;
   }

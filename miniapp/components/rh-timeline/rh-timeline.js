@@ -1,6 +1,6 @@
 Component({
   properties: {
-    // [{ key, label, time, current }]
+    // [{ key, label, detail, time, current }]
     items: { type: Array, value: [] }
   }
 });
