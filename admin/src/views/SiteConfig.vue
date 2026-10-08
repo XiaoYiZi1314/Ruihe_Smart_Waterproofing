@@ -121,8 +121,9 @@
           <el-form
             v-loading="configLoading"
             :model="joinForm"
-            label-width="100px"
-            style="max-width: 600px"
+            class="join-form"
+            label-width="132px"
+            style="max-width: 640px"
           >
             <el-form-item label="合作品牌/公司">
               <el-input v-model="joinForm.partners" type="textarea" :rows="4" placeholder="每行一家合作品牌或公司" maxlength="2000" />
@@ -439,5 +440,15 @@ onMounted(() => {
   height: 72px;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
+}
+
+.join-form :deep(.el-form-item) {
+  align-items: flex-start;
+}
+
+.join-form :deep(.el-form-item__label) {
+  height: auto;
+  line-height: 32px;
+  white-space: nowrap;
 }
 </style>
