@@ -43,6 +43,7 @@
           <el-button type="primary" @click="loadOrders">查询</el-button>
           <el-button @click="resetFilter">重置</el-button>
           <el-button type="primary" @click="openRegisterDialog">电话登记</el-button>
+          <el-button @click="openImportDialog">批量导入</el-button>
           <el-button type="success" @click="exportOrders">
             <el-icon><Download /></el-icon>导出Excel
           </el-button>
@@ -108,8 +109,8 @@
             <span v-if="!Number(row.pending_requests) && !Number(row.correction_count)">-</span>
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" width="130">
-          <template #default="{ row }">{{ formatDate(row.created_at) }}</template>
+        <el-table-column label="创建时间" width="160">
+          <template #default="{ row }">{{ formatDateTime(row.created_at) }}</template>
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
@@ -174,10 +175,51 @@
         <el-form-item label="沟通备注">
           <el-input v-model="registerForm.remark" type="textarea" :rows="3" maxlength="2000" show-word-limit placeholder="来电诉求、漏水位置等" />
         </el-form-item>
+        <el-form-item label="来电时间">
+          <el-date-picker
+            v-model="registerForm.called_at"
+            type="datetime"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            placeholder="补登时填写实际来电时间，默认现在"
+            style="width: 100%"
+          />
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="registerDialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="submitting" @click="handleRegister">确认登记</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="importDialogVisible" title="批量导入电话登记" width="560px" destroy-on-close>
+      <p class="import-hint">补登来电时请填写实际来电时间（精确到分钟）。导入的仍是正式工单，有任一行错误则全部不导入。</p>
+      <div class="import-actions">
+        <el-button @click="downloadImportTemplate">下载模板</el-button>
+        <el-upload
+          :auto-upload="false"
+          :limit="1"
+          accept=".xlsx"
+          :on-change="onImportFileChange"
+          :on-remove="onImportFileRemove"
+        >
+          <el-button type="primary">选择 Excel</el-button>
+        </el-upload>
+      </div>
+      <p v-if="importFileName" class="import-file">已选：{{ importFileName }}</p>
+      <el-alert
+        v-if="importErrors.length"
+        type="error"
+        :closable="false"
+        title="未导入任何工单"
+        style="margin-top: 16px"
+      >
+        <ul class="import-errors">
+          <li v-for="item in importErrors" :key="item.row">第 {{ item.row }} 行：{{ item.message }}</li>
+        </ul>
+      </el-alert>
+      <template #footer>
+        <el-button @click="importDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="importing" :disabled="!importFile" @click="handleImport">开始导入</el-button>
       </template>
     </el-dialog>
 
@@ -220,6 +262,7 @@
         <el-descriptions :column="1" border size="small">
           <el-descriptions-item label="工单号">{{ currentOrder.order_no }}</el-descriptions-item>
           <el-descriptions-item label="来源">{{ sourceText(currentOrder.booking_source) }}</el-descriptions-item>
+          <el-descriptions-item label="创建时间">{{ formatDateTime(currentOrder.created_at) || '-' }}</el-descriptions-item>
           <el-descriptions-item label="状态">
             <el-tag :type="statusTagType(currentOrder.status)" size="small">
               {{ orderStatusText(currentOrder) }}
@@ -302,7 +345,7 @@ import { useRoute } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import api from '../api';
 import OrderManage from '../components/order/OrderManage.vue';
-import { formatDate } from '../utils/datetime';
+import { formatDate, formatDateTime } from '../utils/datetime';
 
 const timeFields = { assigned_at: '指派时间', confirmed_at: '接单时间', started_at: '开始施工', completed_at: '完工时间', finished_at: '验收完成', cancelled_at: '取消时间' };
 const STATUS_TEXT = {
@@ -508,7 +551,8 @@ const registerForm = reactive({
   appointment_date: '',
   appointment_slot: '',
   expected_price: null,
-  remark: ''
+  remark: '',
+  called_at: ''
 });
 const registerRules = {
   contact_name: [{ required: true, message: '请填写联系人', trigger: 'blur' }],
@@ -529,7 +573,8 @@ async function openRegisterDialog() {
     appointment_date: '',
     appointment_slot: '',
     expected_price: null,
-    remark: ''
+    remark: '',
+    called_at: ''
   });
   registerDialogVisible.value = true;
   try {
@@ -552,7 +597,8 @@ async function handleRegister() {
       remark: registerForm.remark || undefined,
       expected_price: registerForm.expected_price || undefined,
       appointment_date: registerForm.appointment_date || undefined,
-      appointment_slot: registerForm.appointment_slot || undefined
+      appointment_slot: registerForm.appointment_slot || undefined,
+      called_at: registerForm.called_at || undefined
     };
     const res = await api.post('/admin/orders', payload);
     ElMessage.success(`已登记 ${res.data.order_no}`);
@@ -563,6 +609,71 @@ async function handleRegister() {
     // 拦截器已处理
   } finally {
     submitting.value = false;
+  }
+}
+
+const importDialogVisible = ref(false);
+const importing = ref(false);
+const importFile = ref(null);
+const importFileName = ref('');
+const importErrors = ref([]);
+
+function openImportDialog() {
+  importFile.value = null;
+  importFileName.value = '';
+  importErrors.value = [];
+  importDialogVisible.value = true;
+}
+
+function onImportFileChange(file) {
+  importFile.value = file.raw || null;
+  importFileName.value = file.name || '';
+  importErrors.value = [];
+}
+
+function onImportFileRemove() {
+  importFile.value = null;
+  importFileName.value = '';
+}
+
+async function downloadImportTemplate() {
+  const token = localStorage.getItem('admin_token');
+  try {
+    const res = await fetch('/api/admin/orders/register-template', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('下载失败');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '电话登记导入模板.xlsx';
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    ElMessage.error('下载模板失败');
+  }
+}
+
+async function handleImport() {
+  if (!importFile.value) {
+    ElMessage.warning('请先选择 Excel 文件');
+    return;
+  }
+  importing.value = true;
+  importErrors.value = [];
+  try {
+    const form = new FormData();
+    form.append('file', importFile.value);
+    const res = await api.post('/admin/orders/register-import', form, { timeout: 60000 });
+    ElMessage.success(res.message || `已导入 ${res.data.count} 单`);
+    importDialogVisible.value = false;
+    pagination.page = 1;
+    loadOrders();
+  } catch (err) {
+    importErrors.value = err.response?.data?.errors || [];
+  } finally {
+    importing.value = false;
   }
 }
 
@@ -740,5 +851,27 @@ onBeforeUnmount(() => {
 .quick-label {
   color: #6b7280;
   font-size: 13px;
+}
+
+.import-hint {
+  margin: 0 0 16px;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.import-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.import-file {
+  margin: 12px 0 0;
+  color: #374151;
+}
+
+.import-errors {
+  margin: 8px 0 0;
+  padding-left: 18px;
 }
 </style>

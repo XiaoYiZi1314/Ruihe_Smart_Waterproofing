@@ -5,6 +5,7 @@ const db = require('../config/database');
 const ExcelJS = require('exceljs');
 const OrderEdit = require('../utils/orderEdit');
 const OrderRegister = require('../utils/orderRegister');
+const { buildImportTemplate } = require('../utils/orderRegisterImport');
 const Log = require('../utils/orderChangeLog');
 const { logOperation } = require('../utils/operationLog');
 
@@ -12,7 +13,11 @@ const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Sha
 const daysAgo = days => new Date(Date.now() - days * 86400000).toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
 function send(res, error, fallback = '操作失败，请重试') {
   if (!error.status) console.error(fallback, error);
-  res.status(error.status || 500).json({ success: false, message: error.status ? error.message : fallback });
+  res.status(error.status || 500).json({
+    success: false,
+    message: error.status ? error.message : fallback,
+    ...(error.errors ? { errors: error.errors } : {})
+  });
 }
 const meta = req => ({ ip: req.ip });
 const asId = value => { const number = Number(value); return Number.isInteger(number) && number > 0 ? number : null; };
@@ -35,6 +40,37 @@ exports.registerOrder = async (req, res) => {
     logOperation({ user_id: req.user.id, order_id: result.id, action: 'register_order', detail: `电话登记工单 ${result.order_no}`, ip: req.ip });
     res.json({ success: true, message: '工单已登记', data: result });
   } catch (error) { send(res, error, '登记失败，请重试'); }
+};
+exports.downloadRegisterTemplate = async (req, res) => {
+  try {
+    const [services] = await db.query('SELECT name FROM services WHERE is_active=1 ORDER BY id');
+    const workbook = await buildImportTemplate(services.map(item => item.name));
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="phone-register-template.xlsx"');
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) { send(res, error, '下载模板失败'); }
+};
+exports.importRegisterOrders = async (req, res) => {
+  try {
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({ success: false, message: '请上传 Excel 文件（.xlsx）' });
+    }
+    const name = String(req.file.originalname || '');
+    if (!name.toLowerCase().endsWith('.xlsx') && req.file.mimetype !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+      return res.status(400).json({ success: false, message: '请上传 Excel 文件（.xlsx）' });
+    }
+    const results = await OrderRegister.importPhoneOrders(req.user, req.file.buffer, meta(req));
+    const nos = results.map(item => item.order_no).join('、');
+    logOperation({
+      user_id: req.user.id,
+      order_id: results[0] && results[0].id,
+      action: 'register_order_batch',
+      detail: `批量导入电话登记 ${results.length} 单：${nos}`,
+      ip: req.ip
+    });
+    res.json({ success: true, message: `已导入 ${results.length} 单`, data: { count: results.length, orders: results } });
+  } catch (error) { send(res, error, '导入失败，请重试'); }
 };
 exports.editOrder = async (req, res) => {
   try {

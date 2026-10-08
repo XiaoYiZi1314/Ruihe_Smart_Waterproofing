@@ -1,6 +1,7 @@
 const db = require('../config/database');
 const { nextOrderNo } = require('./orderNumber');
 const ChangeLog = require('./orderChangeLog');
+const { parseCalledAt, formatSqlDateTime, parseImportWorkbook } = require('./orderRegisterImport');
 
 const BOOKING_SOURCES = { miniapp: '小程序', phone: '电话登记' };
 const SLOTS = ['上午 08-12', '下午 13-18', '晚上 18-20'];
@@ -34,8 +35,8 @@ function parseRegisterPayload(body = {}) {
     }
     expected_price = Math.round(number * 100) / 100;
   }
-  const appointment_date = body.appointment_date || null;
-  const appointment_slot = body.appointment_slot || null;
+  const appointment_date = body.appointment_date ? String(body.appointment_date).trim().slice(0, 10) : null;
+  const appointment_slot = body.appointment_slot ? String(body.appointment_slot).trim() : null;
   if (Boolean(appointment_date) !== Boolean(appointment_slot)) fail('预约日期和时段需要同时填写或同时留空');
   if (appointment_date && (!/^\d{4}-\d{2}-\d{2}$/.test(String(appointment_date)) || !SLOTS.includes(appointment_slot))) {
     fail('预约日期或时段无效');
@@ -43,6 +44,7 @@ function parseRegisterPayload(body = {}) {
   let remark = typeof body.remark === 'string' ? body.remark.trim() : '';
   if (remark.length > 2000) fail('备注最多 2000 字');
   remark = withAppointmentLine(remark, appointment_date, appointment_slot);
+  const calledAt = parseCalledAt(body.called_at, { required: false });
   return {
     contact_name,
     contact_phone,
@@ -51,7 +53,8 @@ function parseRegisterPayload(body = {}) {
     expected_price,
     appointment_date: appointment_date || null,
     appointment_slot: appointment_slot || null,
-    remark: remark || null
+    remark: remark || null,
+    called_at: calledAt
   };
 }
 
@@ -79,42 +82,48 @@ async function findOrCreateCustomer(connection, { contact_name, contact_phone })
   }
 }
 
-async function registerPhoneOrder(actor, body, meta = {}) {
-  const payload = parseRegisterPayload(body);
+async function insertPhoneOrder(connection, actor, payload, meta = {}) {
+  const [services] = await connection.query('SELECT id, is_active FROM services WHERE id=? LIMIT 1', [payload.service_id]);
+  if (!services.length) fail('服务项目不存在', 404);
+  if (Number(services[0].is_active) !== 1) fail('该服务已下架，无法登记');
+
+  const userId = await findOrCreateCustomer(connection, payload);
+  const [address] = await connection.query(
+    `INSERT INTO addresses (user_id, contact_name, contact_phone, detail_address, is_default)
+     VALUES (?, ?, ?, ?, 0)`,
+    [userId, payload.contact_name, payload.contact_phone, payload.full_address]
+  );
+  const calledAt = payload.called_at instanceof Date ? payload.called_at : parseCalledAt(payload.called_at);
+  const orderNo = await nextOrderNo(connection, calledAt);
+  const [result] = await connection.query(
+    `INSERT INTO work_orders
+     (order_no, user_id, service_id, address_id, contact_name, contact_phone,
+      full_address, expected_price, remark, appointment_date, appointment_slot, status, booking_source, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'phone', FROM_UNIXTIME(?))`,
+    [orderNo, userId, payload.service_id, address.insertId, payload.contact_name, payload.contact_phone,
+      payload.full_address, payload.expected_price, payload.remark, payload.appointment_date, payload.appointment_slot,
+      Math.floor(calledAt.getTime() / 1000)]
+  );
+  const orderId = result.insertId;
+  await ChangeLog.record(connection, {
+    orderId,
+    actor: { id: actor.id, role: 'admin', nickname: actor.nickname, username: actor.username },
+    source: 'admin_edit',
+    action: 'register',
+    entries: [],
+    ip: meta.ip
+  });
+  await connection.query('UPDATE services SET order_count = order_count + 1 WHERE id = ?', [payload.service_id]);
+  return { id: orderId, order_no: orderNo, booking_source: 'phone', created_at: formatSqlDateTime(calledAt) };
+}
+
+async function withTransaction(work) {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
-    const [services] = await connection.query('SELECT id, is_active FROM services WHERE id=? LIMIT 1', [payload.service_id]);
-    if (!services.length) fail('服务项目不存在', 404);
-    if (Number(services[0].is_active) !== 1) fail('该服务已下架，无法登记');
-
-    const userId = await findOrCreateCustomer(connection, payload);
-    const [address] = await connection.query(
-      `INSERT INTO addresses (user_id, contact_name, contact_phone, detail_address, is_default)
-       VALUES (?, ?, ?, ?, 0)`,
-      [userId, payload.contact_name, payload.contact_phone, payload.full_address]
-    );
-    const orderNo = await nextOrderNo(connection);
-    const [result] = await connection.query(
-      `INSERT INTO work_orders
-       (order_no, user_id, service_id, address_id, contact_name, contact_phone,
-        full_address, expected_price, remark, appointment_date, appointment_slot, status, booking_source)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'phone')`,
-      [orderNo, userId, payload.service_id, address.insertId, payload.contact_name, payload.contact_phone,
-        payload.full_address, payload.expected_price, payload.remark, payload.appointment_date, payload.appointment_slot]
-    );
-    const orderId = result.insertId;
-    await ChangeLog.record(connection, {
-      orderId,
-      actor: { id: actor.id, role: 'admin', nickname: actor.nickname, username: actor.username },
-      source: 'admin_edit',
-      action: 'register',
-      entries: [],
-      ip: meta.ip
-    });
-    await connection.query('UPDATE services SET order_count = order_count + 1 WHERE id = ?', [payload.service_id]);
+    const result = await work(connection);
     await connection.commit();
-    return { id: orderId, order_no: orderNo, booking_source: 'phone' };
+    return result;
   } catch (error) {
     await connection.rollback();
     throw error;
@@ -123,4 +132,48 @@ async function registerPhoneOrder(actor, body, meta = {}) {
   }
 }
 
-module.exports = { BOOKING_SOURCES, parseRegisterPayload, registerPhoneOrder };
+async function registerPhoneOrder(actor, body, meta = {}) {
+  const payload = parseRegisterPayload(body);
+  return withTransaction(connection => insertPhoneOrder(connection, actor, payload, meta));
+}
+
+async function importPhoneOrders(actor, buffer, meta = {}) {
+  const [services] = await db.query('SELECT id, name FROM services WHERE is_active=1 ORDER BY id');
+  const parsed = await parseImportWorkbook(buffer, { services, now: new Date() });
+  const payloads = [];
+  for (const item of parsed.rows) {
+    try {
+      const payload = parseRegisterPayload({
+        ...item.body,
+        called_at: item.body.called_at
+      });
+      payload.called_at = item.body.calledAtDate;
+      payload._row = item.row;
+      payloads.push(payload);
+    } catch (error) {
+      parsed.errors.push({ row: item.row, message: error.message });
+    }
+  }
+  if (parsed.errors.length) {
+    const error = new Error(`有 ${parsed.errors.length} 行填写有误，未导入任何工单`);
+    error.status = 400;
+    error.errors = parsed.errors.sort((a, b) => a.row - b.row);
+    throw error;
+  }
+  payloads.sort((a, b) => a.called_at - b.called_at || a._row - b._row);
+
+  return withTransaction(async connection => {
+    const results = [];
+    for (const payload of payloads) {
+      results.push(await insertPhoneOrder(connection, actor, payload, meta));
+    }
+    return results;
+  });
+}
+
+module.exports = {
+  BOOKING_SOURCES,
+  parseRegisterPayload,
+  registerPhoneOrder,
+  importPhoneOrders
+};

@@ -3,12 +3,24 @@
  */
 
 const express = require('express');
+const multer = require('multer');
 const router = express.Router();
 const { uploadHandler } = require('../middlewares/uploads');
 const AdminController = require('../controllers/adminController');
 const ContentController = require('../controllers/contentController');
 const OrderAdmin = require('../controllers/orderAdminController');
 const { authenticateToken, requireRole } = require('../middlewares/auth');
+
+const xlsxParser = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 2 * 1024 * 1024, files: 1 }
+}).single('file');
+function xlsxUpload(req, res, next) {
+  xlsxParser(req, res, error => {
+    if (!error) return next();
+    res.status(400).json({ success: false, message: '请上传不超过 2MB 的 Excel 文件（.xlsx）' });
+  });
+}
 
 // 所有管理员路由都需要认证且角色为 admin
 router.use(authenticateToken);
@@ -19,6 +31,8 @@ router.post('/upload', ...uploadHandler('image', true));
 // ============ 工单管理 ============
 router.get('/orders', AdminController.getOrders);
 router.post('/orders', OrderAdmin.registerOrder);
+router.get('/orders/register-template', OrderAdmin.downloadRegisterTemplate);
+router.post('/orders/register-import', xlsxUpload, OrderAdmin.importRegisterOrders);
 router.get('/orders/export', AdminController.exportOrders);
 router.get('/orders/edit-meta', OrderAdmin.getEditMeta);
 router.get('/orders/:id', AdminController.getOrderDetail);

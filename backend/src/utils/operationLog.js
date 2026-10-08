@@ -6,6 +6,7 @@ const db = require('../config/database');
 
 const ADMIN_ACTION_LABELS = {
   register_order: '电话登记',
+  register_order_batch: '批量导入电话登记',
   assign: '指派工单',
   adjust_price: '调整价格',
   cancel: '取消工单',
