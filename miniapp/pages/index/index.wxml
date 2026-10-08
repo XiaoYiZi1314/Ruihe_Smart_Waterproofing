@@ -100,10 +100,10 @@
       <rh-section-title title="🤝 加盟合作" />
       <view class="join-columns">
         <view class="join-partners" wx:if="{{joinInfo.partners}}">
-          <rh-contact-line icon="shield" title="合作品牌 / 公司" subtitle="{{joinInfo.partners}}" />
+          <rh-contact-line align="start" icon="shield" title="合作品牌 / 公司" subtitle="{{joinInfo.partners}}" />
         </view>
         <view class="join-contact" wx:if="{{joinInfo.phone}}">
-          <rh-contact-line icon="phone" title="加盟热线" subtitle="{{joinInfo.phone}}" bind:select="onJoinConsult" />
+          <rh-contact-line align="start" icon="phone" title="加盟热线" subtitle="{{joinInfo.phone}}" bind:select="onJoinConsult" />
         </view>
       </view>
       <view class="about-text" wx:if="{{joinInfo.description}}">{{joinInfo.description}}</view>

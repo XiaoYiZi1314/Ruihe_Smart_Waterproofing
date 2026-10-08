@@ -1,4 +1,4 @@
-<view class="rh-contact" catch:tap="onTap">
+<view class="rh-contact {{align === 'start' ? 'rh-contact--start' : ''}}" catch:tap="onTap">
   <view class="rh-contact__ico">
     <rh-icon name="{{icon}}" tone="brand" size="32" />
   </view>
