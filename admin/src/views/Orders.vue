@@ -43,7 +43,9 @@
           <el-button type="primary" @click="loadOrders">查询</el-button>
           <el-button @click="resetFilter">重置</el-button>
           <el-button type="primary" @click="openRegisterDialog">电话登记</el-button>
-          <el-button @click="openImportDialog">批量导入</el-button>
+          <el-button @click="openImportDialog">
+            <el-icon><Upload /></el-icon>批量导入
+          </el-button>
           <el-button type="success" @click="exportOrders">
             <el-icon><Download /></el-icon>导出Excel
           </el-button>
@@ -198,7 +200,7 @@
     </el-dialog>
 
     <el-dialog v-model="importDialogVisible" title="批量导入电话登记" width="560px" destroy-on-close>
-      <p class="import-hint">补登来电时请填写实际来电时间（精确到分钟）。导入的仍是正式工单，有任一行错误则全部不导入。</p>
+      <p class="import-hint">用于补登历史来电：填写实际来电时间（精确到分钟）。导入的仍是正式工单，工单号按系统规则顺延（来电日期 + 当日序号），列表也按来电时间排列。有任一行错误则全部不导入，一次最多 100 条。现场图片请导入后再在工单详情里补充。</p>
       <div class="import-actions">
         <el-button @click="downloadImportTemplate">下载模板</el-button>
         <el-upload

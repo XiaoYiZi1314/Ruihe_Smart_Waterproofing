@@ -11,6 +11,7 @@ const bcrypt = require('bcryptjs');
 const NotificationService = require('../utils/notification');
 const { logOperation, decorateLog, actionOptions, adminLogScopeSql } = require('../utils/operationLog');
 const { generateWorkerPassword, isValidWorkerPassword } = require('../utils/password');
+const { loadOrderImages, imageCountText, addImageSheet } = require('../utils/orderExportImages');
 
 class AdminController {
   /**
@@ -413,6 +414,7 @@ class AdminController {
       // 查询工单数据
       const [orders] = await db.query(
         `SELECT 
+          wo.id,
           wo.order_no,
           wo.booking_source,
           wo.contact_name as customer_name,
@@ -478,6 +480,7 @@ class AdminController {
         { header: '材料费', key: 'material_fee', width: 10 },
         { header: '人工费', key: 'labor_fee', width: 10 },
         { header: '备注', key: 'remark', width: 30 },
+        { header: '现场图片', key: 'image_count', width: 12 },
         { header: '师傅电话', key: 'worker_phone', width: 15 },
         { header: '接单时间', key: 'confirmed_at', width: 20 },
         { header: '开工时间', key: 'started_at', width: 20 },
@@ -489,14 +492,18 @@ class AdminController {
         { header: '平均评分', key: 'avg_score', width: 12 }
       ];
 
-      // 添加数据
+      const imagesByOrder = await loadOrderImages(orders.map(order => order.id));
       orders.forEach(order => {
         worksheet.addRow({
           ...order,
           booking_source: order.booking_source === 'phone' ? '电话登记' : '小程序',
-          status: OrderStateMachine.getStatusText(order.status)
+          status: OrderStateMachine.getStatusText(order.status),
+          image_count: imageCountText(order.id, imagesByOrder)
         });
       });
+      if (Object.values(imagesByOrder).some(urls => urls.length)) {
+        await addImageSheet(workbook, orders, imagesByOrder);
+      }
 
       // 设置响应头
       const filename = `${new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' }).replaceAll('-', '')}.xlsx`;
