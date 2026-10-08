@@ -151,7 +151,13 @@
           <el-input v-model="registerForm.contact_name" maxlength="50" placeholder="客户姓名" />
         </el-form-item>
         <el-form-item label="手机号" prop="contact_phone">
-          <el-input v-model="registerForm.contact_phone" maxlength="11" placeholder="11 位手机号" />
+          <el-input
+            v-model="registerForm.contact_phone"
+            maxlength="11"
+            inputmode="numeric"
+            placeholder="请填写11位手机号"
+            @input="onRegisterPhoneInput"
+          />
         </el-form-item>
         <el-form-item label="服务地址" prop="full_address">
           <el-input v-model="registerForm.full_address" type="textarea" :rows="2" maxlength="500" show-word-limit placeholder="省市区 + 门牌，至少 5 个字" />
@@ -557,12 +563,25 @@ const registerForm = reactive({
 const registerRules = {
   contact_name: [{ required: true, message: '请填写联系人', trigger: 'blur' }],
   contact_phone: [
-    { required: true, message: '请填写手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
+    { required: true, message: '请填写11位手机号', trigger: 'blur' },
+    {
+      validator: (_rule, value, callback) => {
+        const phone = String(value || '').trim();
+        if (!phone) return callback();
+        if (!/^\d{11}$/.test(phone)) return callback(new Error('请填写11位手机号'));
+        if (!/^1[3-9]\d{9}$/.test(phone)) return callback(new Error('请填写正确的11位手机号'));
+        callback();
+      },
+      trigger: ['blur', 'change']
+    }
   ],
   full_address: [{ required: true, min: 5, message: '地址至少 5 个字', trigger: 'blur' }],
   service_id: [{ required: true, message: '请选择服务项目', trigger: 'change' }]
 };
+
+function onRegisterPhoneInput(value) {
+  registerForm.contact_phone = String(value || '').replace(/\D/g, '').slice(0, 11);
+}
 
 async function openRegisterDialog() {
   Object.assign(registerForm, {
