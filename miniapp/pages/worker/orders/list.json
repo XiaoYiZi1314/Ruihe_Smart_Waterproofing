@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "我的工单",
+  "navigationBarTitleText": "工作台",
   "enablePullDownRefresh": true,
   "usingComponents": {
     "rh-button": "/components/rh-button/rh-button",
@@ -7,8 +7,8 @@
     "rh-empty": "/components/rh-empty/rh-empty",
     "rh-info-row": "/components/rh-info-row/rh-info-row",
     "rh-load-more": "/components/rh-load-more/rh-load-more",
-    "rh-section-title": "/components/rh-section-title/rh-section-title",
     "rh-status-tag": "/components/rh-status-tag/rh-status-tag",
-    "rh-tag-bar": "/components/rh-tag-bar/rh-tag-bar"
+    "rh-tag-bar": "/components/rh-tag-bar/rh-tag-bar",
+    "rh-worker-tabbar": "/components/rh-worker-tabbar/rh-worker-tabbar"
   }
 }

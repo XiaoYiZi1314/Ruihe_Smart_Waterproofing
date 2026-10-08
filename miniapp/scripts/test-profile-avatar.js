@@ -215,6 +215,19 @@ test('worker profile forces password change only on first login', () => {
   assert.match(js, /\/pages\/worker\/orders\/list/);
 });
 
+test('worker workbench and profile use a bottom tab bar like the customer app', () => {
+  const list = read('pages/worker/orders/list.wxml');
+  const profile = read('pages/worker/profile/index.wxml');
+  assert.equal(list.includes('worker-toolbar'), false);
+  assert.equal(list.includes('个人中心'), false);
+  assert.match(list, /<rh-worker-tabbar\b[^>]*active="orders"/);
+  assert.equal(profile.includes('工单工作台'), false);
+  assert.match(profile, /<rh-worker-tabbar\b[^>]*active="profile"/);
+  assert.match(profile, /wx:else>[\s\S]*rh-worker-tabbar/);
+  assert.match(read('pages/worker/orders/list.js'), /onWorkerNav/);
+  assert.match(read('pages/worker/profile/index.js'), /onWorkerNav/);
+});
+
 test('startup refresh completes relative avatar addresses like request.js does', async () => {
   const saved = [];
   let definition;

@@ -8,6 +8,7 @@
     "rh-image": "/components/rh-image/rh-image",
     "rh-info-row": "/components/rh-info-row/rh-info-row",
     "rh-menu-item": "/components/rh-menu-item/rh-menu-item",
-    "rh-section-title": "/components/rh-section-title/rh-section-title"
+    "rh-section-title": "/components/rh-section-title/rh-section-title",
+    "rh-worker-tabbar": "/components/rh-worker-tabbar/rh-worker-tabbar"
   }
 }

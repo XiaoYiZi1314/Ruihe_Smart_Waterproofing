@@ -1,0 +1,12 @@
+<view class="rh-wtabs">
+  <view
+    wx:for="{{items}}"
+    wx:key="key"
+    class="rh-wtabs__item {{active === item.key ? 'is-on' : ''}}"
+    data-key="{{item.key}}"
+    catch:tap="onTap"
+  >
+    <image class="rh-wtabs__icon" src="{{active === item.key ? item.iconOn : item.icon}}" />
+    <text>{{item.label}}</text>
+  </view>
+</view>

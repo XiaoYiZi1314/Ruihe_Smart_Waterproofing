@@ -112,7 +112,11 @@ Page({
   },
 
   preventMove() {},
-  goOrders() { wx.reLaunch({ url: '/pages/worker/orders/list' }); },
+  onWorkerNav(e) {
+    if (e.detail.key === 'orders') {
+      wx.reLaunch({ url: '/pages/worker/orders/list' });
+    }
+  },
   goEditProfile() { wx.navigateTo({ url: '/pages/profile/edit' }); },
   goMessages() { wx.navigateTo({ url: '/pages/notifications/list' }); },
   handleLogout() {

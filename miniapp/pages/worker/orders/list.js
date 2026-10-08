@@ -123,13 +123,10 @@ Page({
     this.loadOrders(false);
   },
 
-  /**
-   * 跳转到师傅个人中心
-   */
-  goProfile() {
-    wx.navigateTo({
-      url: '/pages/worker/profile/index'
-    });
+  onWorkerNav(e) {
+    if (e.detail.key === 'profile') {
+      wx.reLaunch({ url: '/pages/worker/profile/index' });
+    }
   },
 
   /**

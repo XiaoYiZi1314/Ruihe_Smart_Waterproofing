@@ -59,7 +59,9 @@
 }
 
 .logout-wrap {
-  margin: 36rpx 0 16rpx;
+  margin: 36rpx auto 16rpx;
+  width: 560rpx;
+  max-width: calc(100% - 48rpx);
 }
 
 .profile-action {

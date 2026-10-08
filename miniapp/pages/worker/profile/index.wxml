@@ -1,4 +1,4 @@
-<view class="page-wrap page-pad">
+<view class="page-wrap page-pad page-wrap--footer">
   <!-- 首次登录：只允许改密，改完才能进工作台 -->
   <block wx:if="{{userInfo.must_change_password}}">
     <view class="worker-block">
@@ -64,13 +64,15 @@
       </rh-card>
     </view>
 
-    <view class="worker-actions">
-      <rh-button variant="line" text="{{stats.worker_status === 'working' ? '切换休息' : '切换上班'}}" bind:tap="toggleStatus" loading="{{submitting}}" />
-      <rh-button text="工单工作台" bind:tap="goOrders" />
-    </view>
     <view class="logout-wrap">
-      <rh-button variant="danger" size="lg" block text="退出登录" bind:tap="handleLogout" />
+      <view class="profile-action">
+        <rh-button variant="line" size="lg" block text="{{stats.worker_status === 'working' ? '切换休息' : '切换上班'}}" bind:tap="toggleStatus" loading="{{submitting}}" />
+      </view>
+      <view class="profile-action">
+        <rh-button variant="danger" size="lg" block text="退出登录" bind:tap="handleLogout" />
+      </view>
     </view>
+    <rh-worker-tabbar active="profile" bind:change="onWorkerNav" />
   </block>
 
   <view class="modal-mask" wx:if="{{showPasswordModal}}" catchtouchmove="preventMove">

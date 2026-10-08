@@ -1,0 +1,33 @@
+.rh-wtabs {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  background: #ffffff;
+  border-top: 1rpx solid var(--color-border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.rh-wtabs__item {
+  flex: 1;
+  height: 100rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  color: var(--color-gray);
+  font-size: 20rpx;
+  line-height: 1.2;
+}
+
+.rh-wtabs__item.is-on {
+  color: var(--color-brand);
+}
+
+.rh-wtabs__icon {
+  width: 48rpx;
+  height: 48rpx;
+}

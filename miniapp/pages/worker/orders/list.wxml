@@ -1,8 +1,4 @@
-<view class="page-wrap page-pad">
-  <view class="worker-toolbar">
-    <rh-section-title title="师傅工作台" />
-    <rh-button variant="line" text="个人中心" bind:tap="goProfile" />
-  </view>
+<view class="page-wrap page-pad page-wrap--footer">
   <rh-tag-bar items="{{tabs}}" active-key="{{activeTab}}" bind:change="onTabChange" />
   <view class="worker-order" wx:for="{{orders}}" wx:key="id">
     <rh-card>
@@ -23,4 +19,5 @@
   <rh-empty wx:if="{{!loading && loadFailed && orders.length === 0}}" text="网络不佳，加载失败" action-text="重新加载" bind:action="onRetryLoad" />
   <rh-empty wx:elif="{{!loading && orders.length === 0}}" text="暂无工单" />
   <rh-load-more loading="{{loading || loadingMore}}" finished="{{!hasMore}}" />
+  <rh-worker-tabbar active="orders" bind:change="onWorkerNav" />
 </view>
