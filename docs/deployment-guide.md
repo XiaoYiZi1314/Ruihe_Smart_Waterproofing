@@ -648,6 +648,9 @@ npm install --production
 # 运行数据库迁移（如有）
 npm run migrate
 
+# 服务项目字段迁移（服务亮点等增量字段，幂等执行）
+npm run migrate:service-highlights
+
 # 重启服务
 pm2 restart waterproof-api
 ```
