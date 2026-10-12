@@ -24,7 +24,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response) {
       const { status, data } = error.response;
-      const isLoginRequest = /\/auth\/(?:admin\/login|admin-login|login)$/.test(error.config?.url || '');
+      const isLoginRequest = /\/auth\/(?:admin\/login|admin-login|admin-security-question|admin-reset-password|login)$/.test(error.config?.url || '');
       if (status === 401 && !isLoginRequest) {
         localStorage.removeItem('admin_token');
         ElMessage.error('登录已过期，请重新登录');

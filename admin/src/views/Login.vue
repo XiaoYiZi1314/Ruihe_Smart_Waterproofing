@@ -8,6 +8,7 @@
       </div>
 
       <el-form
+        v-if="mode === 'login'"
         ref="formRef"
         :model="form"
         :rules="rules"
@@ -41,6 +42,51 @@
         >
           登 录
         </el-button>
+        <el-button class="forgot-link" link type="primary" @click="startRecover">忘记密码</el-button>
+      </el-form>
+
+      <el-form
+        v-else
+        ref="recoverRef"
+        :model="recover"
+        :rules="recoverRules"
+        label-position="top"
+        size="large"
+        @keyup.enter="question ? submitReset() : loadQuestion()"
+      >
+        <el-form-item label="账号" prop="username">
+          <el-input
+            v-model="recover.username"
+            placeholder="请输入管理员账号"
+            :prefix-icon="User"
+            :disabled="Boolean(question)"
+          />
+        </el-form-item>
+        <template v-if="question">
+          <el-form-item label="密保问题">
+            <el-input :model-value="question" disabled />
+          </el-form-item>
+          <el-form-item label="密保答案" prop="answer">
+            <el-input v-model="recover.answer" placeholder="请输入密保答案" />
+          </el-form-item>
+          <el-form-item label="新密码" prop="new_password">
+            <el-input
+              v-model="recover.new_password"
+              type="password"
+              show-password
+              placeholder="至少 8 位，需包含字母和数字"
+            />
+          </el-form-item>
+        </template>
+        <el-button
+          type="primary"
+          class="login-btn"
+          :loading="loading"
+          @click="question ? submitReset() : loadQuestion()"
+        >
+          {{ question ? '重置密码' : '下一步' }}
+        </el-button>
+        <el-button class="forgot-link" link @click="backToLogin">返回登录</el-button>
       </el-form>
     </div>
   </div>
@@ -55,17 +101,89 @@ import api from '../api';
 
 const router = useRouter();
 const formRef = ref();
+const recoverRef = ref();
 const loading = ref(false);
+const mode = ref('login');
+const question = ref('');
 
 const form = reactive({
   username: '',
   password: ''
+});
+const recover = reactive({
+  username: '',
+  answer: '',
+  new_password: ''
 });
 
 const rules = {
   username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
 };
+const recoverRules = {
+  username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
+  answer: [{ required: true, message: '请输入密保答案', trigger: 'blur' }],
+  new_password: [
+    { required: true, message: '请输入新密码', trigger: 'blur' },
+    {
+      validator: (_rule, value, callback) => {
+        if (typeof value !== 'string' || value.length < 8 || !/[A-Za-z]/.test(value) || !/\d/.test(value)) {
+          callback(new Error('新密码需 8 位以上且包含字母和数字'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'blur'
+    }
+  ]
+};
+
+function startRecover() {
+  recover.username = form.username;
+  recover.answer = '';
+  recover.new_password = '';
+  question.value = '';
+  mode.value = 'recover';
+}
+
+function backToLogin() {
+  form.username = recover.username;
+  question.value = '';
+  mode.value = 'login';
+}
+
+async function loadQuestion() {
+  await recoverRef.value.validateField('username');
+  loading.value = true;
+  try {
+    const res = await api.get('/auth/admin-security-question', { params: { username: recover.username } });
+    question.value = res.data.question;
+  } catch {
+    // 错误已在拦截器中处理
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function submitReset() {
+  await recoverRef.value.validate();
+  loading.value = true;
+  try {
+    await api.post('/auth/admin-reset-password', {
+      username: recover.username,
+      answer: recover.answer,
+      new_password: recover.new_password
+    });
+    form.username = recover.username;
+    form.password = '';
+    ElMessage.success('密码已重置，请使用新密码登录');
+    backToLogin();
+  } catch {
+    // 错误已在拦截器中处理
+  } finally {
+    loading.value = false;
+  }
+}
 
 async function handleLogin() {
   await formRef.value.validate();
@@ -153,6 +271,12 @@ async function handleLogin() {
 
 .login-btn:hover {
   opacity: 0.9;
+}
+
+.forgot-link {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
 }
 
 @media (max-width: 768px) {

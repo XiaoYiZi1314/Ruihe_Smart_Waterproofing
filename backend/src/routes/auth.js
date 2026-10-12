@@ -9,6 +9,8 @@ router.post('/login', loginIpLimit, authController.login);
 
 // 管理员账号密码登录（管理后台）
 router.post('/admin-login', loginIpLimit, loginAccountLimit, authController.adminLogin);
+router.get('/admin-security-question', loginIpLimit, loginAccountLimit, authController.getAdminSecurityQuestion);
+router.post('/admin-reset-password', loginIpLimit, loginAccountLimit, authController.resetAdminPassword);
 
 // 均傅端手机号密码登录
 router.post('/worker-login', loginIpLimit, loginAccountLimit, authController.workerLogin);
@@ -18,6 +20,7 @@ router.get('/me', authenticateToken, authController.getCurrentUser);
 
 router.post('/bind-wechat', authenticateToken, requireRole(['worker']), authController.bindWechat);
 router.post('/change-password', authenticateToken, loginIpLimit, authController.changePassword);
+router.put('/security-question', authenticateToken, requireRole(['admin']), authController.updateSecurityQuestion);
 // 修改个人资料（客户：头像+昵称；师傅：仅头像）
 router.put('/profile', authenticateToken, requireRole(['customer', 'worker']), authController.updateProfile);
 module.exports = router;

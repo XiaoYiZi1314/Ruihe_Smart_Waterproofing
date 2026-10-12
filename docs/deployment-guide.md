@@ -651,6 +651,9 @@ npm run migrate
 # 服务项目字段迁移（服务亮点等增量字段，幂等执行）
 npm run migrate:service-highlights
 
+# 管理员密码保护问题字段（幂等执行）
+npm run migrate:admin-security-question
+
 # 重启服务
 pm2 restart waterproof-api
 ```

@@ -35,7 +35,9 @@ const ADMIN_ACTION_LABELS = {
   delete_banner: '删除轮播',
   update_config: '更新站点配置',
   upload_image: '上传图片',
-  change_password: '修改密码'
+  change_password: '修改密码',
+  set_security_question: '设置密码保护',
+  reset_password: '密保重置密码'
 };
 
 const LEGACY_ACTION_LABELS = {

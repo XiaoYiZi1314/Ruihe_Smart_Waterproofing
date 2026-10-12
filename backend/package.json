@@ -13,6 +13,7 @@
     "migrate:order-edit": "node scripts/migrate-order-edit.js",
     "migrate:service-highlights": "node scripts/migrate-service-highlights.js",
     "migrate:admin-operation-logs": "node scripts/migrate-admin-operation-logs.js",
+    "migrate:admin-security-question": "node scripts/migrate-admin-security-question.js",
     "migrate:company-info": "node scripts/update-company-info.js",
     "seed": "node scripts/seed.js",
     "init-admin": "node scripts/init-admin.js",

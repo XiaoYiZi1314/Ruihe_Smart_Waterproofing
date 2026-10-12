@@ -7,11 +7,23 @@ const { exchangeCode } = require('../utils/wechatIdentity');
 const { logOperation } = require('../utils/operationLog');
 const { purgePublicAvatar } = require('../utils/attachments');
 const { isValidWorkerPassword } = require('../utils/password');
+const { DEFAULT_SECURITY_QUESTION, assertSecurityQuestion, assertSecurityAnswer } = require('../utils/securityQuestion');
 
 function publicUser(user) {
-  return { id: user.id, nickname: user.nickname, avatar_url: user.avatar_url, phone: user.phone,
+  const data = { id: user.id, nickname: user.nickname, avatar_url: user.avatar_url, phone: user.phone,
     role: user.role, created_at: user.created_at, must_change_password: !!user.must_change_password,
     wechat_bound: !!user.wechat_openid || (user.role === 'customer' && !!user.openid) };
+  if (user.role === 'admin') data.security_question = user.security_question || DEFAULT_SECURITY_QUESTION;
+  return data;
+}
+async function findActiveAdmin(identifier) {
+  const account = String(identifier || '').trim();
+  if (!account) return null;
+  const [rows] = await db.query(
+    "SELECT * FROM users WHERE (username=? OR phone=?) AND role='admin' AND status='active' LIMIT 1",
+    [account, account]
+  );
+  return rows[0] || null;
 }
 function session(user) {
   return { token: generateToken({ id: user.id, role: user.role, tokenVersion: user.token_version || 0 }), user: publicUser(user) };
@@ -56,6 +68,54 @@ async function bindWechat(req, res) {
     if (error.code === 'ER_DUP_ENTRY') return res.status(409).json({ success: false, message: '该微信已绑定其他师傅账号' });
     handleError(res, error);
   }
+}
+async function getAdminSecurityQuestion(req, res) {
+  try {
+    const admin = await findActiveAdmin(req.query.username || req.query.account);
+    if (!admin || !admin.security_question || !admin.security_answer_hash) {
+      return res.status(404).json({ success: false, message: '未找到密码保护问题' });
+    }
+    res.json({ success: true, data: { question: admin.security_question } });
+  } catch (error) { handleError(res, error); }
+}
+async function resetAdminPassword(req, res) {
+  try {
+    const identifier = String(req.body.username || req.body.account || '').trim();
+    const answer = assertSecurityAnswer(req.body.answer);
+    if (!identifier) return res.status(400).json({ success: false, message: '请输入账号和密保答案' });
+    if (!isValidWorkerPassword(req.body.new_password, { requireLetterAndDigit: true })) {
+      return res.status(400).json({ success: false, message: '新密码需8位以上且包含字母和数字，最多72字节' });
+    }
+    const admin = await findActiveAdmin(identifier);
+    if (!admin || !admin.security_answer_hash || !(await bcrypt.compare(answer, admin.security_answer_hash))) {
+      return res.status(401).json({ success: false, message: '账号或密保答案不正确' });
+    }
+    const hash = await bcrypt.hash(req.body.new_password, 12);
+    const [result] = await db.query(
+      "UPDATE users SET password=?, must_change_password=0, token_version=token_version+1 WHERE id=? AND role='admin' AND token_version=?",
+      [hash, admin.id, admin.token_version]
+    );
+    if (!result.affectedRows) return res.status(409).json({ success: false, message: '账号凭据已变化，请重新登录' });
+    logOperation({ user_id: admin.id, role: 'admin', action: 'reset_password', detail: '通过密码保护问题重置登录密码', ip: req.ip });
+    res.json({ success: true, message: '密码已重置，请使用新密码登录' });
+  } catch (error) { handleError(res, error); }
+}
+async function updateSecurityQuestion(req, res) {
+  try {
+    const question = assertSecurityQuestion(req.body.question);
+    const answer = assertSecurityAnswer(req.body.answer);
+    if (typeof req.body.current_password !== 'string' || !req.user.password || !(await bcrypt.compare(req.body.current_password, req.user.password))) {
+      return res.status(400).json({ success: false, message: '原密码不正确' });
+    }
+    const answerHash = await bcrypt.hash(answer, 12);
+    const [result] = await db.query(
+      "UPDATE users SET security_question=?, security_answer_hash=? WHERE id=? AND role='admin'",
+      [question, answerHash, req.user.id]
+    );
+    if (!result.affectedRows) return res.status(409).json({ success: false, message: '账号凭据已变化，请重新登录' });
+    logOperation({ user_id: req.user.id, role: 'admin', action: 'set_security_question', detail: '更新密码保护问题', ip: req.ip });
+    res.json({ success: true, message: '密码保护已更新', data: { security_question: question } });
+  } catch (error) { handleError(res, error); }
 }
 async function changePassword(req, res) {
   try {
@@ -108,4 +168,5 @@ async function updateProfile(req, res) {
   } catch (error) { handleError(res, error); }
 }
 module.exports = { login, getCurrentUser, bindWechat, changePassword, updateProfile,
+  getAdminSecurityQuestion, resetAdminPassword, updateSecurityQuestion,
   adminLogin: (req, res) => passwordLogin(req, res, 'admin'), workerLogin: (req, res) => passwordLogin(req, res, 'worker') };

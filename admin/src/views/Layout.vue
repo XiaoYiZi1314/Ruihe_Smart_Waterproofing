@@ -69,6 +69,7 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="password">修改密码</el-dropdown-item>
+                <el-dropdown-item command="security">密码保护</el-dropdown-item>
                 <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -131,6 +132,38 @@
     <template #footer>
       <el-button @click="passwordVisible = false">取消</el-button>
       <el-button type="primary" :loading="passwordSaving" @click="submitPassword">保存</el-button>
+    </template>
+  </el-dialog>
+
+  <el-dialog
+    v-model="securityVisible"
+    title="密码保护"
+    :width="isMobile ? '92%' : '420px'"
+    append-to-body
+    :close-on-click-modal="false"
+    @closed="resetSecurityForm"
+  >
+    <p class="security-tip">忘记密码时，答对密保问题即可重置登录密码。</p>
+    <el-form ref="securityFormRef" :model="securityForm" :rules="securityRules" label-width="88px">
+      <el-form-item label="原密码" prop="current_password">
+        <el-input
+          v-model="securityForm.current_password"
+          type="password"
+          show-password
+          autocomplete="current-password"
+          placeholder="请输入原密码"
+        />
+      </el-form-item>
+      <el-form-item label="密保问题" prop="question">
+        <el-input v-model="securityForm.question" placeholder="我和他第一次遇见的时间" />
+      </el-form-item>
+      <el-form-item label="密保答案" prop="answer">
+        <el-input v-model="securityForm.answer" placeholder="请输入密保答案" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="securityVisible = false">取消</el-button>
+      <el-button type="primary" :loading="securitySaving" @click="submitSecurity">保存</el-button>
     </template>
   </el-dialog>
 </template>
@@ -216,10 +249,63 @@ async function submitPassword() {
   }
 }
 
+const securityVisible = ref(false);
+const securitySaving = ref(false);
+const securityFormRef = ref();
+const securityForm = reactive({
+  current_password: '',
+  question: '我和他第一次遇见的时间',
+  answer: ''
+});
+const securityRules = {
+  current_password: [{ required: true, message: '请输入原密码', trigger: 'blur' }],
+  question: [{ required: true, message: '请输入密保问题', trigger: 'blur' }],
+  answer: [{ required: true, message: '请输入密保答案', trigger: 'blur' }]
+};
+
+function resetSecurityForm() {
+  securityForm.current_password = '';
+  securityForm.answer = '';
+  securityFormRef.value?.clearValidate();
+}
+
+async function openSecurity() {
+  resetSecurityForm();
+  try {
+    const res = await api.get('/auth/me');
+    securityForm.question = (res.data && res.data.security_question) || '我和他第一次遇见的时间';
+  } catch {
+    securityForm.question = '我和他第一次遇见的时间';
+  }
+  securityVisible.value = true;
+}
+
+async function submitSecurity() {
+  await securityFormRef.value.validate();
+  securitySaving.value = true;
+  try {
+    await api.put('/auth/security-question', {
+      current_password: securityForm.current_password,
+      question: securityForm.question,
+      answer: securityForm.answer
+    });
+    securityVisible.value = false;
+    ElMessage.success('密码保护已更新');
+  } catch {
+    // 错误已在拦截器中处理
+  } finally {
+    securitySaving.value = false;
+  }
+}
+
 function handleCommand(command) {
   if (command === 'password') {
     resetPasswordForm();
     passwordVisible.value = true;
+    return;
+  }
+  if (command === 'security') {
+    openSecurity();
     return;
   }
   if (command === 'logout') {
@@ -420,6 +506,13 @@ function handleCommand(command) {
   padding: 20px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.security-tip {
+  margin: 0 0 12px;
+  color: #909399;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 @media (max-width: 768px) {

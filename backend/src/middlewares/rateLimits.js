@@ -5,7 +5,8 @@ const options = { windowMs: 15 * 60 * 1000, standardHeaders: 'draft-8', legacyHe
 const loginIpLimit = rateLimit({ ...options, limit: 40 });
 const loginAccountLimit = rateLimit({ ...options, limit: 10, skipSuccessfulRequests: true,
   keyGenerator: req => {
-    const account = String(req.body.phone || req.body.username || req.body.account || '').trim().toLowerCase();
+    const body = req.body || {};
+    const account = String(body.phone || body.username || body.account || req.query.username || '').trim().toLowerCase();
     return account ? crypto.createHash('sha256').update(account).digest('hex') : ipKeyGenerator(req.ip);
   } });
 const uploadLimit = rateLimit({ ...options, limit: 30, keyGenerator: req => String(req.user.id) });

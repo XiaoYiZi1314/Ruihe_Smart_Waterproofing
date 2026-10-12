@@ -43,7 +43,8 @@ function controller({ user, compareOk = true, affectedRows = 1 } = {}) {
     '../utils/wechatIdentity': {},
     '../utils/operationLog': { logOperation(entry) { logs.push(entry); } },
     '../utils/attachments': {},
-    '../utils/password': require('../src/utils/password')
+    '../utils/password': require('../src/utils/password'),
+    '../utils/securityQuestion': require('../src/utils/securityQuestion')
   });
   return { api, queries, logs, current };
 }
