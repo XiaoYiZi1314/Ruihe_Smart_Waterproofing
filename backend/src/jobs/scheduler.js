@@ -10,8 +10,10 @@ class Scheduler {
     if (this.tasks.length) return;
     this.tasks.push(cron.schedule('30 3 * * *', () => this.run('uploads', () => require('../utils/attachments').cleanupOrphans())));
     this.tasks.push(cron.schedule('40 3 * * *', () => this.run('avatars', () => require('../utils/attachments').cleanupAvatarOrphans())));
+    this.tasks.push(cron.schedule('50 3 * * *', () => this.run('operation-logs', () => require('../utils/operationLog').purgeExpiredLogs())));
     this.tasks.push(cron.schedule('5 * * * *', () => this.run('exception', () => this.detectExceptions())));
     this.tasks.push(cron.schedule('10 * * * *', () => this.run('completion', () => this.completeDueOrders())));
+    this.run('operation-logs', () => require('../utils/operationLog').purgeExpiredLogs());
   }
   static async run(name, fn) {
     if (this.running.has(name)) return;

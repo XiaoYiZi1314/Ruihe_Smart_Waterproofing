@@ -61,3 +61,22 @@ test('admin log list is scoped to administrators and system rows', () => {
   assert.match(log.adminLogScopeSql(), /u\.role = 'admin'/);
   assert.match(log.adminLogScopeSql(), /ol\.user_id IS NULL/);
 });
+
+test('operation logs older than seven days are deleted and newer ones are left alone', async () => {
+  const queries = [];
+  const log = loadLog(async (sql, params) => {
+    queries.push({ sql, params });
+    return [{ affectedRows: 4 }];
+  });
+
+  assert.equal(await log.purgeExpiredLogs(), 4);
+  assert.equal(queries.length, 1);
+  assert.match(queries[0].sql, /DELETE FROM operation_logs/);
+  assert.match(queries[0].sql, /created_at < DATE_SUB\(NOW\(\), INTERVAL 7 DAY\)/);
+});
+
+test('the nightly scheduler purges expired operation logs', () => {
+  const scheduler = fs.readFileSync(path.join(__dirname, '../src/jobs/scheduler.js'), 'utf8');
+  assert.match(scheduler, /cron\.schedule\('[^']+', \(\) => this\.run\('operation-logs'/);
+  assert.match(scheduler, /purgeExpiredLogs/);
+});

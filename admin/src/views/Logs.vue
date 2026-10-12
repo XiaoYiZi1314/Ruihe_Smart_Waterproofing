@@ -1,6 +1,7 @@
 <template>
   <div class="logs-page">
     <el-card shadow="never" class="filter-card">
+      <p class="logs-tip">仅保留近 7 天的操作记录，更早的记录会在每天凌晨自动删除。</p>
       <el-form inline :model="filter">
         <el-form-item label="操作时间">
           <el-date-picker
@@ -218,6 +219,12 @@ onMounted(loadLogs);
 <style scoped>
 .filter-card {
   margin-bottom: 16px;
+}
+
+.logs-tip {
+  margin: 0 0 12px;
+  color: #909399;
+  font-size: 13px;
 }
 
 .pagination-wrap {

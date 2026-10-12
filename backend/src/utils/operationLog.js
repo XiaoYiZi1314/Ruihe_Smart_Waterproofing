@@ -103,8 +103,16 @@ async function logOperation({ user_id = null, order_id = null, action, detail, i
   }
 }
 
+async function purgeExpiredLogs() {
+  const [result] = await db.query(
+    'DELETE FROM operation_logs WHERE created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)'
+  );
+  return result.affectedRows || 0;
+}
+
 module.exports = {
   logOperation,
+  purgeExpiredLogs,
   ACTION_LABELS,
   ADMIN_ACTION_LABELS,
   actionLabel,
