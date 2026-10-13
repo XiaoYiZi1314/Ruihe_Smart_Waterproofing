@@ -1,7 +1,7 @@
 const db = require('../config/database');
 const { nextOrderNo } = require('./orderNumber');
 const ChangeLog = require('./orderChangeLog');
-const { parseCalledAt, formatSqlDateTime, parseImportWorkbook } = require('./orderRegisterImport');
+const { parseCalledAt, formatSqlDateTime, parseImportWorkbook, buildImportSnapshot } = require('./orderRegisterImport');
 
 const BOOKING_SOURCES = { miniapp: '小程序', phone: '电话登记' };
 const SLOTS = ['上午 08-12', '下午 13-18', '晚上 18-20'];
@@ -94,27 +94,67 @@ async function insertPhoneOrder(connection, actor, payload, meta = {}) {
     [userId, payload.contact_name, payload.contact_phone, payload.full_address]
   );
   const calledAt = payload.called_at instanceof Date ? payload.called_at : parseCalledAt(payload.called_at);
+  const snapshot = payload.snapshot || buildImportSnapshot({
+    status: payload.status || 'pending',
+    calledAt,
+    workerId: payload.worker_id || null,
+    finalPrice: payload.final_price == null ? null : payload.final_price,
+    appointmentDate: payload.appointment_date,
+    appointmentSlot: payload.appointment_slot
+  });
   const orderNo = await nextOrderNo(connection, calledAt);
+  const columns = [
+    'order_no', 'user_id', 'service_id', 'address_id', 'contact_name', 'contact_phone',
+    'full_address', 'expected_price', 'remark', 'appointment_date', 'appointment_slot',
+    'status', 'booking_source', 'created_at'
+  ];
+  const values = [
+    orderNo, userId, payload.service_id, address.insertId, payload.contact_name, payload.contact_phone,
+    payload.full_address, payload.expected_price, payload.remark, payload.appointment_date, payload.appointment_slot,
+    snapshot.status, 'phone', Math.floor(calledAt.getTime() / 1000)
+  ];
+  const placeholders = columns.map(column => (column === 'created_at' ? 'FROM_UNIXTIME(?)' : '?'));
+  for (const key of ['worker_id', 'estimated_time', 'assigned_at', 'confirmed_at', 'started_at',
+    'completed_at', 'finished_at', 'cancelled_at', 'cancel_reason', 'auto_complete_at',
+    'door_fee', 'material_fee', 'labor_fee', 'final_price']) {
+    if (snapshot[key] != null) {
+      columns.push(key);
+      values.push(snapshot[key]);
+      placeholders.push('?');
+    }
+  }
   const [result] = await connection.query(
-    `INSERT INTO work_orders
-     (order_no, user_id, service_id, address_id, contact_name, contact_phone,
-      full_address, expected_price, remark, appointment_date, appointment_slot, status, booking_source, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'phone', FROM_UNIXTIME(?))`,
-    [orderNo, userId, payload.service_id, address.insertId, payload.contact_name, payload.contact_phone,
-      payload.full_address, payload.expected_price, payload.remark, payload.appointment_date, payload.appointment_slot,
-      Math.floor(calledAt.getTime() / 1000)]
+    `INSERT INTO work_orders (${columns.join(', ')}) VALUES (${placeholders.join(', ')})`,
+    values
   );
   const orderId = result.insertId;
+  const entries = [];
+  if (snapshot.status !== 'pending') {
+    entries.push({ field: 'status', old_value: null, new_value: ChangeLog.normalize('status', snapshot.status) });
+  }
+  if (snapshot.worker_id) {
+    entries.push({ field: 'worker_id', old_value: null, new_value: payload.worker_label || `#${snapshot.worker_id}` });
+    await connection.query('UPDATE users SET assign_count = assign_count + 1 WHERE id = ?', [snapshot.worker_id]);
+  }
+  if (snapshot.final_price != null) {
+    entries.push({ field: 'final_price', old_value: null, new_value: ChangeLog.normalize('final_price', snapshot.final_price) });
+  }
   await ChangeLog.record(connection, {
     orderId,
     actor: { id: actor.id, role: 'admin', nickname: actor.nickname, username: actor.username },
     source: 'admin_edit',
     action: 'register',
-    entries: [],
+    entries,
     ip: meta.ip
   });
   await connection.query('UPDATE services SET order_count = order_count + 1 WHERE id = ?', [payload.service_id]);
-  return { id: orderId, order_no: orderNo, booking_source: 'phone', created_at: formatSqlDateTime(calledAt) };
+  return {
+    id: orderId,
+    order_no: orderNo,
+    booking_source: 'phone',
+    created_at: formatSqlDateTime(calledAt),
+    status: snapshot.status
+  };
 }
 
 async function withTransaction(work) {
@@ -139,7 +179,8 @@ async function registerPhoneOrder(actor, body, meta = {}) {
 
 async function importPhoneOrders(actor, buffer, meta = {}) {
   const [services] = await db.query('SELECT id, name FROM services WHERE is_active=1 ORDER BY id');
-  const parsed = await parseImportWorkbook(buffer, { services, now: new Date() });
+  const [workers] = await db.query("SELECT id, nickname, phone, status FROM users WHERE role='worker'");
+  const parsed = await parseImportWorkbook(buffer, { services, workers, now: new Date() });
   const payloads = [];
   for (const item of parsed.rows) {
     try {
@@ -148,6 +189,11 @@ async function importPhoneOrders(actor, buffer, meta = {}) {
         called_at: item.body.called_at
       });
       payload.called_at = item.body.calledAtDate;
+      payload.status = item.body.status;
+      payload.worker_id = item.body.worker_id;
+      payload.worker_label = item.body.worker_label;
+      payload.final_price = item.body.final_price;
+      payload.snapshot = item.body.snapshot;
       payload._row = item.row;
       payloads.push(payload);
     } catch (error) {

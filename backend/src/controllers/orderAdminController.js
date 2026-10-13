@@ -44,7 +44,8 @@ exports.registerOrder = async (req, res) => {
 exports.downloadRegisterTemplate = async (req, res) => {
   try {
     const [services] = await db.query('SELECT name FROM services WHERE is_active=1 ORDER BY id');
-    const workbook = await buildImportTemplate(services.map(item => item.name));
+    const [workers] = await db.query("SELECT nickname FROM users WHERE role='worker' AND status='active' ORDER BY id");
+    const workbook = await buildImportTemplate(services.map(item => item.name), workers.map(item => item.nickname));
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename="phone-register-template.xlsx"');
     await workbook.xlsx.write(res);

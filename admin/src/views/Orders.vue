@@ -200,7 +200,7 @@
     </el-dialog>
 
     <el-dialog v-model="importDialogVisible" title="批量导入电话登记" width="560px" destroy-on-close>
-      <p class="import-hint">用于补登历史来电：填写实际来电时间（精确到分钟）。导入的仍是正式工单，工单号按系统规则顺延（来电日期 + 当日序号），列表也按来电时间排列。有任一行错误则全部不导入，一次最多 100 条。现场图片请导入后再在工单详情里补充。</p>
+      <p class="import-hint">用于补登历史来电：填写实际来电时间（精确到分钟）。导入的仍是正式工单，工单号按来电日期顺延，列表按来电时间排列。工单状态可空（默认待确认）；历史已完成可直接填「已完成」，时间节点按来电时间回填，不必再走指派。已确认/施工中/完工待验收须填师傅。有任一行错误则全部不导入，一次最多 100 条。现场图片请导入后再在工单详情里补充。</p>
       <div class="import-actions">
         <el-button @click="downloadImportTemplate">下载模板</el-button>
         <el-upload
